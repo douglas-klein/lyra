@@ -30,6 +30,8 @@ statement               :
                         | superstat  ';'
                         | ifstat
                         | forstat
+                        | whilestat
+                        | switchstat
                         | '{' statlist '}'
                         | lvalue     ';'
                         | 'break' ';'
@@ -37,8 +39,13 @@ statement               :
 atribstat               : lvalue '=' (aloc_expr | expr);
 returnstat              : 'return' (expr)?;
 superstat               : 'super' '(' args ')';
-ifstat                  : 'if' '(' expr ')' statement ( 'else' statement)? ;
-forstat                 : 'for' '(' (atribstat)? ';' (expr)? ';' (atribstat)? ')' statement;
+ifstat                  : 'if'  expr  statement ( 'else' statement)? ;
+forstat                 : 'for' atribstat? ';' expr? ';' atribstat?  statement;
+whilestat               : 'while' expr? statement;
+switchstat              : 'switch' IDENT '{' caselist '}';
+caselist                : casedecl (caselist)? | casedefault;
+casedecl                : 'case' expr ':' statement ;
+casedefault             : 'case' 'default' ':' statement ;
 statlist                : statement (statlist)?;
 lvalue                  : (IDENT | callOp) ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
 callOp                  : IDENT '(' args ')';
@@ -50,9 +57,9 @@ default_enum            : IDENT (',' IDENT) ;
 named_enum              : IDENT '=' ( STRING | NUMBER ) (';' IDENT '=' ( STRING | NUMBER ))* ;
 type                    : IDENT ;
 ident_list              : IDENT ( ',' IDENT )* ;
-IDENT                   : [a-zA-Z+_*-] [a-zA-Z_0-9]* ;
+IDENT                   : [a-zA-Z] [a-zA-Z_0-9]* ;
 STRING                  : '"' ( '\\"' | . )*? '"' ;
-NUMBER                  : [+-]? ([0-9] | [1-9][0-9]*)( '.' [0-9]* )? ;
+NUMBER                  : ([0-9] | [1-9][0-9]*)( '.' [0-9]* )? ;
 INCREMENT_DECREMENT     : ('1'..'9')('0'..'9')*('++' | '--') ;
 BOOLEAN_VALUE           : 'true' | 'false' ;
 NULL                    : 'null' ;
