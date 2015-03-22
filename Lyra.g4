@@ -13,10 +13,10 @@ attribute_decl          : type IDENT('[' ']')* (',' IDENT ('[' ']')* )* ';'
                         | type IDENT('[' ']')* (',' IDENT ('[' ']')* )* '=' ( expr | aloc_expr )';' ;
 // Expressoes da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
 expr                    : numexp (( '>' | '<' | '>=' | '<=' | '==' | '!=' | 'or' | 'and' | 'is') numexp)?;
-numexp                  : term ( ('+' | '-' ) term )* ;
+numexp                  : term ( ('+' | '-' | '!' ) term )* ;
 term                    : unaryexp ( ('*' | '/' | '%' ) unaryexp )*;
-unaryexp                : ('+' | '-' | 'not')? factor ;
-factor                  : NUMBER | STRING | NULL | lvalue | call | '(' expr ')';
+unaryexp                : ('+' | '-')? factor ;
+factor                  : NUMBER | STRING | NULL | lvalue | '(' expr ')';
 // Expressoes de alocação de objetos e arrays da forma ... " new Dog() " ... " new Point(2,2) ... " new Int[10] "
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
 method_decl             : 'def' IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
@@ -32,20 +32,16 @@ statement               :
                         | forstat
                         | '{' statlist '}'
                         | lvalue     ';'
-                        | methodcall ';'
-                        | thiscall   ';'
                         | 'break' ';'
-                        | ';' ) ;
+                        | ';') ;
 atribstat               : lvalue '=' (aloc_expr | expr);
 returnstat              : 'return' (expr)?;
 superstat               : 'super' '(' args ')';
 ifstat                  : 'if' '(' expr ')' statement ( 'else' statement)? ;
 forstat                 : 'for' '(' (atribstat)? ';' (expr)? ';' (atribstat)? ')' statement;
 statlist                : statement (statlist)?;
-lvalue                  : IDENT ( '[' expr ']' )*  ;
-thiscall                : IDENT ('(' args ')')? ;
-methodcall              : lvalue '.' IDENT ('(' args ')')? ;
-call                    : (thiscall | methodcall) ;
+lvalue                  : (IDENT | callOp) ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
+callOp                  : IDENT '(' args ')';
 interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
 method_decl_abstract    : 'def' IDENT '(' params ')'? (':' IDENT)? ';' ;
 enumdecl                : 'enum' IDENT '{' enum_body '}' ;
@@ -62,4 +58,4 @@ BOOLEAN_VALUE           : 'true' | 'false' ;
 NULL                    : 'null' ;
 COMMENT                 : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */
 LINECOMMENT             : '//' .*? ('\r' | '\n') -> skip ;
-WS                      : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlinesm
+WS                      : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
