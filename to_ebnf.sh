@@ -22,6 +22,7 @@ sed -r -e "s;'/\*';GAMBIARRA_SALVA_ABRE_COMMENT;" \
                 -e 's;/\*.*\*/;;' \
                 -e 's/grammar.*;//' \
                 -e 's/->\s*\w+//' \
+		-e 's/\*\?/*/' \
                 -e 's/^([a-zA-Z0-9_\-]+\s+):/\1::=/' \
        | sed -r 's/\s*;\s*$//' \
        | sed -r '/^\s*$/ d' \

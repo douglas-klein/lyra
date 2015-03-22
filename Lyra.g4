@@ -50,11 +50,11 @@ named_enum              : IDENT '=' ( STRING | NUMBER ) (';' IDENT '=' ( STRING 
 type                    : IDENT ;
 ident_list              : IDENT ( ',' IDENT )* ;
 IDENT                   : [a-zA-Z+_*-] [a-zA-Z_0-9]* ;
-STRING                  : '"' ( '\\"' | . )* '"' ;
+STRING                  : '"' ( '\\"' | . )*? '"' ;
 NUMBER                  : [+-]? ([0-9] | [1-9][0-9]*)( '.' [0-9]* )? ;
 INCREMENT_DECREMENT     : ('1'..'9')('0'..'9')*('++' | '--') ;
 BOOLEAN_VALUE           : 'true' | 'false' ;
 NULL                    : 'null' ;
-COMMENT                 : '/*' .* '*/' -> skip ; // .*? matches anything until the first */
-LINECOMMENT             : '//' .* ('\r' | '\n') -> skip ;
+COMMENT                 : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */
+LINECOMMENT             : '//' .*? ('\r' | '\n') -> skip ;
 WS                      : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlinesm
