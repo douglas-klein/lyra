@@ -15,8 +15,8 @@ attribute_decl          : type IDENT('[' ']')* (',' IDENT ('[' ']')* )* ';'
 expr                    : numexp (( '>' | '<' | '>=' | '<=' | '==' | '!=' | 'or' | 'and' | 'is') numexp)?;
 numexp                  : term ( ('+' | '-' ) term )* ;
 term                    : unaryexp ( ('*' | '/' | '%' ) unaryexp )*;
-unaryexp                : ('+' | '-')? factor ;
-factor                  : NUMBER | STRING | NULL | lvalue | '(' expr ')';
+unaryexp                : ('+' | '-' | 'not')? factor ;
+factor                  : NUMBER | STRING | NULL | lvalue | call | '(' expr ')';
 // Expressoes de alocação de objetos e arrays da forma ... " new Dog() " ... " new Point(2,2) ... " new Int[10] "
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
 method_decl             : 'def' IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
@@ -43,9 +43,9 @@ ifstat                  : 'if' '(' expr ')' statement ( 'else' statement)? ;
 forstat                 : 'for' '(' (atribstat)? ';' (expr)? ';' (atribstat)? ')' statement;
 statlist                : statement (statlist)?;
 lvalue                  : IDENT ( '[' expr ']' )*  ;
-call                    : IDENT ('(' args ')')? ;
-thiscall                : call ;
-methodcall              : lvalue '.' call ;
+thiscall                : IDENT ('(' args ')')? ;
+methodcall              : lvalue '.' IDENT ('(' args ')')? ;
+call                    : (thiscall | methodcall) ;
 interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
 method_decl_abstract    : 'def' IDENT '(' params ')'? (':' IDENT)? ';' ;
 enumdecl                : 'enum' IDENT '{' enum_body '}' ;
