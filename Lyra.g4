@@ -12,7 +12,7 @@ importdecl              : 'import' STRING ';' ;
 /*  O Não Terminal class possibilitava herança multipla
     como não vamos ter isso na linguagem e sim interfaces multiplas, isso foi corrigido
 */
-classdecl               : class_modifiers 'class' IDENT ('extends' IDENT)? implementsdecl '{' class_body '}' ;
+classdecl               : class_modifiers 'class' IDENT ('extends' IDENT)? implementsdecl? '{' class_body '}' ;
 class_modifiers         : visbility_modifier? ( 'final' | 'abstract' )? ;
 visbility_modifier      : 'public' | 'protected' | 'private' ;
 //extends               : 'extends' ident_list ; // removido
@@ -29,16 +29,34 @@ expr                    : numexp (( '>' | '<' | '>=' | '<=' | '==' | '!=' | 'or'
 numexp                  : term ( ('+' | '-' ) term )* ;
 term                    : unaryexp ( ('*' | '/' | '%' ) unaryexp )*;
 unaryexp                : ('+' | '-')? factor ;
-factor                      : NUMBER | STRING | NULL | lvalue | '(' expr ')';
-// Exemplos: dog.function( args )  ... ou ... dog[1].function2( args )
-lvalue                  : IDENT ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
+factor                  : NUMBER | STRING | NULL | lvalue | '(' expr ')';
 // Expressoes de alocação de objetos e arrays da forma ... " new Dog() " ... " new Point(2,2) ... " new Int[10] "
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
 
-method_decl             : 'def' IDENT '(' params ')' (':' type)? '{' method_body '}' ;
-method_body             : 'not implemented yet';
+method_decl             : 'def' IDENT ('(' params ')')? (':' type)? '{' method_body '}' ;
+method_body             : statlist;
 params                  : type IDENT (',' type IDENT)* ;
-args                    : ( IDENT | NULL ) ( ',' ( IDENT | NULL ))* ;
+args                    : ( expr (',' expr)* )? ;
+
+statement               :
+                        ( attribute_decl
+                        | atribstat  ';'
+                        | returnstat ';'
+                        | superstat  ';'
+                        | ifstat
+                        | forstat
+                        | '{' statlist '}'
+                        | lvalue     ';'
+                        | 'break' ';'
+                        | ';' ) ;
+atribstat               : lvalue '=' (aloc_expr | expr);
+returnstat              : 'return' (expr)?;
+superstat               : 'super' '(' args ')';
+ifstat                  : 'if' '(' expr ')' statement ( 'else' statement)? ;
+forstat                 : 'for' '(' (atribstat)? ';' (expr)? ';' (atribstat)? ')' statement;
+statlist                : statement (statlist)?;
+lvalue                  : IDENT ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
+
 
 interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
 method_decl_abstract    : 'def' IDENT '(' params ')'? (':' IDENT)? ';' ;
