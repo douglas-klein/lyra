@@ -63,9 +63,7 @@ casedecl                : 'case' expr ':' statement ;
 casedefault             : 'case' 'default' ':' statement ;
 statlist                : statement (statlist)?;
 lvalue                  : (IDENT | callOp) ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
-callOp                  : 
-                        ( IDENT '(' args ')'
-                        | IDENT argsWs );
+callOp                  : IDENT '(' args ')' ;
 interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
 method_decl_abstract    : 'def' IDENT '(' params ')'? (':' IDENT)? ';' ;
 enumdecl                : 'enum' IDENT '{' enum_body '}' ;
