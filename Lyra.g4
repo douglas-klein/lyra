@@ -10,7 +10,7 @@ class_body              : ( attribute_decl | method_decl )* ;
 // Declarações podem ser do tipo Int a,b,c; ... ou ...  Int a = 1; ... ou ... Int a,b,c = 1,2,3;
 // OBS : A forma ... Int a,b,c = 1,2,3; ainda não funciona na nosas gramática
 attribute_decl          : type IDENT('[' ']')* (',' IDENT ('[' ']')* )* ';'
-                        | type IDENT('[' ']')* (',' IDENT ('[' ']')* )* '=' ( expr | aloc_expr )';' ;
+                        | type IDENT('[' ']')* (',' IDENT ('[' ']')* )* '=' expr ';' ;
 
 // Expressões de operadores da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
 expr                    : expr_2 ( IDENT expr_2)? ;
@@ -22,7 +22,7 @@ expr_6                  : expr_7 ( ('<' | '<=' | '>=' | '>') expr_7)? ;
 expr_7                  : expr_8 ( ('+' | '-') expr_8)? ;
 expr_8                  : unaryexpr ( ('*' | '/' | '%') unaryexpr)? ;
 unaryexpr               : ('!' | '+' | '-')? factor ;
-factor                  : NUMBER | STRING | NULL | lvalue | '(' expr ')';
+factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | '(' expr ')';
 
 // Expressoes de alocação de objetos e arrays da forma ... " new Dog() " ... " new Point(2,2) ... " new Int[10] "
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
