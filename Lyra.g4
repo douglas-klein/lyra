@@ -27,7 +27,8 @@ expr_7                  : expr_8 expr_7_opt ;
 expr_7_opt              : ('+' | '-') expr_8 expr_7_opt | ;
 expr_8                  : unaryexpr expr_8_opt ;
 expr_8_opt              : ('*' | '/' | '%') unaryexpr expr_8_opt | ;
-unaryexpr               : ('!' | '+' | '-')? factor INCREMENT_DECREMENT?;
+unaryexpr               : ('!' | '+' | '-')? unaryexpr_2 ;
+unaryexpr_2             : factor INCREMENT_DECREMENT?;
 factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | '(' expr ')';
 
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
