@@ -12,7 +12,7 @@ class_body              : ( attribute_decl | method_decl )* ;
 attribute_decl          : type IDENT('[' ']')* (',' IDENT ('[' ']')* )* ';'
                         | type IDENT('[' ']')* (',' IDENT ('[' ']')* )* '=' ( expr | aloc_expr )';' ;
 // Expressoes da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
-expr                    : numexp (( '>' | '<' | '>=' | '<=' | '==' | '!=' | 'or' | 'and' | 'is') numexp)?;
+expr                    : numexp (( '>' | '<' | '>=' | '<=' | '==' | '!=' | 'or' | 'and' | 'is' | IDENT) numexp)?;
 numexp                  : term ( ('+' | '-' | '!' ) term )* ;
 term                    : unaryexp ( ('*' | '/' | '%' ) unaryexp )*;
 unaryexp                : ('+' | '-')? factor ;
@@ -60,7 +60,7 @@ default_enum            : IDENT (',' IDENT) ;
 named_enum              : IDENT '=' ( STRING | NUMBER ) (';' IDENT '=' ( STRING | NUMBER ))* ;
 type                    : IDENT ;
 ident_list              : IDENT ( ',' IDENT )* ;
-IDENT                   : [a-zA-Z] [a-zA-Z_0-9]* ;
+IDENT                   : [a-zA-Z_] [a-zA-Z_0-9]* ;
 STRING                  : '"' ( '\\"' | . )*? '"' ;
 NUMBER                  : ([0-9] | [1-9][0-9]*)( '.' [0-9]* )? ;
 INCREMENT_DECREMENT     : ('1'..'9')('0'..'9')*('++' | '--') ;
