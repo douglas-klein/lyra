@@ -13,14 +13,22 @@ attribute_decl          : type IDENT('[' ']')* (',' IDENT ('[' ']')* )* ';'
                         | type IDENT('[' ']')* (',' IDENT ('[' ']')* )* '=' expr ';' ;
 
 // Expressões de operadores da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
-expr                    : expr_2 ( IDENT expr_2)? ;
-expr_2                  : expr_3 ( 'or' expr_3)? ;
-expr_3                  : expr_4 ( 'and' expr_4)? ;
-expr_4                  : expr_5 ( 'is' expr_5)? ;
-expr_5                  : expr_6 ( ('==' | '!=') expr_6)? ;
-expr_6                  : expr_7 ( ('<' | '<=' | '>=' | '>') expr_7)? ;
-expr_7                  : expr_8 ( ('+' | '-') expr_8)? ;
-expr_8                  : unaryexpr ( ('*' | '/' | '%') unaryexpr)? ;
+expr                    : expr_2 expr_opt;
+expr_opt                : IDENT expr_2 expr_opt | ;
+expr_2                  : expr_3 expr_2_opt ;
+expr_2_opt              : 'or' expr_3 expr_2_opt | ;
+expr_3                  : expr_4 expr_3_opt ;
+expr_3_opt              : 'and' expr_4 expr_3_opt | ;
+expr_4                  : expr_5 expr_4_opt ;
+expr_4_opt              : 'is' expr_5 expr_4_opt | ;
+expr_5                  : expr_6 expr_5_opt ;
+expr_5_opt              : ('==' | '!=') expr_6 expr_5_opt | ;
+expr_6                  : expr_7 expr_6_opt ;
+expr_6_opt              : ('<' | '<=' | '>=' | '>') expr_7 expr_6_opt| ;
+expr_7                  : expr_8 expr_7_opt ;
+expr_7_opt              : ('+' | '-') expr_8 expr_7_opt | ;
+expr_8                  : unaryexpr expr_8_opt ;
+expr_8_opt              : ('*' | '/' | '%') unaryexpr expr_8_opt | ;
 unaryexpr               : ('!' | '+' | '-')? factor ;
 factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | '(' expr ')';
 
