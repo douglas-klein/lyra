@@ -11,12 +11,19 @@ class_body              : ( attribute_decl | method_decl )* ;
 // OBS : A forma ... Int a,b,c = 1,2,3; ainda não funciona na nosas gramática
 attribute_decl          : type IDENT('[' ']')* (',' IDENT ('[' ']')* )* ';'
                         | type IDENT('[' ']')* (',' IDENT ('[' ']')* )* '=' ( expr | aloc_expr )';' ;
-// Expressoes da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
-expr                    : numexp (( '>' | '<' | '>=' | '<=' | '==' | '!=' | 'or' | 'and' | 'is' | IDENT) numexp)?;
-numexp                  : term ( ('+' | '-' | '!' ) term )* ;
-term                    : unaryexp ( ('*' | '/' | '%' ) unaryexp )*;
-unaryexp                : ('+' | '-')? factor ;
+
+// Expressões de operadores da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
+expr                    : expr_2 ( IDENT expr_2)? ;
+expr_2                  : expr_3 ( 'or' expr_3)? ;
+expr_3                  : expr_4 ( 'and' expr_4)? ;
+expr_4                  : expr_5 ( 'is' expr_5)? ;
+expr_5                  : expr_6 ( ('==' | '!=') expr_6)? ;
+expr_6                  : expr_7 ( ('<' | '<=' | '>=' | '>') expr_7)? ;
+expr_7                  : expr_8 ( ('+' | '-') expr_8)? ;
+expr_8                  : unaryexpr ( ('*' | '/' | '%') unaryexpr)? ;
+unaryexpr               : ('!' | '+' | '-')? factor ;
 factor                  : NUMBER | STRING | NULL | lvalue | '(' expr ')';
+
 // Expressoes de alocação de objetos e arrays da forma ... " new Dog() " ... " new Point(2,2) ... " new Int[10] "
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
 method_decl             : 'def' IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
