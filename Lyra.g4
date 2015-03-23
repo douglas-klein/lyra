@@ -23,6 +23,7 @@ method_decl             : 'def' IDENT ('(' params ')')? (':' type)? '{' method_b
 method_body             : statlist;
 params                  : type IDENT (',' type IDENT)* ;
 args                    : ( expr (',' expr)* )? ;
+argsWs                  : expr+ ;
 statement               :
                         ( attribute_decl
                         | atribstat  ';'
@@ -48,7 +49,9 @@ casedecl                : 'case' expr ':' statement ;
 casedefault             : 'case' 'default' ':' statement ;
 statlist                : statement (statlist)?;
 lvalue                  : (IDENT | callOp) ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
-callOp                  : IDENT '(' args ')';
+callOp                  : 
+                        ( IDENT '(' args ')'
+                        | IDENT argsWs );
 interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
 method_decl_abstract    : 'def' IDENT '(' params ')'? (':' IDENT)? ';' ;
 enumdecl                : 'enum' IDENT '{' enum_body '}' ;
