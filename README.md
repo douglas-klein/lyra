@@ -113,7 +113,7 @@ rex come carne * 2 	//  rex come (carne * 2)  ->  rex.come(carne * 2);
 
 ### Precedência de operadores
 
-#  | precedência (crescente)
+nr | precedência (crescente)
 ---|------------------------
  1 | métodos infixados
  2 | or
