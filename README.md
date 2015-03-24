@@ -1,12 +1,13 @@
-# Linguagem de Programação para a disciplina de Construção de Compiladores (INE5429) do curso de Ciência da Computação da UFSC
+# Linguagem de Programação Lyra
 
 ### Características da linguagem:
 - Imperativa
 - Orientada a Objetos
 - Fortemente Tipada
 - Baseada em Java, C++ e Scala e Ruby
+- Permite Métodos infixados
 
-Hello world:
+###Hello world
 
 ```ruby
 class Application {
@@ -18,7 +19,7 @@ class Application {
 ```
 
 ### Palavras reservadas:
-abstract case class continue def default Double enum else extends final float for if implements import Int interface null panic private protected public return String super switch this void while
+abstract and break case class continue def default Double enum else extends final Float for forever if implements import infix Int interface is new null or panic private protected public return String super switch this void while
 
 ### Estruturas sintáticas
 
@@ -49,7 +50,7 @@ def latir {
 
 ####Estruturas de controle
 
-if
+- if
 ```ruby
 if x >= 2 {
     umaCoisa();
@@ -58,21 +59,21 @@ if x >= 2 {
 }
 ```
 
-for
+- for
 ```ruby
 for Int i = 0; i < 10; i++; {
     coisa(i);
 }
 ```
 
-while
+- while
 ```ruby
 while objeto.cansado {
     objeto.descansar();
 }
 ```
 
-switch
+- switch
 ```ruby
 switch documento.tipo {
     case "RG":
@@ -86,6 +87,67 @@ switch documento.tipo {
 }
 ```
 
-####Classes e interfaces
+- forever
+```ruby
+forever {
+	out.print('Executando para sempre');
+}
+```
 
-##Orientção a objetos
+- Métodos infixados
+
+```ruby
+class Cachorro {
+	def infix come (Comida c) : Cachorro { ... }
+}
+
+class Comida { 
+	private def infix __mul(Comida c, Int n) : Comida { ... }
+}
+	
+
+rex come carne * 2 	//  rex come (carne * 2)  ->  rex.come(carne * 2);
+>>> rex
+```
+
+
+### Precedência de operadores
+
+#  | precedência (crescente)
+---|------------------------
+ 1 | métodos infixados
+ 2 | or
+ 3 | and
+ 4 | is, ==, !=
+ 5 | <, <=, >, >=
+ 6 | +, -
+ 7 | *, /, %
+ 8 | !, +, - (op. unários)
+
+
+##Orientação a objetos
+- Tudo é objeto
+- Permite sobrescrita de operadores
+
+
+####Classes e interfaces
+```ruby
+
+interface Countable {
+    def count : Int;
+}
+
+interface Comparable {
+    def compare (Comparable rhs) : Int;
+}
+
+class ConcreteObject implements Countable, Comparable {
+    def count : Int {
+        return 1;
+    }
+
+    def compare (Comparable rhs) : Int {
+    	...
+    }
+}
+```
