@@ -151,3 +151,12 @@ class ConcreteObject implements Countable, Comparable {
     }
 }
 ```
+
+### Diagramas de Sintaxe
+
+- [Program] (http://htmlpreview.github.io/?https://github.com/douglasklein2/ant/blob/master/syntax_graphs/Lyra.g4.html#program)
+- [Declaração de classe] (http://htmlpreview.github.io/?https://github.com/douglasklein2/ant/blob/master/syntax_graphs/Lyra.g4.html#classdecl)
+- [IF] (http://htmlpreview.github.io/?https://github.com/douglasklein2/ant/blob/master/syntax_graphs/Lyra.g4.html#ifstat)
+- [Statement] (http://htmlpreview.github.io/?https://github.com/douglasklein2/ant/blob/master/syntax_graphs/Lyra.g4.html#statement)
+- [Declaração de Método] (http://htmlpreview.github.io/?https://github.com/douglasklein2/ant/blob/master/syntax_graphs/Lyra.g4.html#method_decl)
+
