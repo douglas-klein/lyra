@@ -12,20 +12,21 @@ Hello world:
 class Application {
 
     def main {
-        print('Hello World!');
+        out.print('Hello World!');
     }
 }
 ```
 
 ### Palavras reservadas:
-abstract break case class const continue def default double enum else extends final float for if implements import in int interface null panic print private protected public read return string super switch this void while
+abstract case class continue def default Double enum else extends final float for if implements import Int interface null panic private protected public return String super switch this void while
 
 ### Estruturas sintáticas
 
 ####Atribuição
 ```ruby
-int nome = "Buster";
-```	
+Int nome = "Buster";
+Object obj = new PostModernistObject();
+```
 
 ####Declaração e chamada de método
 
@@ -33,22 +34,58 @@ A sintaxe da declaração de métodos é semelhante a Scala.
 Métodos que não têm parâmetros dispensam o uso de parênteses.
 
 ```ruby
-def quadrado(int numero) : int {
-	return numero * numero;
+def quadrado(int numero) : Int {
+    return numero * numero;
 }
 
-def foo? : boolean {
-	return true;
+def foo : Boolean {
+    return true;
 }
 
-quadrado(3);
->>> 9
-
-foo?;
->>> true
-
-int cubo = lambda x : x * x * x;
-
-cubo(4)
->>> 64
+def latir {
+    out.print("AU AU");
+}
 ```
+
+####Estruturas de controle
+
+if
+```ruby
+if x >= 2 {
+    umaCoisa();
+} else {
+    outraCoisa();
+}
+```
+
+for
+```ruby
+for Int i = 0; i < 10; i++; {
+    coisa(i);
+}
+```
+
+while
+```ruby
+while objeto.cansado {
+    objeto.descansar();
+}
+```
+
+switch
+```ruby
+switch documento.tipo {
+    case "RG":
+        validaRG(documento.numero);
+        verificarOrgaoExpeditor;
+        //não é necessário break case acaba aqui
+    case "CPF":
+        validaCPF(documento.numero);
+    case default:
+        panic();
+}
+```
+
+####Classes e interfaces
+
+##Orientção a objetos
