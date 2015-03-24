@@ -3,11 +3,17 @@ grammar Lyra;
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
 importdecl              : 'import' STRING ';' ;
 classdecl               : class_modifiers 'class' IDENT ('extends' IDENT)? implementsdecl? '{' class_body '}' ;
-class_modifiers         : visbility_modifier? ( 'final' | 'abstract' )? ;
-visbility_modifier      : 'public' | 'protected' | 'private' ;
+class_modifiers         : visibility_modifier? ( 'final' | 'abstract' )? ;
+visibility_modifier     : 'public' | 'protected' | 'private' ;
 implementsdecl          : 'implements' ident_list;
 class_body              : ( attribute_decl ';' | method_decl )* ;
-attribute_decl          : type IDENT('[]')* ( ',' IDENT ('[]')* )* ('=' ( exprlist | aloc_expr ))?;
+attribute_decl          : visibility_modifier? type IDENT('[]')* ( ',' IDENT ('[]')* )* ('=' ( exprlist | aloc_expr ))?;
+interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
+
+//Métodos declarados dessa maneira são sempre abstract, não podem ser 
+//implementados nessa classe e devem ser implementados por alguma classe filha
+method_decl_abstract    : visibility_modifier? 'def' IDENT ('(' params ')')? (':' IDENT)? ';' ;
+
 
 // Expressões de operadores da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
 exprlist                : expr (',' expr)*;
@@ -32,7 +38,7 @@ unaryexpr_2             : factor INCREMENT_DECREMENT?;
 factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | '(' expr ')';
 
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
-method_decl             : 'def' IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
+method_decl             : visibility_modifier? 'def' IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
 method_body             : statlist;
 params                  : type IDENT (',' type IDENT)* ;
 args                    : ( expr (',' expr)* )? ;
@@ -64,8 +70,6 @@ casedefault             : 'case' 'default' ':' statement ;
 statlist                : statement (statlist)?;
 lvalue                  : (IDENT | callOp) ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
 callOp                  : IDENT '(' args ')' ;
-interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
-method_decl_abstract    : 'def' IDENT '(' params ')'? (':' IDENT)? ';' ;
 enumdecl                : 'enum' IDENT '{' enum_body '}' ;
 enum_body               : default_enum | named_enum ;
 default_enum            : IDENT (',' IDENT) ;
