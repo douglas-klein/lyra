@@ -786,7 +786,7 @@ footer {
   <div class="ebnf">
   <h4>Text notation:</h4>
   <div>
-    <span class="rule">statement</span> :  <span class="operator">(</span> <a href="#attribute_decl" class="rule">attribute_decl</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#atribstat" class="rule">atribstat</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#returnstat" class="rule">returnstat</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#superstat" class="rule">superstat</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#ifstat" class="rule">ifstat</a> <span class="operator">|</span> <a href="#forstat" class="rule">forstat</a> <span class="operator">|</span> <a href="#whilestat" class="rule">whilestat</a> <span class="operator">|</span> <a href="#forever" class="rule">forever</a> <span class="operator">|</span> <a href="#switchstat" class="rule">switchstat</a> <span class="operator">|</span> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span> <span class="operator">|</span> <a href="#lvalue" class="rule">lvalue</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#expr" class="rule">expr</a> <span class="literal">';'</span> <span class="operator">|</span> <span class="literal">'break'</span> <span class="literal">';'</span> <span class="operator">|</span> <span class="literal">';'</span><span class="operator">)</span> ;
+    <span class="rule">statement</span> :  <span class="operator">(</span> <a href="#attribute_decl" class="rule">attribute_decl</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#atribstat" class="rule">atribstat</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#returnstat" class="rule">returnstat</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#superstat" class="rule">superstat</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#ifstat" class="rule">ifstat</a> <span class="operator">|</span> <a href="#forstat" class="rule">forstat</a> <span class="operator">|</span> <a href="#whilestat" class="rule">whilestat</a> <span class="operator">|</span> <a href="#forever" class="rule">forever</a> <span class="operator">|</span> <a href="#switchstat" class="rule">switchstat</a> <span class="operator">|</span> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span> <span class="operator">|</span> <a href="#lvalue" class="rule">lvalue</a> <span class="literal">';'</span> <span class="operator">|</span> <a href="#expr" class="rule">expr</a> <span class="literal">';'</span> <span class="operator">|</span> <span class="literal">'break'</span> <span class="literal">';'</span> <span class="operator">|</span> <span class="literal">'continue'</span> <span class="literal">';'</span> <span class="operator">|</span> <span class="literal">';'</span><span class="operator">)</span> ;
   </div>
   </div>
   <div class="railroad">
@@ -854,7 +854,7 @@ footer {
   <div class="ebnf">
   <h4>Text notation:</h4>
   <div>
-    <span class="rule">ifstat</span> :  <span class="literal">'if'</span> <a href="#expr" class="rule">expr</a> <a href="#statlist" class="rule">statlist</a> <span class="operator">(</span> <span class="literal">'else'</span> <a href="#statlist" class="rule">statlist</a><span class="operator">)</span><span class="operator">?</span> ;
+    <span class="rule">ifstat</span> :  <span class="literal">'if'</span> <a href="#expr" class="rule">expr</a> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span> <span class="operator">(</span> <span class="literal">'else'</span> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span><span class="operator">)</span><span class="operator">?</span> ;
   </div>
   </div>
   <div class="railroad">
@@ -871,7 +871,7 @@ footer {
   <div class="ebnf">
   <h4>Text notation:</h4>
   <div>
-    <span class="rule">forstat</span> :  <span class="literal">'for'</span> <a href="#attribute_decl" class="rule">attribute_decl</a><span class="operator">?</span> <span class="literal">';'</span> <a href="#expr" class="rule">expr</a> <span class="literal">';'</span> <a href="#expr" class="rule">expr</a><span class="operator">?</span> <a href="#statlist" class="rule">statlist</a> ;
+    <span class="rule">forstat</span> :  <span class="literal">'for'</span> <a href="#attribute_decl" class="rule">attribute_decl</a><span class="operator">?</span> <span class="literal">';'</span> <a href="#expr" class="rule">expr</a> <span class="literal">';'</span> <a href="#expr" class="rule">expr</a><span class="operator">?</span> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span> ;
   </div>
   </div>
   <div class="railroad">
@@ -888,7 +888,7 @@ footer {
   <div class="ebnf">
   <h4>Text notation:</h4>
   <div>
-    <span class="rule">whilestat</span> :  <span class="literal">'while'</span> <a href="#expr" class="rule">expr</a> <a href="#statlist" class="rule">statlist</a> ;
+    <span class="rule">whilestat</span> :  <span class="literal">'while'</span> <a href="#expr" class="rule">expr</a> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span> ;
   </div>
   </div>
   <div class="railroad">
@@ -905,7 +905,7 @@ footer {
   <div class="ebnf">
   <h4>Text notation:</h4>
   <div>
-    <span class="rule">forever</span> :  <span class="literal">'forever'</span> <a href="#statlist" class="rule">statlist</a> ;
+    <span class="rule">forever</span> :  <span class="literal">'forever'</span> <span class="literal">'{'</span> <a href="#statlist" class="rule">statlist</a> <span class="literal">'}'</span> ;
   </div>
   </div>
   <div class="railroad">
