@@ -55,14 +55,15 @@ statement               :
                         | lvalue     ';'
                         | expr ';'
                         | 'break' ';'
+                        | 'continue' ';'
                         | ';') ;
 atribstat               : lvalue '=' (aloc_expr | expr);
 returnstat              : 'return' (expr)?;
 superstat               : 'super' '(' args ')';
-ifstat                  : 'if'  expr  statlist ( 'else' statlist)? ;
-forstat                 : 'for' attribute_decl?  ';'  expr ';' expr?  statlist;
-whilestat               : 'while' expr statlist;
-forever                 : 'forever' statlist;
+ifstat                  : 'if'  expr  '{' statlist '}' ( 'else' '{' statlist '}')? ;
+forstat                 : 'for' attribute_decl?  ';'  expr ';' expr?  '{' statlist '}';
+whilestat               : 'while' expr '{' statlist '}';
+forever                 : 'forever' '{' statlist '}';
 switchstat              : 'switch' IDENT '{' caselist '}';
 caselist                : casedecl (caselist)? | casedefault;
 casedecl                : 'case' expr ':' statlist ;
@@ -74,7 +75,7 @@ enumdecl                : 'enum' IDENT '{' enum_body '}' ;
 enum_body               : default_enum | named_enum ;
 default_enum            : IDENT (',' IDENT) ;
 named_enum              : IDENT '=' ( STRING | NUMBER ) (';' IDENT '=' ( STRING | NUMBER ))* ;
-type                    : IDENT ;
+type                     : IDENT ;
 ident_list              : IDENT ( ',' IDENT )* ;
 IDENT                   : [a-zA-Z_] [a-zA-Z_0-9]* ;
 STRING                  : '"' ( '\\"' | . )*? '"' ;
