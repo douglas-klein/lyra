@@ -3,7 +3,7 @@ class Application {
         square(2);
     }
     
-    def square(Int x) : Int {
+    def square(x : Int) : Int {
         return x * x;
     }
 }
