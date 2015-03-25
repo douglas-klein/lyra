@@ -35,7 +35,7 @@ A sintaxe da declaração de métodos é semelhante a Scala.
 Métodos que não têm parâmetros dispensam o uso de parênteses.
 
 ```ruby
-def quadrado(int numero) : Int {
+def quadrado(numero : Int) : Int {
     return numero * numero;
 }
 
@@ -98,11 +98,11 @@ forever {
 
 ```ruby
 class Cachorro {
-	def infix come (Comida c) : Cachorro { ... }
+	def infix come (c : Comida) : Cachorro { ... }
 }
 
 class Comida { 
-	private def infix __mul(Comida c, Int n) : Comida { ... }
+	private def infix __mul(c : Comida, n : Int) : Comida { ... }
 }
 	
 
@@ -138,7 +138,7 @@ interface Countable {
 }
 
 interface Comparable {
-    def compare (Comparable rhs) : Int;
+    def compare (rhs : Comparable) : Int;
 }
 
 class ConcreteObject implements Countable, Comparable {
@@ -146,7 +146,7 @@ class ConcreteObject implements Countable, Comparable {
         return 1;
     }
 
-    def compare (Comparable rhs) : Int {
+    def compare (rhs : Comparable) : Int {
     	...
     }
 }
