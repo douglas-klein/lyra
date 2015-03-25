@@ -1,7 +1,7 @@
 class Object {
-    def op(Object rhs) : Object {}
-    def __add(Object rhs) : Object {}
-    def __mul(Object rhs) : Object {}
+    def op(rhs : Object) : Object {}
+    def __add(rhs: Object ) : Object {}
+    def __mul(rhs : Object ) : Object {}
 }
 
 class Application {
