@@ -1,6 +1,6 @@
 interface Object {
     def interfaceMethod1 : Int;
-    def interfaceMethod2(Int x) : Int;
+    def interfaceMethod2(x : Int) : Int;
     def interfaceMethod3;
 }
 
@@ -9,7 +9,7 @@ class ConcreteObject implements Object {
     def interfaceMethod1 : Int {
         return 1;
     }
-    def interfaceMethod2(Int x) : Int {
+    def interfaceMethod2(x : Int) : Int {
         return 2;
     }
     def interfaceMethod3 {
