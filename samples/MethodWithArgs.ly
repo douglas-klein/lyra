@@ -3,6 +3,6 @@ class Application {
         method1(2);
     }
     
-    def method1(Int x) {
+    def method1(x : Int) {
     }
 }
