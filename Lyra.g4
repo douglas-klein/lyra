@@ -38,7 +38,7 @@ factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_
 aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
 method_decl             : visibility_modifier? 'def' 'infix'? IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
 method_body             : statlist;
-params                  : type IDENT (',' type IDENT)* ;
+params                  : IDENT ':' type (',' IDENT ':' type )* ;
 args                    : ( expr (',' expr)* )? ;
 argsWs                  : expr+ ;
 statement               :
