@@ -1,10 +1,8 @@
 parser grammar Lyra;
-
-options { tokenVocab=LyraLexer; }
-
+options{ tokenVocab=LyraLexer; }
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
 importdecl              : IMPORT STRING COLON ;
-classdecl               : class_modifiers 'class' IDENT (EXTENDS IDENT)? implementsdecl? LEFTCURLYBRACE class_body RIGHTCURLYBRACE ;
+classdecl               : class_modifiers CLASS IDENT (EXTENDS IDENT)? implementsdecl? LEFTCURLYBRACE class_body RIGHTCURLYBRACE ;
 class_modifiers         : VISIBILITY_MODIFIER? ( FINAL | ABSTRACT )? ;
 implementsdecl          : IMPLEMENTS ident_list;
 class_body              : ( attribute_decl  | method_decl )* ;
@@ -33,7 +31,7 @@ unaryexpr_2             : factor INCREMENT_DECREMENT?;
 factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE | LEFTPARENTHESES expr RIGHTPARENTHESES;
 
 aloc_expr               : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
-method_decl             : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTBRACKET method_body? RIGHTBRACKET ;
+method_decl             : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTCURLYBRACE method_body? RIGHTCURLYBRACE ;
 method_body             : statlist;
 params                  : type IDENT (COMMA type IDENT)* ;
 args                    : ( expr (COMMA expr)* )? ;
@@ -74,4 +72,3 @@ default_enum            : IDENT (COMMA IDENT) ;
 named_enum              : IDENT EQUALOP ( STRING | NUMBER ) (SEMICOLON IDENT EQUALOP ( STRING | NUMBER ))* ;
 type                    : IDENT ;
 ident_list              : IDENT ( COMMA IDENT )* ;
-

@@ -1,5 +1,4 @@
 lexer grammar LyraLexer;
-
 FOREVER                 : 'forever';
 SWITCH                  : 'switch';
 CASE                    : 'case';
@@ -47,10 +46,10 @@ LEFTCURLYBRACE          : '{';
 RIGHTBRACKET            : '[';
 LEFTBRACKET             : ']';
 EXTENDS                 : 'extends';
-CLASS                   : 'class' {System.out.println("class here");};
+CLASS                   : 'class' ;
 SEMICOLON               : ';' ;
 IMPORT                  : 'import';
-IDENT                   : [a-zA-Z_] [a-zA-Z_0-9]* {System.out.println("opa dendi");};
+IDENT                   : [a-zA-Z_] [a-zA-Z_0-9]* ;
 STRING                  : '"' ( '\\"' | . )*? '"' ;
 NUMBER                  : ([0-9] | [1-9][0-9]*)( '.' [0-9]+ )? ;
 INCREMENT_DECREMENT     : ('++' | '--') ;
