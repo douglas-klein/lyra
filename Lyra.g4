@@ -1,88 +1,77 @@
-grammar Lyra;
+parser grammar Lyra;
+
+options { tokenVocab=LyraLexer; }
 
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
-importdecl              : 'import' STRING ';' ;
-classdecl               : class_modifiers 'class' IDENT ('extends' IDENT)? implementsdecl? '{' class_body '}' ;
-class_modifiers         : visibility_modifier? ( 'final' | 'abstract' )? ;
-visibility_modifier     : 'public' | 'protected' | 'private' ;
-implementsdecl          : 'implements' ident_list;
+importdecl              : IMPORT STRING COLON ;
+classdecl               : class_modifiers 'class' IDENT (EXTENDS IDENT)? implementsdecl? LEFTCURLYBRACE class_body RIGHTCURLYBRACE ;
+class_modifiers         : VISIBILITY_MODIFIER? ( FINAL | ABSTRACT )? ;
+implementsdecl          : IMPLEMENTS ident_list;
 class_body              : ( attribute_decl  | method_decl )* ;
-attribute_decl          : visibility_modifier? type IDENT('[]')* ( ',' IDENT ('[]')* )* ('=' ( exprlist | aloc_expr ))?;
-interfacedecl           : 'interface' IDENT '{' method_decl_abstract+ '}' ;
+attribute_decl          : VISIBILITY_MODIFIER? type IDENT( LEFTBRACKET RIGHTBRACKET)* ( COMMA IDENT (LEFTBRACKET RIGHTBRACKET)* )* ( EQUALOP ( exprlist | aloc_expr ))?;
+interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE method_decl_abstract+ RIGHTCURLYBRACE ;
 
-//Métodos declarados dessa maneira são sempre abstract, não podem ser 
-//implementados nessa classe e devem ser implementados por alguma classe filha
-method_decl_abstract    : visibility_modifier? 'def' 'infix'? IDENT ('(' params ')')? (':' IDENT)? ';' ;
+method_decl_abstract    : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON IDENT)? SEMICOLON ;
 
-
-// Expressões de operadores da forma ...1+1 ... 2*2 ... a+2 ... b*(c+a) ... b>(6/3) .. etc
-exprlist                : expr (',' expr)*;
+exprlist                : expr (COMMA expr)*;
 expr                    : expr_2 expr_opt;
 expr_opt                : IDENT expr_2 expr_opt | ;
 expr_2                  : expr_3 expr_2_opt ;
-expr_2_opt              : 'or' expr_3 expr_2_opt | ;
+expr_2_opt              : OR expr_3 expr_2_opt | ;
 expr_3                  : expr_4 expr_3_opt ;
-expr_3_opt              : 'and' expr_4 expr_3_opt | ;
+expr_3_opt              : AND expr_4 expr_3_opt | ;
 expr_4                  : expr_5 expr_4_opt ;
-expr_4_opt              : ('==' | '!=' | 'is') expr_5 expr_4_opt | ;
+expr_4_opt              : (DOUBLEEQUALOP | NOTEQUAL | IS) expr_5 expr_4_opt | ;
 expr_5                  : expr_6 expr_5_opt ;
-expr_5_opt              : ('<' | '<=' | '>=' | '>') expr_6 expr_5_opt| ;
+expr_5_opt              : (LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr_6 expr_5_opt| ;
 expr_6                  : expr_7 expr_6_opt ;
-expr_6_opt              : ('+' | '-') expr_7 expr_6_opt | ;
+expr_6_opt              : ( PLUS | MINUS) expr_7 expr_6_opt | ;
 expr_7                  : unaryexpr expr_7_opt ;
-expr_7_opt              : ('*' | '/' | '%') unaryexpr expr_7_opt | ;
-unaryexpr               : ('!' | '+' | '-')? unaryexpr_2 ;
+expr_7_opt              : (MULTOP | SLASH | MODOP) unaryexpr expr_7_opt | ;
+unaryexpr               : ( NOT | PLUS | MINUS )? unaryexpr_2 ;
 unaryexpr_2             : factor INCREMENT_DECREMENT?;
-factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE | '(' expr ')';
+factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE | LEFTPARENTHESES expr RIGHTPARENTHESES;
 
-aloc_expr               : 'new' ( IDENT '(' args ')' | IDENT ('[' expr ']')+);
-method_decl             : visibility_modifier? 'def' 'infix'? IDENT ('(' params ')')? (':' type)? '{' method_body? '}' ;
+aloc_expr               : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
+method_decl             : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTBRACKET method_body? RIGHTBRACKET ;
 method_body             : statlist;
-params                  : IDENT ':' type (',' IDENT ':' type )* ;
-args                    : ( expr (',' expr)* )? ;
+params                  : type IDENT (COMMA type IDENT)* ;
+args                    : ( expr (COMMA expr)* )? ;
 argsWs                  : expr+ ;
 statement               :
-                        ( attribute_decl ';'
-                        | atribstat  ';'
-                        | returnstat ';'
-                        | superstat  ';'
+                        ( attribute_decl SEMICOLON
+                        | atribstat  SEMICOLON
+                        | returnstat SEMICOLON
+                        | superstat  SEMICOLON
                         | ifstat
                         | forstat
                         | whilestat
                         | forever
                         | switchstat
-                        | '{' statlist '}'
-                        | lvalue     ';'
-                        | expr ';'
-                        | 'break' ';'
-                        | 'continue' ';'
-                        | ';') ;
-atribstat               : lvalue '=' (aloc_expr | expr);
-returnstat              : 'return' (expr)?;
-superstat               : 'super' '(' args ')';
-ifstat                  : 'if'  expr  '{' statlist '}' ( 'else' '{' statlist '}')? ;
-forstat                 : 'for' attribute_decl?  ';'  expr ';' expr?  '{' statlist '}';
-whilestat               : 'while' expr '{' statlist '}';
-forever                 : 'forever' '{' statlist '}';
-switchstat              : 'switch' IDENT '{' caselist '}';
+                        | LEFTCURLYBRACE statlist RIGHTCURLYBRACE
+                        | lvalue     SEMICOLON
+                        | expr SEMICOLON
+                        | BREAK SEMICOLON
+                        | CONTINUE SEMICOLON
+                        | SEMICOLON) ;
+atribstat               : lvalue EQUALOP (aloc_expr | expr);
+returnstat              : RETURN (expr)?;
+superstat               : SUPER LEFTPARENTHESES args RIGHTPARENTHESES;
+ifstat                  : IF  expr  LEFTCURLYBRACE statlist RIGHTCURLYBRACE ( ELSE LEFTCURLYBRACE statlist RIGHTCURLYBRACE)? ;
+forstat                 : FOR attribute_decl?  SEMICOLON  expr SEMICOLON expr?  LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
+whilestat               : WHILE expr LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
+forever                 : FOREVER LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
+switchstat              : SWITCH IDENT LEFTCURLYBRACE caselist RIGHTCURLYBRACE;
 caselist                : casedecl (caselist)? | casedefault;
-casedecl                : 'case' expr ':' statlist ;
-casedefault             : 'case' 'default' ':' statlist ;
+casedecl                : CASE expr COLON statlist ;
+casedefault             : CASE DEFAULT COLON statlist ;
 statlist                : statement (statlist)?;
-lvalue                  : (IDENT | callOp) ( '[' expr ']' | '.' IDENT ('(' args ')')?)*  ;
-callOp                  : IDENT '(' args ')' ;
-enumdecl                : 'enum' IDENT '{' enum_body '}' ;
+lvalue                  : (IDENT | callOp) ( LEFTBRACKET expr RIGHTBRACKET | DOT IDENT (LEFTPARENTHESES args RIGHTPARENTHESES)?)*  ;
+callOp                  : IDENT LEFTPARENTHESES args RIGHTPARENTHESES ;
+enumdecl                : ENUM IDENT LEFTCURLYBRACE enum_body RIGHTCURLYBRACE ;
 enum_body               : default_enum | named_enum ;
-default_enum            : IDENT (',' IDENT) ;
-named_enum              : IDENT '=' ( STRING | NUMBER ) (';' IDENT '=' ( STRING | NUMBER ))* ;
-type                     : IDENT ;
-ident_list              : IDENT ( ',' IDENT )* ;
-IDENT                   : [a-zA-Z_] [a-zA-Z_0-9]* ;
-STRING                  : '"' ( '\\"' | . )*? '"' ;
-NUMBER                  : ([0-9] | [1-9][0-9]*)( '.' [0-9]+ )? ;
-INCREMENT_DECREMENT     : ('++' | '--') ;
-BOOLEAN_VALUE           : 'true' | 'false' ;
-NULL                    : 'null' ;
-COMMENT                 : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */
-LINECOMMENT             : '//' .*? ('\r' | '\n') -> skip ;
-WS                      : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+default_enum            : IDENT (COMMA IDENT) ;
+named_enum              : IDENT EQUALOP ( STRING | NUMBER ) (SEMICOLON IDENT EQUALOP ( STRING | NUMBER ))* ;
+type                    : IDENT ;
+ident_list              : IDENT ( COMMA IDENT )* ;
+
