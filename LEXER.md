@@ -6,7 +6,7 @@ lexer grammar LyraLexer;
 ```
 - Ambiguidade léxica resolvida aceitando a primeira regra
   - IDENT é uma das últimas regas
-- Parser referência LyraLexer:
+- Parser referencia LyraLexer:
 ```ruby
 parser grammar Lyra;
 options{ tokenVocab=LyraLexer; }
