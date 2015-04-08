@@ -1,4 +1,4 @@
-parser grammar Lyra;
+parser grammar LyraParser;
 options{ tokenVocab=LyraLexer; }
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
 importdecl              : IMPORT STRING COLON ;
