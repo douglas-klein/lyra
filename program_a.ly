@@ -13,7 +13,7 @@ class dog extends animal{
 	}
 
 	def comer {
-		out.print("O cachorro está comendo...");
+		out.print("O cachorro est comendo...");
 	}
 
 }
@@ -34,43 +34,7 @@ class Application {
 		string bb = new string(a); // faz casting para string
 
 		int i = 1;
-	/*	while buster.dormindo {
-			out.print("buster está dormindo. Tentando acordá-lo pela %dª vez");
-			int r = int(math.random() * 10);
-			if r > 7 {
-				buster.dormir(false);
-				out.print("Buster acordou!");
-			} else {
-				i++;
-			}
-		}
-    */
-
-	/*	switch tipo {
-			case 1: 
-				out.print("A"); 
-
-			case 2: 
-				out.print("B");
-
-			default:
-				out.print("default");
-		}
-
-		int soma = 0;
-		for(int i = 0; i < 10000; i++) {
-			soma += i;
-			if soma > 100 { 
-				break
-			};
-		}
-*/
 		string array[] = new Array("A", "B", "C");
 
-		/*
-		for string a in array {
-			out.print(a);
-		}
-        */
 	}
 }

@@ -12,11 +12,11 @@ interface SerVivo {
 
 
 enum Cor {
-	AZUL = 'azul';
-	VERMELHO = 'vermelho';
+	AZUL = "azul";
+	VERMELHO = "vermelho";
 }
 
-enum Cor {AZUL, VERMELHO}
+enum Cor {AZUL, VERMELHO};
 
 
 
@@ -31,14 +31,14 @@ abstract class animal {
 	 def void abstract falar;
 
 	 def void comer {
-	 	print(nome + ' comeu.');
+	 	print(nome + " comeu.");
 	 }
 
 	 def void dormir(boolean dormir) {
 	 	this.dormir = dormir;
 	 }
 
-	 def boolean dormindo? {
+	 def boolean dormindo {
 	 	return this.dormindo;
 	 }
 }
@@ -50,11 +50,11 @@ class dog extends animal{
 	}
 	
 	def void falar {
-		print('AU AU');
+		print("AU AU");
 	}
 
 	def void comer {
-		print('O cachorro está comendo...');
+		print("O cachorro esta comendo...");
 		super.comer;
 	}
 
@@ -64,8 +64,8 @@ class Application {
 
 	def main {
 
-		animal buster = new dog('Buster');
-		animal lola = new dog ('Lola', 2);
+		animal buster = new dog("Buster");
+		animal lola = new dog ("Lola", 2);
 
 		print(rex.falar);
 
@@ -78,11 +78,11 @@ class Application {
 
 		int i = 1;
 		while buster.dormindo {
-			print('buster está dormindo. Tentando acordá-lo pela %dª vez');
+			print("buster está dormindo. Tentando acordá-lo pela %d vez");
 			int r = int(math.random() * 10);
 			if r > 7 {
 				buster.dormir(false);
-				print('Buster acordou!');
+				print("Buster acordou!");
 			} else {
 				i++;
 			}
@@ -91,13 +91,13 @@ class Application {
 
 		switch tipo {
 			case 1: 
-				print('A'); 
+				print("A"); 
 
 			case 2: 
-				print('B');
+				print("B");
 
 			default:
-				print('default');
+				print("default");
 		}
 
 		int soma = 0;
