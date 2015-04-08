@@ -69,3 +69,9 @@ Int __d = 0xff;
 [@33,245:245='0',<53>,13:18]
 [@34,246:248='xff',<51>,13:19]
 ```
+
+### Interação com o código gerado
+- Ações
+- Listeners
+- TokenFactory
+
