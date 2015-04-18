@@ -3,12 +3,13 @@
  */
 package lyra;
 
+import org.antlr.runtime.tree.*;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
 import lyra.LyraLexer;
 import lyra.LyraParser;
-import org.antlr.runtime.tree.DOTTreeGenerator;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.tool.DOTGenerator;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,9 +17,6 @@ import java.io.IOException;
 
 public class Frontend {
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		ANTLRInputStream in = null;
 		try {
@@ -31,7 +29,7 @@ public class Frontend {
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		LyraParser parser = new LyraParser(tokens);
 		ParseTree tree = parser.program();
-		System.out.println();
+		System.out.println(tree.toStringTree(parser));
 	}
 
 }
