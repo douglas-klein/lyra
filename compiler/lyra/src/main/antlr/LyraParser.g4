@@ -33,7 +33,7 @@ factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_
 aloc_expr               : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
 method_decl             : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTCURLYBRACE method_body? RIGHTCURLYBRACE ;
 method_body             : statlist;
-params                  : type IDENT (COMMA type IDENT)* ;
+params                  : IDENT COLON type (COMMA IDENT COLON type)* ;
 args                    : ( expr (COMMA expr)* )? ;
 argsWs                  : expr+ ;
 statement               :

@@ -24,7 +24,7 @@ public class Frontend {
     private boolean showLispTree = false;
 
     @Argument
-    private List<String> files = new ArrayList<String>();
+    private List<String> files = new ArrayList<>();
 
     public static void main(String[] args) {
         new Frontend().doMain(args);
@@ -69,6 +69,6 @@ public class Frontend {
 
         if (showTreeDialog) tree.inspect(parser);
 
-        return true;
+        return parser.getNumberOfSyntaxErrors() == 0;
     }
 }
