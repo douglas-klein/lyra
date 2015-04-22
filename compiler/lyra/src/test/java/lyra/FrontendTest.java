@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 /**
  * Testes para lyra.Frontend
  */
+@SuppressWarnings("ConstantConditions")
 public class FrontendTest {
 
     @Test

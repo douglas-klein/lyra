@@ -12,20 +12,23 @@ interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE method_decl_abstract+ R
 method_decl_abstract    : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON IDENT)? SEMICOLON ;
 
 exprlist                : expr (COMMA expr)*;
-expr                    : expr_2 expr_opt;
-expr_opt                : IDENT expr_2 expr_opt | ;
-expr_2                  : expr_3 expr_2_opt ;
-expr_2_opt              : OR expr_3 expr_2_opt | ;
-expr_3                  : expr_4 expr_3_opt ;
-expr_3_opt              : AND expr_4 expr_3_opt | ;
-expr_4                  : expr_5 expr_4_opt ;
-expr_4_opt              : (DOUBLEEQUALOP | NOTEQUAL | IS) expr_5 expr_4_opt | ;
-expr_5                  : expr_6 expr_5_opt ;
-expr_5_opt              : (LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr_6 expr_5_opt| ;
-expr_6                  : expr_7 expr_6_opt ;
-expr_6_opt              : ( PLUS | MINUS) expr_7 expr_6_opt | ;
-expr_7                  : unaryexpr expr_7_opt ;
-expr_7_opt              : (MULTOP | SLASH | MODOP) unaryexpr expr_7_opt | ;
+
+/* O ANTLR 4, cf. Caps 5.4 e 14 do livro dele, suporta recursão esquerda direta
+ * e usa por padrão uma estratégia de precedência baseada na ordem das
+ * alternativas e assume sempre associatividade à esquerda
+ * Isso mágicamente faz com que a regra abaixo, claramente ambígua
+ * no semestre passado, funcione exatamente como desejado.
+ */
+expr                    : unaryexpr
+                        | expr (MULTOP | SLASH | MODOP) expr
+                        | expr (PLUS | MINUS) expr
+                        | expr (LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr
+                        | expr (DOUBLEEQUALOP | NOTEQUAL | IS) expr
+                        | expr AND expr
+                        | expr OR expr
+                        | expr IDENT expr
+                        ;
+
 unaryexpr               : ( NOT | PLUS | MINUS )? unaryexpr_2 ;
 unaryexpr_2             : factor INCREMENT_DECREMENT?;
 factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE | LEFTPARENTHESES expr RIGHTPARENTHESES;
