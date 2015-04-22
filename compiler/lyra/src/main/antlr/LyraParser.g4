@@ -1,7 +1,7 @@
 parser grammar LyraParser;
 options{ tokenVocab=LyraLexer; }
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
-importdecl              : IMPORT STRING COLON ;
+importdecl              : IMPORT STRING SEMICOLON ;
 classdecl               : class_modifiers CLASS IDENT (EXTENDS IDENT)? implementsdecl? LEFTCURLYBRACE class_body RIGHTCURLYBRACE ;
 class_modifiers         : VISIBILITY_MODIFIER? ( FINAL | ABSTRACT )? ;
 implementsdecl          : IMPLEMENTS ident_list;
