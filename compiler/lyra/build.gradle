@@ -9,8 +9,10 @@ version = '1.0-SNAPSHOT'
 jar {
     manifest {
         attributes 'Implementation-Title': 'Gradle Quickstart',
-                   'Implementation-Version': version
+                   'Implementation-Version': version,
+		           'Main-Class': 'lyra.Frontend'
     }
+	from {configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 /* Gradle has an ANTLR plugin but it's docs didn't help me. 
