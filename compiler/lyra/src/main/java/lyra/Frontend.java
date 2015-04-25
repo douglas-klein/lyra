@@ -130,6 +130,7 @@ public class Frontend {
         if (showTreeDialog) {
             final JDialog dialog = getInspectDialog(parser, tree);
             if (dialog != null) {
+                notifyUserInterfaceOpen();
                 dialog.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent windowEvent) {
