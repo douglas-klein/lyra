@@ -150,9 +150,7 @@ public class Frontend {
         JDialog dialog = null;
         try {
             dialog = tree.inspect(parser).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return dialog;
