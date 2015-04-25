@@ -31,16 +31,23 @@ expr                    : unaryexpr
 
 unaryexpr               : ( NOT | PLUS | MINUS )? unaryexpr_2 ;
 unaryexpr_2             : factor INCREMENT_DECREMENT?;
-factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE | LEFTPARENTHESES expr RIGHTPARENTHESES;
+factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE
+                        | LEFTPARENTHESES expr RIGHTPARENTHESES
+                        | LEFTPARENTHESES expr {notifyErrorListeners("Unclosed '('");}
+                        | LEFTPARENTHESES expr RIGHTPARENTHESES {notifyErrorListeners("Extra ')' after parenthised expression.");}
+                        | LEFTPARENTHESES expr RIGHTPARENTHESES RIGHTPARENTHESES+ {notifyErrorListeners("Two or more extra ')' after parenthised expression.");}
+                        ;
 
 aloc_expr               : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
 method_decl             : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTCURLYBRACE method_body? RIGHTCURLYBRACE ;
 method_body             : statlist;
-params                  : IDENT COLON type (COMMA IDENT COLON type)* ;
+param_decl              : IDENT COLON type
+                        | type IDENT {notifyErrorListeners("Lyra expects parameters declared in the form \"name : type\"");}
+                        ;
+params                  : param_decl (COMMA param_decl)* ;
 args                    : ( expr (COMMA expr)* )? ;
 argsWs                  : expr+ ;
-statement               :
-                        ( attribute_decl SEMICOLON
+statement               : attribute_decl SEMICOLON
                         | atribstat  SEMICOLON
                         | returnstat SEMICOLON
                         | superstat  SEMICOLON
@@ -54,7 +61,7 @@ statement               :
                         | expr SEMICOLON
                         | BREAK SEMICOLON
                         | CONTINUE SEMICOLON
-                        | SEMICOLON) ;
+                        | SEMICOLON ;
 atribstat               : lvalue EQUALOP (aloc_expr | expr);
 returnstat              : RETURN (expr)?;
 superstat               : SUPER LEFTPARENTHESES args RIGHTPARENTHESES;
