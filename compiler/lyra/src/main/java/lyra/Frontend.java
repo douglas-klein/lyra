@@ -5,17 +5,39 @@ package lyra;
 
 import lyra.LyraLexer;
 import lyra.LyraParser;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.kohsuke.args4j.*;
+import org.antlr.v4.runtime.RuleContext;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
-import javax.swing.text.html.parser.Parser;
-import java.io.*;
+import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class Frontend {
+
+    /**
+     * true only when this instance was created from the static main, making it the application
+     * entry point.
+     *
+     * When the Frontend is the application entry point it may decide when to close the application
+     * with a System.exit() call.
+     */
+    private boolean applicationEntryPoint = false;
 
     @Option(name = "--gui", aliases = {"-g"}, required = false,
             usage = "Displays ANTLR parse tree dialog.")
@@ -37,7 +59,9 @@ public class Frontend {
     private List<String> files = new ArrayList<>();
 
     public static void main(String[] args) {
-        new Frontend().doMain(args);
+        Frontend frontend = new Frontend();
+        frontend.applicationEntryPoint = true;
+        frontend.doMain(args);
     }
 
     private void doMain(String[] args) {
@@ -64,11 +88,24 @@ public class Frontend {
         }
     }
 
+
+    private int openUserInterfaces = 0;
+    private void notifyUserInterfaceOpen() {
+        ++openUserInterfaces;
+    }
+    private void notifyUserInterfaceClosed() {
+        if (openUserInterfaces > 0)
+            --openUserInterfaces;
+        if (openUserInterfaces == 0 && isApplicationEntryPoint())
+            System.exit(0);
+    }
+
     public boolean compileFile(String path) throws IOException {
         return compile(new BufferedReader(new FileReader(path)));
     }
 
     public boolean compile(Reader input) throws IOException {
+        notifyUserInterfaceOpen();
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
         LyraLexer lexer = new LyraLexer(antlrIn);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -84,18 +121,75 @@ public class Frontend {
         //parse
         LyraParser.ProgramContext tree = parser.program();
 
-        if (guiErrorContext) {
-            for (ParserRuleContext ctxt : errorListener.getErrorContexts()) {
-                ctxt.inspect(parser);
-            }
-        }
+        if (guiErrorContext)
+            showErrorInspections(parser, errorListener);
 
         if (showLispTree)
             System.out.println(tree.toStringTree(parser));
 
-        if (showTreeDialog)
-            tree.inspect(parser);
+        if (showTreeDialog) {
+            final JDialog dialog = getInspectDialog(parser, tree);
+            if (dialog != null) {
+                dialog.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent windowEvent) {
+                        super.windowClosed(windowEvent);
+                        dialog.dispose();
+                        notifyUserInterfaceClosed();
+                    }
+                });
+            }
+        }
+
+        notifyUserInterfaceClosed();
 
         return parser.getNumberOfSyntaxErrors() == 0;
+    }
+
+    private static JDialog getInspectDialog(LyraParser parser, RuleContext tree) {
+        JDialog dialog = null;
+        try {
+            dialog = tree.inspect(parser).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return dialog;
+    }
+
+    private void showErrorInspections(LyraParser parser, ErrorListener errorListener) {
+        notifyUserInterfaceOpen();
+        Iterator<ParserRuleContext> iterator = errorListener.getErrorContexts().iterator();
+        showNextErrorInspection(parser, iterator);
+    }
+
+    private void showNextErrorInspection(LyraParser parser, Iterator<ParserRuleContext> iterator) {
+        if (!iterator.hasNext()) {
+            notifyUserInterfaceClosed();
+            return;
+        }
+        final JDialog dialog = getInspectDialog(parser, iterator.next());
+        if (dialog == null) {
+            notifyUserInterfaceClosed();
+            return;
+        }
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent windowEvent) {
+                super.windowClosed(windowEvent);
+                new java.util.Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        showNextErrorInspection(parser, iterator);
+                    }
+                }, 100);
+                dialog.dispose();
+            }
+        });
+    }
+
+    public boolean isApplicationEntryPoint() {
+        return applicationEntryPoint;
     }
 }
