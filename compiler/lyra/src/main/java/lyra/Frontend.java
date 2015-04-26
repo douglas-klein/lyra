@@ -3,9 +3,9 @@
  */
 package lyra;
 
+
 import lyra.LyraLexer;
 import lyra.LyraParser;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -54,6 +54,11 @@ public class Frontend {
     @Option(name = "--gui-error-context", aliases = {"-G"}, required = false,
             usage = "Show a dialog with a tree representation of the parser context for each error.")
     private boolean guiErrorContext = false;
+
+    @Option(name = "--lemonade-recovery", aliases = {"-L"}, required = false,
+            usage = "Recover syntatic errors by ignoring the predicted symbol and resuming " +
+                    "parsing from the offeding token")
+    private  boolean noErrorRecovery = false;
 
     @Argument
     private List<String> files = new ArrayList<>();
@@ -114,37 +119,41 @@ public class Frontend {
         parser.removeErrorListeners();
 
         ErrorListener errorListener = new ErrorListener();
-        if (verboseErrors)
-            errorListener.setVerbose(true);
+        if (verboseErrors) errorListener.setVerbose(true);
         parser.addErrorListener(errorListener);
+
+        if (noErrorRecovery) parser.setErrorHandler(new LemonadeErrorHandler());
 
         //parse
         LyraParser.ProgramContext tree = parser.program();
 
-        if (guiErrorContext)
-            showErrorInspections(parser, errorListener);
+        if (guiErrorContext) showErrorInspections(parser, errorListener);
 
-        if (showLispTree)
-            System.out.println(tree.toStringTree(parser));
+        if (showLispTree) System.out.println(tree.toStringTree(parser));
 
-        if (showTreeDialog) {
-            final JDialog dialog = getInspectDialog(parser, tree);
-            if (dialog != null) {
-                notifyUserInterfaceOpen();
-                dialog.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent windowEvent) {
-                        super.windowClosed(windowEvent);
-                        dialog.dispose();
-                        notifyUserInterfaceClosed();
-                    }
-                });
-            }
-        }
+        if (showTreeDialog) showTreeInspection(parser, tree);
 
         notifyUserInterfaceClosed();
 
+        if (parser.getNumberOfSyntaxErrors() > 0)
+            System.err.println("*** Errors ***");
+
         return parser.getNumberOfSyntaxErrors() == 0;
+    }
+
+    private void showTreeInspection(LyraParser parser, LyraParser.ProgramContext tree) {
+        final JDialog dialog = getInspectDialog(parser, tree);
+        if (dialog != null) {
+            notifyUserInterfaceOpen();
+            dialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent windowEvent) {
+                    super.windowClosed(windowEvent);
+                    dialog.dispose();
+                    notifyUserInterfaceClosed();
+                }
+            });
+        }
     }
 
     private static JDialog getInspectDialog(LyraParser parser, RuleContext tree) {
