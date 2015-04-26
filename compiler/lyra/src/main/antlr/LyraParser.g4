@@ -5,7 +5,7 @@ importdecl              : IMPORT STRING SEMICOLON ;
 classdecl               : class_modifiers CLASS IDENT (EXTENDS IDENT)? implementsdecl? LEFTCURLYBRACE class_body RIGHTCURLYBRACE ;
 class_modifiers         : VISIBILITY_MODIFIER? ( FINAL | ABSTRACT )? ;
 implementsdecl          : IMPLEMENTS ident_list;
-class_body              : ( attribute_decl  | method_decl )* ;
+class_body              : ( attribute_decl SEMICOLON | method_decl )* ;
 attribute_decl          : VISIBILITY_MODIFIER? type IDENT( LEFTBRACKET RIGHTBRACKET)* ( COMMA IDENT (LEFTBRACKET RIGHTBRACKET)* )* ( EQUALOP ( exprlist | aloc_expr ))?;
 interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE method_decl_abstract+ RIGHTCURLYBRACE ;
 
