@@ -1,5 +1,5 @@
 class Application {
-    def main { }
+    def main {
         int a = 2 * (3 + 1;
     }
 }

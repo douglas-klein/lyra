@@ -3,9 +3,9 @@
  */
 package lyra;
 
-
 import lyra.LyraLexer;
 import lyra.LyraParser;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -58,7 +58,7 @@ public class Frontend {
     @Option(name = "--lemonade-recovery", aliases = {"-L"}, required = false,
             usage = "Recover syntatic errors by ignoring the predicted symbol and resuming " +
                     "parsing from the offeding token")
-    private  boolean noErrorRecovery = false;
+    private  boolean lemonadeRecovery = false;
 
     @Argument
     private List<String> files = new ArrayList<>();
@@ -122,7 +122,7 @@ public class Frontend {
         if (verboseErrors) errorListener.setVerbose(true);
         parser.addErrorListener(errorListener);
 
-        if (noErrorRecovery) parser.setErrorHandler(new LemonadeErrorHandler());
+        if (lemonadeRecovery) parser.setErrorHandler(new LemonadeErrorHandler());
 
         //parse
         LyraParser.ProgramContext tree = parser.program();
