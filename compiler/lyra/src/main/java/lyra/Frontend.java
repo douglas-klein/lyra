@@ -113,6 +113,7 @@ public class Frontend {
         notifyUserInterfaceOpen();
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
         LyraLexer lexer = new LyraLexer(antlrIn);
+        lexer.setTokenFactory(new TokenFactory());
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         LyraParser parser = new LyraParser(tokens);
