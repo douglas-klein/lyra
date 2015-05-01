@@ -3,17 +3,14 @@
  */
 package lyra;
 
-import lyra.LyraLexer;
-import lyra.LyraParser;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+
+import lyra.LyraParser;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -28,13 +25,13 @@ import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
-public class Frontend {
+public class CommandlineUI {
 
     /**
      * true only when this instance was created from the static main, making it the application
      * entry point.
      *
-     * When the Frontend is the application entry point it may decide when to close the application
+     * When the CommandlineUI is the application entry point it may decide when to close the application
      * with a System.exit() call.
      */
     private boolean applicationEntryPoint = false;
@@ -51,6 +48,11 @@ public class Frontend {
             usage = "Print more information with error messages")
     private boolean verboseErrors = false;
 
+    @Option(name = "--quiet", aliases = {"-q"}, required = false,
+            usage = "Do not output error information, just exit with non-zero status. " +
+                    "This overrides --verbose-errors")
+    private boolean quiet = false;
+
     @Option(name = "--gui-error-context", aliases = {"-G"}, required = false,
             usage = "Show a dialog with a tree representation of the parser context for each error.")
     private boolean guiErrorContext = false;
@@ -64,7 +66,7 @@ public class Frontend {
     private List<String> files = new ArrayList<>();
 
     public static void main(String[] args) {
-        Frontend frontend = new Frontend();
+        CommandlineUI frontend = new CommandlineUI();
         frontend.applicationEntryPoint = true;
         frontend.doMain(args);
     }
@@ -79,7 +81,7 @@ public class Frontend {
                 throw new CmdLineException(parser, "Missing input file", null);
         } catch (CmdLineException e) {
             System.err.println(e.getMessage());
-            System.err.println("Usage: java Frontend [options...] file");
+            System.err.println("Usage: java CommandlineUI [options...] file");
             System.err.println("Options:");
             parser.printUsage(System.err);
             System.err.println();
@@ -110,35 +112,32 @@ public class Frontend {
     }
 
     public boolean compile(Reader input) throws IOException {
+        Compiler compiler = new Compiler();
+        if (verboseErrors)
+            compiler.getErrorListener().setVerbosity(Verbosity.VERBOSE);
+        if (quiet)
+            compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
+
+        compiler.setLemonadeRecovery(lemonadeRecovery);
+        compiler.init(input);
+
+        boolean ok = compiler.compile();
         notifyUserInterfaceOpen();
-        ANTLRInputStream antlrIn = new ANTLRInputStream(input);
-        LyraLexer lexer = new LyraLexer(antlrIn);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        LyraParser parser = new LyraParser(tokens);
-        parser.removeErrorListeners();
+        if (guiErrorContext)
+            showErrorInspections(compiler.getParser(), compiler.getErrorListener());
 
-        ErrorListener errorListener = new ErrorListener();
-        if (verboseErrors) errorListener.setVerbose(true);
-        parser.addErrorListener(errorListener);
+        if (showLispTree)
+            System.out.println(compiler.getParseTree().toStringTree(compiler.getParser()));
 
-        if (lemonadeRecovery) parser.setErrorHandler(new LemonadeErrorHandler());
+        if (showTreeDialog)
+            showTreeInspection(compiler.getParser(), compiler.getParseTree());
 
-        //parse
-        LyraParser.ProgramContext tree = parser.program();
-
-        if (guiErrorContext) showErrorInspections(parser, errorListener);
-
-        if (showLispTree) System.out.println(tree.toStringTree(parser));
-
-        if (showTreeDialog) showTreeInspection(parser, tree);
-
-        notifyUserInterfaceClosed();
-
-        if (parser.getNumberOfSyntaxErrors() > 0)
+        if (compiler.getParser().getNumberOfSyntaxErrors() > 0)
             System.err.println("*** Errors ***");
 
-        return parser.getNumberOfSyntaxErrors() == 0;
+        notifyUserInterfaceClosed();
+        return ok;
     }
 
     private void showTreeInspection(LyraParser parser, LyraParser.ProgramContext tree) {

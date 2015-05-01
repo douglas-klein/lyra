@@ -1,23 +1,22 @@
 package lyra;
 
+import lyra.LyraLexer;
 import lyra.LyraParser;
 import org.antlr.v4.runtime.*;
 
-import javax.swing.*;
-import javax.swing.text.html.parser.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
- * Outputs syntatic error messages with added verbose information.
+ * Outputs syntactic error messages with added verbose information.
  *
  * For now, the extra is just the parser rule stack at the point of error.
  */
 public class ErrorListener extends BaseErrorListener {
-    private boolean verbose;
+    ;
+
+    private Verbosity verbosity = Verbosity.DEFAULT;
 
     private List<ParserRuleContext> errorContexts = new LinkedList<>();
 
@@ -26,9 +25,11 @@ public class ErrorListener extends BaseErrorListener {
                             String msg, RecognitionException e) {
         LyraParser parser = (LyraParser)recognizer;
 
-        String offendingSymbolString = getOffendingSymbolString(offendingSymbol, parser);
-        System.err.println(String.format("Error: line %1$d:%2$d at %3$s: %4$s", line, charPositionInLine,
-                                         offendingSymbolString, msg));
+        if (!isQuiet()) {
+            String offendingSymbolString = getOffendingSymbolString(offendingSymbol, parser);
+            System.err.println(String.format("Error: line %1$d:%2$d at %3$s: %4$s", line,
+                                             charPositionInLine, offendingSymbolString, msg));
+        }
 
         errorContexts.add(parser.getContext());
 
@@ -55,15 +56,23 @@ public class ErrorListener extends BaseErrorListener {
         return offendingSymbolString;
     }
 
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
     public List<ParserRuleContext> getErrorContexts() {
         return errorContexts;
     }
+
+    public Verbosity getVerbosity() {
+        return verbosity;
+    }
+
+    public void setVerbosity(Verbosity verbosity) {
+        this.verbosity = verbosity;
+    }
+
+    private boolean isVerbose() {
+        return getVerbosity() == Verbosity.VERBOSE;
+    }
+    private boolean isQuiet() {
+        return getVerbosity() == Verbosity.QUIET;
+    }
+
 }
