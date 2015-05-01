@@ -20,7 +20,6 @@ public class CompilerTests {
     @Test
     public void testCompileHelloWorld() throws Exception {
         Compiler compiler = new Compiler();
-        CommandlineUI frontend = new CommandlineUI();
 
         ClassLoader loader = this.getClass().getClassLoader();
         InputStream stream = loader.getResourceAsStream("samples/HelloWorld.ly");
@@ -36,7 +35,6 @@ public class CompilerTests {
         assertNotNull(samplesDir);
         for (File file : samplesDir.listFiles()) {
             Compiler compiler = new Compiler();
-            //System.out.println(file.getName());
             compiler.init(new FileReader(file));
             assertTrue(file.getName() + " didn't compile properly!", compiler.compile());
         }
@@ -49,8 +47,6 @@ public class CompilerTests {
         File samplesDir = new File(samplesURI);
         assertNotNull(samplesDir);
         for (File file : samplesDir.listFiles()) {
-            System.out.println(file.toPath());
-
             Compiler compiler = new Compiler();
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
             compiler.init(new FileReader(file));
