@@ -13,15 +13,19 @@ public class Compiler {
     private ErrorListener errorListener = new ErrorListener();
     private boolean lemonadeRecovery;
     private LyraParser.ProgramContext parseTree;
+    private LyraLexer lexer;
 
     public void init(Reader input) throws IOException {
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
-        LyraLexer lexer = new LyraLexer(antlrIn);
+        lexer = new LyraLexer(antlrIn);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(getErrorListener());
+        lexer.setTokenFactory(new TokenFactory());
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         parser = new LyraParser(tokens);
 
         parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
+        parser.addErrorListener(getErrorListener());
 
         if (useLemonadeRecovery())
             parser.setErrorHandler(new LemonadeErrorHandler());
@@ -29,7 +33,7 @@ public class Compiler {
 
     public boolean parse() {
         parseTree = parser.program();
-        return parser.getNumberOfSyntaxErrors() == 0;
+        return errorListener.getNumberOfErrors() == 0;
     }
 
     public boolean compile() {

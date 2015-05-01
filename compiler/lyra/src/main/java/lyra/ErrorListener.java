@@ -14,38 +14,39 @@ import java.util.List;
  * For now, the extra is just the parser rule stack at the point of error.
  */
 public class ErrorListener extends BaseErrorListener {
-    ;
-
     private Verbosity verbosity = Verbosity.DEFAULT;
 
     private List<ParserRuleContext> errorContexts = new LinkedList<>();
+    private long numberOfErrors;
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
                             String msg, RecognitionException e) {
-        LyraParser parser = (LyraParser)recognizer;
-
+        ++numberOfErrors;
         if (!isQuiet()) {
-            String offendingSymbolString = getOffendingSymbolString(offendingSymbol, parser);
+            String offendingSymbolString = getOffendingSymbolString(offendingSymbol, recognizer);
             System.err.println(String.format("Error: line %1$d:%2$d at %3$s: %4$s", line,
                                              charPositionInLine, offendingSymbolString, msg));
         }
 
-        errorContexts.add(parser.getContext());
+        if (recognizer instanceof LyraParser) {
+            LyraParser parser = (LyraParser)recognizer;
+            errorContexts.add(parser.getContext());
 
-        if (isVerbose()) {
-            List<String> stack = parser.getRuleInvocationStack();
-            Collections.reverse(stack);
-            System.err.println("Parser rule stack: " + stack);
+            if (isVerbose()) {
+                List<String> stack = parser.getRuleInvocationStack();
+                Collections.reverse(stack);
+                System.err.println("Parser rule stack: " + stack);
+            }
         }
     }
 
-    private String getOffendingSymbolString(Object offendingSymbol, LyraParser parser) {
+    private String getOffendingSymbolString(Object offendingSymbol, Recognizer<?, ?> recognizer) {
         String offendingSymbolString = offendingSymbol.toString();
         if (offendingSymbol instanceof Token) {
             Token token = ((Token) offendingSymbol);
             String tokenText = token.getText();
-            String tokenTypePart = parser.getVocabulary().getDisplayName(token.getType());
+            String tokenTypePart = recognizer.getVocabulary().getDisplayName(token.getType());
             if (tokenTypePart.equals(String.format("'%1$s'", tokenText)))
                 tokenTypePart = "";
             else
@@ -75,4 +76,7 @@ public class ErrorListener extends BaseErrorListener {
         return getVerbosity() == Verbosity.QUIET;
     }
 
+    public long getNumberOfErrors() {
+        return numberOfErrors;
+    }
 }
