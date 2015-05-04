@@ -1,9 +1,12 @@
 package lyra;
 
+import lyra.listeners.LyraListener;
+import lyra.listeners.LyraListener2;
 import lyra.symbols.BaseTypes;
 import lyra.tokens.TokenFactory;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -34,7 +37,15 @@ public class Compiler {
     }
 
     public boolean parse() {
+        //parse
         parseTree = parser.program();
+        // semantic
+        ParseTreeWalker walker = new ParseTreeWalker();
+        LyraListener listener = new LyraListener();
+        walker.walk(listener, parseTree);
+        // create next phase and feed symbol table info from def to ref phase
+        LyraListener2 ref = new LyraListener2(listener.getGlobals(), listener.getScopes(),this);
+        walker.walk(ref, parseTree);
         return errorListener.getNumberOfErrors() == 0;
     }
 

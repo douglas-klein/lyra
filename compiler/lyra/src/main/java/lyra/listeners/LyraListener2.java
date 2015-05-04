@@ -5,6 +5,7 @@ import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
+import lyra.Compiler;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 /**
@@ -14,10 +15,12 @@ public class LyraListener2 extends lyra.LyraParserBaseListener {
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
     private BaseScope globals;
     private Scope currentScope; // define symbols in this scope
+    private Compiler compiler;
 
-    public LyraListener2(BaseScope globals, ParseTreeProperty<Scope> scopes) {
+    public LyraListener2(BaseScope globals, ParseTreeProperty<Scope> scopes, Compiler compiler) {
         this.scopes = scopes;
         this.globals = globals;
+        this.compiler = compiler;
     }
 
     @Override
@@ -35,7 +38,7 @@ public class LyraListener2 extends lyra.LyraParserBaseListener {
         String name = ctx.IDENT().get(0).getText();
         Symbol var = currentScope.resolve(name);
         if ( var==null ) {
-         //   Compiler.error(ctx.IDENT().get(0).getSymbol(), "no such variable: " + name);
+         // this.compiler.getErrorListener().syntaxError(compiler.getParser(),ctx.IDENT().get(0),0,0,"SADBOYS",null);
         }
         if ( var instanceof MethodSymbol) {
           //  Compiler.error(ctx.IDENT().get(0).getSymbol(), name + " is not a variable");
