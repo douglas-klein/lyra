@@ -1,4 +1,4 @@
-package lyra;
+package lyra.other;
 
 import lyra.LyraLexer;
 import lyra.LyraParser;
