@@ -1,4 +1,4 @@
-package lyra;
+package lyra.tokens;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;

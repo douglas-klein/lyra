@@ -1,4 +1,4 @@
-package lyra;
+package lyra.tokens;
 
 import lyra.LyraLexer;
 import org.antlr.v4.runtime.CharStream;

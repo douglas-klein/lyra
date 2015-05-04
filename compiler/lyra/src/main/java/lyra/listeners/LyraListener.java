@@ -1,6 +1,6 @@
 package lyra.listeners;
 
-import lyra.other.Frontend;
+import lyra.Compiler;
 import lyra.scopes.BaseScope;
 import lyra.symbols.*;
 import lyra.scopes.Scope;
@@ -38,7 +38,7 @@ public class LyraListener extends lyra.LyraParserBaseListener {
         }
         // Quando o tipo do método for não estiver explicito então seu tipo é void
         else{
-            type = Frontend.types.get("Void");
+            type = Compiler.types.get("Void");
         }
         // push new scope by making new one that points to enclosing scope
         MethodSymbol method = new MethodSymbol(name, type, currentScope);

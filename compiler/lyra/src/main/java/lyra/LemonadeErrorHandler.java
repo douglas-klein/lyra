@@ -1,4 +1,4 @@
-package lyra.other;
+package lyra;
 
 import org.antlr.v4.runtime.*;
 

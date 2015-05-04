@@ -35,10 +35,10 @@ public class LyraListener2 extends lyra.LyraParserBaseListener {
         String name = ctx.IDENT().get(0).getText();
         Symbol var = currentScope.resolve(name);
         if ( var==null ) {
-         //   Frontend.error(ctx.IDENT().get(0).getSymbol(), "no such variable: " + name);
+         //   Compiler.error(ctx.IDENT().get(0).getSymbol(), "no such variable: " + name);
         }
         if ( var instanceof MethodSymbol) {
-          //  Frontend.error(ctx.IDENT().get(0).getSymbol(), name + " is not a variable");
+          //  Compiler.error(ctx.IDENT().get(0).getSymbol(), name + " is not a variable");
         }
     }
 

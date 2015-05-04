@@ -1,13 +1,13 @@
 package lyra;
 
-import lyra.LyraLexer;
+import lyra.tokens.NumberToken;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Testes para lyra.NumberToken.
+ * Testes para lyra.tokens.NumberToken.
  */
 public class NumberTokenTest {
     @Test

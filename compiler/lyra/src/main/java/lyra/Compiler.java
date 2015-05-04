@@ -1,28 +1,30 @@
 package lyra;
 
+import lyra.symbols.BaseTypes;
+import lyra.tokens.TokenFactory;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import lyra.LyraLexer;
-import lyra.LyraParser;
+
 import java.io.IOException;
 import java.io.Reader;
 
 public class Compiler {
 
-    private LyraParser parser;
+    private lyra.LyraParser parser;
     private ErrorListener errorListener = new ErrorListener();
     private boolean lemonadeRecovery;
-    private LyraParser.ProgramContext parseTree;
-    private LyraLexer lexer;
+    private lyra.LyraParser.ProgramContext parseTree;
+    private lyra.LyraLexer lexer;
+    public static BaseTypes types = new BaseTypes();
 
     public void init(Reader input) throws IOException {
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
-        lexer = new LyraLexer(antlrIn);
+        lexer = new lyra.LyraLexer(antlrIn);
         lexer.removeErrorListeners();
         lexer.addErrorListener(getErrorListener());
         lexer.setTokenFactory(new TokenFactory());
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        parser = new LyraParser(tokens);
+        parser = new lyra.LyraParser(tokens);
 
         parser.removeErrorListeners();
         parser.addErrorListener(getErrorListener());
@@ -50,13 +52,13 @@ public class Compiler {
         return lemonadeRecovery;
     }
 
-    public LyraParser.ProgramContext getParseTree() {
+    public lyra.LyraParser.ProgramContext getParseTree() {
         return parseTree;
     }
     public ErrorListener getErrorListener() {
         return errorListener;
     }
-    public LyraParser getParser() {
+    public lyra.LyraParser getParser() {
         return parser;
     }
 }
