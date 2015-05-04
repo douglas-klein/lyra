@@ -1,15 +1,11 @@
-package lyra;
+package lyra.other;
 
 import lyra.LyraParser;
 import org.antlr.v4.runtime.*;
 
-import javax.swing.*;
-import javax.swing.text.html.parser.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * Outputs syntatic error messages with added verbose information.

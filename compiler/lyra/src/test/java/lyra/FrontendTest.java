@@ -1,6 +1,7 @@
 package lyra;
 
 
+import lyra.other.Frontend;
 import org.junit.Test;
 
 import java.io.File;
@@ -8,13 +9,9 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.CodeSource;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Testes para lyra.Frontend

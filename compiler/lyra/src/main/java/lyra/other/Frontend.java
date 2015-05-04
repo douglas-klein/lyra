@@ -1,15 +1,13 @@
 /**
  *
  */
-package lyra;
+package lyra.other;
 
-import lyra.LyraLexer;
-import lyra.LyraParser;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RuleContext;
+import lyra.listeners.LyraListener;
+import lyra.listeners.LyraListener2;
+import lyra.symbols.BaseTypes;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -30,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Frontend {
 
+    public static BaseTypes types = new BaseTypes();
     /**
      * true only when this instance was created from the static main, making it the application
      * entry point.
@@ -112,10 +111,10 @@ public class Frontend {
     public boolean compile(Reader input) throws IOException {
         notifyUserInterfaceOpen();
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
-        LyraLexer lexer = new LyraLexer(antlrIn);
+        lyra.LyraLexer lexer = new lyra.LyraLexer(antlrIn);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        LyraParser parser = new LyraParser(tokens);
+        lyra.LyraParser parser = new lyra.LyraParser(tokens);
         parser.removeErrorListeners();
 
         ErrorListener errorListener = new ErrorListener();
@@ -125,7 +124,14 @@ public class Frontend {
         if (lemonadeRecovery) parser.setErrorHandler(new LemonadeErrorHandler());
 
         //parse
-        LyraParser.ProgramContext tree = parser.program();
+        lyra.LyraParser.ProgramContext tree = parser.program();
+        // semantic
+        ParseTreeWalker walker = new ParseTreeWalker();
+        LyraListener listener = new LyraListener();
+        walker.walk(listener, tree);
+        // create next phase and feed symbol table info from def to ref phase
+        LyraListener2 ref = new LyraListener2(listener.getGlobals(), listener.getScopes());
+        walker.walk(ref, tree);
 
         if (guiErrorContext) showErrorInspections(parser, errorListener);
 
@@ -141,7 +147,7 @@ public class Frontend {
         return parser.getNumberOfSyntaxErrors() == 0;
     }
 
-    private void showTreeInspection(LyraParser parser, LyraParser.ProgramContext tree) {
+    private void showTreeInspection(lyra.LyraParser parser, lyra.LyraParser.ProgramContext tree) {
         final JDialog dialog = getInspectDialog(parser, tree);
         if (dialog != null) {
             notifyUserInterfaceOpen();
@@ -156,7 +162,7 @@ public class Frontend {
         }
     }
 
-    private static JDialog getInspectDialog(LyraParser parser, RuleContext tree) {
+    private static JDialog getInspectDialog(lyra.LyraParser parser, RuleContext tree) {
         JDialog dialog = null;
         try {
             dialog = tree.inspect(parser).get();
@@ -166,13 +172,13 @@ public class Frontend {
         return dialog;
     }
 
-    private void showErrorInspections(LyraParser parser, ErrorListener errorListener) {
+    private void showErrorInspections(lyra.LyraParser parser, ErrorListener errorListener) {
         notifyUserInterfaceOpen();
         Iterator<ParserRuleContext> iterator = errorListener.getErrorContexts().iterator();
         showNextErrorInspection(parser, iterator);
     }
 
-    private void showNextErrorInspection(LyraParser parser, Iterator<ParserRuleContext> iterator) {
+    private void showNextErrorInspection(lyra.LyraParser parser, Iterator<ParserRuleContext> iterator) {
         if (!iterator.hasNext()) {
             notifyUserInterfaceClosed();
             return;
@@ -195,6 +201,11 @@ public class Frontend {
                 dialog.dispose();
             }
         });
+    }
+
+    public static void error(Token t, String msg) {
+        System.err.printf("line %d:%d %s\n", t.getLine(), t.getCharPositionInLine(),
+                msg);
     }
 
     public boolean isApplicationEntryPoint() {
