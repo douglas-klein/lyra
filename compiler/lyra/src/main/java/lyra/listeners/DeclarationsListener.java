@@ -81,6 +81,20 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
+    public void enterInterfacedecl(LyraParser.InterfacedeclContext ctx) {
+        String name = ctx.IDENT().getText();
+        InterfaceSymbol symbol = new InterfaceSymbol(name, currentScope);
+        currentScope.define(symbol);
+        saveScope(ctx, symbol);
+        currentScope = symbol;
+    }
+
+    @Override
+    public void exitInterfacedecl(LyraParser.InterfacedeclContext ctx) {
+        leaveScope();
+    }
+
+    @Override
     public void enterScopestat(LyraParser.ScopestatContext ctx) {
         enterAnonymousScope(ctx);
     }

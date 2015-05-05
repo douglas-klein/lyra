@@ -31,5 +31,5 @@ public class BaseScope implements Scope {
 
     public String toString() { return symbols.keySet().toString(); }
 
-    public String getScopeName(){return "(anonymous)";};
+    public String getScopeName(){return "(anonymous)";}
 }

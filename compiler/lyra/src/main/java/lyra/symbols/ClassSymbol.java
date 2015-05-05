@@ -1,7 +1,7 @@
 package lyra.symbols;
 
 /**
- * Created by eduardo on 29/04/15.
+ * Symbol implementation for classes.
  */
 import lyra.scopes.Scope;
 
@@ -25,15 +25,11 @@ public class ClassSymbol extends ScopedSymbol implements Scope {
         return superClass; // if not root object, return super
     }
 
-    /** For a.b, only look in a's class hierarchy to resolve b, not globals */
-    public Symbol resolveMember(String name) {
-        Symbol s = members.get(name);
-        if ( s!=null ) return s;
-        // if not here, check just the superclass chain
-        if ( superClass != null ) {
-            return superClass.resolveMember(name);
-        }
-        return null; // not found
+    @Override
+    public Symbol resolve(String name) {
+        //Look first on the super class, fallback to enclosing scope if failed.
+        Symbol result = getParentScope().resolve(name);
+        return result != null ? result : super.resolve(name);
     }
 
     public Map<String, Symbol> getMembers() { return members; }
