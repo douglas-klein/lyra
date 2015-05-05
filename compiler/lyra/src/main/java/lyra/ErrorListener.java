@@ -26,9 +26,13 @@ public class ErrorListener extends BaseErrorListener {
         if (!isQuiet()) {
             String offendingSymbolString = getOffendingSymbolString(offendingSymbol, recognizer);
             System.err.println(String.format("Error: line %1$d:%2$d at %3$s: %4$s", line,
-                                             charPositionInLine, offendingSymbolString, msg));
+                    charPositionInLine, offendingSymbolString, msg));
         }
 
+        captureErrorContext(recognizer);
+    }
+
+    private void captureErrorContext(Recognizer<?, ?> recognizer) {
         if (recognizer instanceof LyraParser) {
             LyraParser parser = (LyraParser)recognizer;
             errorContexts.add(parser.getContext());
@@ -39,6 +43,37 @@ public class ErrorListener extends BaseErrorListener {
                 System.err.println("Parser rule stack: " + stack);
             }
         }
+    }
+
+    public void semanticError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+                              String msg) {
+        ++numberOfErrors;
+
+        if (!isQuiet()) {
+            String offendingSymbolString = getOffendingSymbolString(offendingSymbol, recognizer);
+            if (offendingSymbolString.length() > 0)
+                offendingSymbolString = offendingSymbolString + " ";
+            String where = getWhereString(line, charPositionInLine);
+            if (where.length() > 0)
+                where = where + " ";
+
+            System.err.println(String.format("Error: %1$s%2$s%3$s", where, offendingSymbolString, msg));
+        }
+
+        captureErrorContext(recognizer);
+    }
+
+    private String getWhereString(int line, int charPositionInLine) {
+        String where = "";
+        if (line > 0)
+            where = String.format("line %1$d", line);
+        if (charPositionInLine > 0)
+            where = String.format("%1$s:%2$d", where, charPositionInLine);
+        return where;
+    }
+
+    public void semanticError(Recognizer<?, ?> recognizer, Object offendingSymbol, String msg) {
+        semanticError(recognizer, offendingSymbol, -1, -1, msg);
     }
 
     private String getOffendingSymbolString(Object offendingSymbol, Recognizer<?, ?> recognizer) {

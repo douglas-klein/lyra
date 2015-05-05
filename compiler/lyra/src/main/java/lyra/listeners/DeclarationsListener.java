@@ -10,10 +10,14 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 /**
  * Created by eduardo on 29/04/15.
  */
-public class LyraListener extends lyra.LyraParserBaseListener {
-    private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
+public class DeclarationsListener extends lyra.LyraParserBaseListener {
+    private ParseTreeProperty<Scope> scopes;
     private BaseScope globals;
     private Scope currentScope; // define symbols in this scope
+
+    public DeclarationsListener(ParseTreeProperty<Scope> scopes) {
+        this.scopes = scopes;
+    }
 
     @Override
     public void enterProgram(lyra.LyraParser.ProgramContext ctx) {
@@ -73,10 +77,6 @@ public class LyraListener extends lyra.LyraParserBaseListener {
     @Override
     public void exitClassdecl(lyra.LyraParser.ClassdeclContext ctx) {
         currentScope = currentScope.getEnclosingScope(); // pop scope
-    }
-
-    public ParseTreeProperty<Scope> getScopes() {
-        return scopes;
     }
 
     public BaseScope getGlobals() {

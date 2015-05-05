@@ -6,18 +6,19 @@ import lyra.scopes.Scope;
 import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 import lyra.Compiler;
+import lyra.symbols.VariableSymbol;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 /**
  * Created by eduardo on 29/04/15.
  */
-public class LyraListener2 extends lyra.LyraParserBaseListener {
+public class ReferencesListener extends lyra.LyraParserBaseListener {
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
     private BaseScope globals;
     private Scope currentScope; // define symbols in this scope
     private Compiler compiler;
 
-    public LyraListener2(BaseScope globals, ParseTreeProperty<Scope> scopes, Compiler compiler) {
+    public ReferencesListener(BaseScope globals, ParseTreeProperty<Scope> scopes, Compiler compiler) {
         this.scopes = scopes;
         this.globals = globals;
         this.compiler = compiler;
@@ -37,11 +38,14 @@ public class LyraListener2 extends lyra.LyraParserBaseListener {
     public void exitAttribute_decl(LyraParser.Attribute_declContext ctx) {
         String name = ctx.IDENT().get(0).getText();
         Symbol var = currentScope.resolve(name);
-        if ( var==null ) {
-         // this.compiler.getErrorListener().syntaxError(compiler.getParser(),ctx.IDENT().get(0),0,0,"SADBOYS",null);
+        if (var == null) {
+//            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
+//                    String.format("Undefined name, compiler bug?"));
         }
-        if ( var instanceof MethodSymbol) {
-          //  Compiler.error(ctx.IDENT().get(0).getSymbol(), name + " is not a variable");
+        if (!(var instanceof VariableSymbol)) {
+//            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
+//                    String.format("Symbol %1$s already defined as something other than VariableSymbol.",
+//                            ctx.IDENT(0).getText()));
         }
     }
 
