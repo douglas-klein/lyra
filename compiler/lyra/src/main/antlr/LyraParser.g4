@@ -57,16 +57,18 @@ statement               : attribute_decl SEMICOLON
                         | whilestat
                         | forever
                         | switchstat
-                        | LEFTCURLYBRACE statlist RIGHTCURLYBRACE
+                        | scopestat
                         | lvalue     SEMICOLON
                         | expr SEMICOLON
                         | BREAK SEMICOLON
                         | CONTINUE SEMICOLON
                         | SEMICOLON ;
+scopestat               : LEFTCURLYBRACE statlist RIGHTCURLYBRACE ;
 atribstat               : lvalue EQUALOP (aloc_expr | expr);
 returnstat              : RETURN (expr)?;
 superstat               : SUPER LEFTPARENTHESES args RIGHTPARENTHESES;
-ifstat                  : IF  expr  LEFTCURLYBRACE statlist RIGHTCURLYBRACE ( ELSE LEFTCURLYBRACE statlist RIGHTCURLYBRACE)? ;
+ifstat                  : IF  expr  LEFTCURLYBRACE statlist RIGHTCURLYBRACE elsestat? ;
+elsestat                : ELSE LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
 forstat                 : FOR attribute_decl?  SEMICOLON  expr SEMICOLON expr?  LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
 whilestat               : WHILE expr LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
 forever                 : FOREVER LEFTCURLYBRACE statlist RIGHTCURLYBRACE;

@@ -1,6 +1,7 @@
 package lyra.listeners;
 
 import lyra.Compiler;
+import lyra.LyraParser;
 import lyra.scopes.BaseScope;
 import lyra.symbols.*;
 import lyra.scopes.Scope;
@@ -27,8 +28,8 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
 
     @Override
     public void exitProgram(lyra.LyraParser.ProgramContext ctx) {
-        currentScope = currentScope.getEnclosingScope(); // pop scope
-       // System.out.println(globals);
+        leaveScope();
+        // System.out.println(globals);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
 
     @Override
     public void exitMethod_decl(lyra.LyraParser.Method_declContext ctx) {
-        currentScope = currentScope.getEnclosingScope(); // pop scope
+        leaveScope();
     }
 
     @Override
@@ -76,7 +77,81 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
 
     @Override
     public void exitClassdecl(lyra.LyraParser.ClassdeclContext ctx) {
-        currentScope = currentScope.getEnclosingScope(); // pop scope
+        leaveScope();
+    }
+
+    @Override
+    public void enterScopestat(LyraParser.ScopestatContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void exitScopestat(LyraParser.ScopestatContext ctx) {
+        leaveScope();
+    }
+
+    @Override
+    public void enterForstat(LyraParser.ForstatContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void enterWhilestat(LyraParser.WhilestatContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void exitWhilestat(LyraParser.WhilestatContext ctx) {
+        leaveScope();
+    }
+
+    @Override
+    public void enterForever(LyraParser.ForeverContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void exitForever(LyraParser.ForeverContext ctx) {
+        leaveScope();
+    }
+
+    @Override
+    public void enterSwitchstat(LyraParser.SwitchstatContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void exitSwitchstat(LyraParser.SwitchstatContext ctx) {
+        leaveScope();
+    }
+
+    @Override
+    public void enterIfstat(LyraParser.IfstatContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void exitIfstat(LyraParser.IfstatContext ctx) {
+        leaveScope();
+    }
+
+    @Override
+    public void enterElsestat(LyraParser.ElsestatContext ctx) {
+        enterAnonymousScope(ctx);
+    }
+
+    @Override
+    public void exitElsestat(LyraParser.ElsestatContext ctx) {
+        leaveScope();
+    }
+
+    private void leaveScope() {
+        currentScope = currentScope.getEnclosingScope();
+    }
+    private void enterAnonymousScope(ParserRuleContext ctx) {
+        BaseScope scope = new BaseScope(currentScope);
+        saveScope(ctx, scope);
+        currentScope = scope;
     }
 
     public BaseScope getGlobals() {
