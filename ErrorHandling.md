@@ -44,12 +44,14 @@
   - Subclasse de `DefaultErrorStrategy`.
   - Instalado no parser gerado: `parser.setErrorHandler(new LemonadeErrorHandler());`
   - Exemplo:  
+
     ```ruby
     class Application {
         Int width
         Int height;
     }
     ```
+    
     - DefaultErrorStrategy:  
       ![Sub-árvore de erro recuperado com DefaultErrorStrategy](/ErrorHandling_imgs/default_tree.png)
     - LemonadeErrorHandler:  
