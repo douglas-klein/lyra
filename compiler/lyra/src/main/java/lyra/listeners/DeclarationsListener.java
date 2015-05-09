@@ -8,9 +8,6 @@ import lyra.scopes.Scope;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
-/**
- * Created by eduardo on 29/04/15.
- */
 public class DeclarationsListener extends lyra.LyraParserBaseListener {
     private ParseTreeProperty<Scope> scopes;
     private BaseScope globals;
@@ -35,11 +32,11 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     @Override
     public void enterMethod_decl(lyra.LyraParser.Method_declContext ctx) {
         String name = ctx.IDENT().getText();
-        Type type ;
+        UnresolvedType type ;
         // Quando o tipo do método estiver explicito
         if(ctx.type() != null){
             // O tipo de retorno do método já está definido na declaração do método
-            type = new Type(ctx.type().IDENT().getText());
+            type = new UnresolvedType(ctx.type().IDENT().getText());
         }
         // Quando o tipo do método for não estiver explicito então seu tipo é void
         else{
@@ -92,6 +89,20 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     @Override
     public void exitInterfacedecl(LyraParser.InterfacedeclContext ctx) {
         leaveScope();
+    }
+
+    @Override
+    public void enterVar_decl(LyraParser.Var_declContext ctx) {
+
+    }
+
+    @Override
+    public void enterVar_decl_unit(LyraParser.Var_decl_unitContext ctx) {
+        String name = ctx.IDENT().getText();
+        LyraParser.Var_declContext parent = (LyraParser.Var_declContext)ctx.getParent();
+        UnresolvedType type = new UnresolvedType(parent.type().IDENT().getText());
+        VariableSymbol symbol = new VariableSymbol(name, type);
+        currentScope.define(symbol);
     }
 
     @Override

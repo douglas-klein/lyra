@@ -3,14 +3,17 @@ package lyra.scopes;
 import lyra.symbols.Symbol;
 
 public interface Scope {
-    public String getScopeName();
+    String getScopeName();
 
     /** Where to look next for symbols;  */
-    public Scope getEnclosingScope();
+    Scope getEnclosingScope();
 
     /** Define a symbol in the current scope */
-    public void define(Symbol sym);
+    void define(Symbol sym);
 
     /** Look up name in this scope or in enclosing scope if not here */
-    public Symbol resolve(String name);
+    Symbol resolve(String name);
+
+    /** Look up names in this scope, but not on enclosing. */
+    Symbol shallowResolve(String name);
 }

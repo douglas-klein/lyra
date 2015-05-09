@@ -9,9 +9,6 @@ import lyra.Compiler;
 import lyra.symbols.VariableSymbol;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
-/**
- * Created by eduardo on 29/04/15.
- */
 public class ReferencesListener extends lyra.LyraParserBaseListener {
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
     private BaseScope globals;
@@ -36,16 +33,17 @@ public class ReferencesListener extends lyra.LyraParserBaseListener {
 
     @Override
     public void exitAttribute_decl(LyraParser.Attribute_declContext ctx) {
-        String name = ctx.IDENT().get(0).getText();
-        Symbol var = currentScope.resolve(name);
-        if (var == null) {
+        for (LyraParser.Var_decl_unitContext unit : ctx.var_decl().var_decl_unit()) {
+            Symbol var = currentScope.resolve(unit.IDENT().getText());
+            if (var == null) {
 //            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
 //                    String.format("Undefined name, compiler bug?"));
-        }
-        if (!(var instanceof VariableSymbol)) {
+            }
+            if (!(var instanceof VariableSymbol)) {
 //            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
 //                    String.format("Symbol %1$s already defined as something other than VariableSymbol.",
 //                            ctx.IDENT(0).getText()));
+            }
         }
     }
 

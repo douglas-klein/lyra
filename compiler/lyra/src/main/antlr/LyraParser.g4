@@ -7,7 +7,14 @@ class_modifiers         : VISIBILITY_MODIFIER? ( FINAL | ABSTRACT )? ;
 extendsdecl             : (EXTENDS IDENT);
 implementsdecl          : IMPLEMENTS ident_list;
 class_body              : ( attribute_decl SEMICOLON | method_decl )* ;
-attribute_decl          : VISIBILITY_MODIFIER? type IDENT( LEFTBRACKET RIGHTBRACKET)* ( COMMA IDENT (LEFTBRACKET RIGHTBRACKET)* )* ( EQUALOP ( exprlist | aloc_expr ))?;
+
+//attribute_decl          : VISIBILITY_MODIFIER? type IDENT( LEFTBRACKET RIGHTBRACKET)* ( COMMA IDENT (LEFTBRACKET RIGHTBRACKET)* )* ( EQUALOP ( exprlist | aloc_expr ))?;
+
+attribute_decl          : VISIBILITY_MODIFIER? var_decl;
+var_decl                : VISIBILITY_MODIFIER? type var_decl_unit (COMMA var_decl_unit)* (EQUALOP exprlist )? ;
+var_decl_unit           : IDENT array_decl_suffix*;
+array_decl_suffix       : LEFTBRACKET RIGHTBRACKET;
+
 interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE method_decl_abstract+ RIGHTCURLYBRACE ;
 
 method_decl_abstract    : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON IDENT)? SEMICOLON ;

@@ -1,24 +1,29 @@
 package lyra.scopes;
 
-/**
- * Created by eduardo on 29/04/15.
- */
 import lyra.symbols.Symbol;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Basic Scope implementation.
+ */
 public class BaseScope implements Scope {
     Scope enclosingScope; // null if global (outermost) scope
-    Map<String, Symbol> symbols = new LinkedHashMap<String, Symbol>();
+    Map<String, Symbol> symbols = new LinkedHashMap<>();
 
     public BaseScope(Scope parent) { this.enclosingScope = parent;	}
 
+    public Symbol shallowResolve(String name) {
+        return symbols.get(name);
+    }
+
     public Symbol resolve(String name) {
-        Symbol s = symbols.get(name);
-        if ( s!=null ) return s;
-        // if not here, check any enclosing scope
-        if ( enclosingScope != null ) return enclosingScope.resolve(name);
+        Symbol s = shallowResolve(name);
+        if (s != null )
+            return s;
+        if ( enclosingScope != null )
+            return enclosingScope.resolve(name);
         return null; // not found
     }
 

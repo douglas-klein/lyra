@@ -1,40 +1,34 @@
 package lyra.symbols;
 
-/**
- * Created by eduardo on 29/04/15.
- */
 
 import lyra.scopes.Scope;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
-public class MethodSymbol extends Symbol implements Scope {
-    Map<String, Symbol> arguments = new LinkedHashMap<String, Symbol>();
-    Scope enclosingScope;
+/**
+ * Method Symbol, used for classes and interfaces.
+ */
+public class MethodSymbol extends ScopedSymbol {
+    LinkedHashMap<String, VariableSymbol> arguments = new LinkedHashMap<>();
+    TypeSymbol returnType;
 
-    public MethodSymbol(String name, Type retType, Scope enclosingScope) {
-        super(name, retType);
-        this.enclosingScope = enclosingScope;
+    public MethodSymbol(String name, TypeSymbol returnType, Scope enclosingScope) {
+        super(name, SymbolType.METHOD, enclosingScope);
+        this.returnType = returnType;
     }
 
-    public Symbol resolve(String name) {
-        Symbol s = arguments.get(name);
-        if ( s!=null ) return s;
-        // if not here, check any enclosing scope
-        if ( getEnclosingScope() != null ) {
-            return getEnclosingScope().resolve(name);
-        }
-        return null; // not found
+    public void addArgument(VariableSymbol argument) {
+        this.arguments.put(argument.getName(), argument);
+        define(argument);
     }
 
-    public void define(Symbol sym) {
-        arguments.put(sym.getName(), sym);
-        sym.setScope(this); // track the scope in each symbol
+    public VariableSymbol resolveArgument(String name) {
+        return arguments.get(name);
     }
 
-    public Scope getEnclosingScope() { return enclosingScope; }
-    public String getScopeName() { return name; }
+    public Collection<VariableSymbol> getArguments() {
+        return arguments.values();
+    }
 
-    public String toString() { return "function"+super.toString()+":"+arguments.values(); }
 }

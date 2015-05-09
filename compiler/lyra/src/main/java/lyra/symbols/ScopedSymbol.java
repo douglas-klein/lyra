@@ -1,47 +1,29 @@
 package lyra.symbols;
 
-/**
- * Created by eduardo on 29/04/15.
- */
+import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 
 import java.util.Map;
 
 public abstract class ScopedSymbol extends Symbol implements Scope {
-    Scope enclosingScope;
+    BaseScope myScope;
 
-    public ScopedSymbol(String name, Type type, Scope enclosingScope) {
-        super(name, type);
-        this.enclosingScope = enclosingScope;
-    }
-    public ScopedSymbol(String name, Scope enclosingScope) {
-        super(name);
-        this.enclosingScope = enclosingScope;
+    public ScopedSymbol(String name, SymbolType symbolType, Scope enclosingScope) {
+        super(name, symbolType);
+        this.myScope = new BaseScope(enclosingScope);
     }
 
-    public Symbol resolve(String name) {
-        Symbol s = getMembers().get(name);
-        if ( s!=null ) return s;
-        // if not here, check any enclosing scope
-        if ( getEnclosingScope() != null ) {
-            return getEnclosingScope().resolve(name);
-        }
-        return null; // not found
-    }
+    @Override
+    public Symbol resolve(String name) { return myScope.resolve(name); }
 
-    public Symbol resolveType(String name) { return resolve(name); }
+    @Override
+    public Symbol shallowResolve(String name) { return myScope.shallowResolve(name); }
 
-    public void define(Symbol sym) {
-        getMembers().put(sym.getName(), sym);
-        sym.setScope(this); // track the scope in each symbol
-    }
+    @Override
+    public void define(Symbol sym) { myScope.define(sym); }
 
-    public Scope getEnclosingScope() { return enclosingScope; }
+    @Override
+    public Scope getEnclosingScope() { return myScope.getEnclosingScope(); }
 
-    public String getScopeName() { return name; }
-
-    /** Indicate how subclasses store scope members. Allows us to
-     *  factor out common code in this class.
-     */
-    public abstract Map<String, Symbol> getMembers();
+    public String getScopeName() { return getName(); }
 }
