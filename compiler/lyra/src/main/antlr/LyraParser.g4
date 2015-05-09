@@ -17,7 +17,7 @@ array_decl_suffix       : LEFTBRACKET RIGHTBRACKET;
 
 interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE method_decl_abstract+ RIGHTCURLYBRACE ;
 
-method_decl_abstract    : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON IDENT)? SEMICOLON ;
+method_decl_abstract    : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? SEMICOLON ;
 
 exprlist                : expr (COMMA expr)*;
 

@@ -56,6 +56,41 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
         leaveScope();
     }
 
+
+    @Override
+    public void enterMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
+        //TODO repeated code from enterMethod_decl.
+        String name = ctx.IDENT().getText();
+        UnresolvedType type ;
+        if(ctx.type() != null) {
+            // O tipo de retorno do método já está definido na declaração do método
+            type = new UnresolvedType(ctx.type().IDENT().getText());
+        } else {
+            // Quando o tipo do método for não estiver explicito então seu tipo é void
+            type = Compiler.types.get("Void");
+        }
+        // push new scope by making new one that points to enclosing scope
+        MethodSymbol method = new MethodSymbol(name, type, currentScope);
+        currentScope.define(method); // Define function in current scope
+        saveScope(ctx, method);// Push: set function's parent to current
+        currentScope = method; // Current scope is now function scope
+    }
+
+    @Override
+    public void exitMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
+        leaveScope();
+    }
+
+    @Override
+    public void exitParam_decl(LyraParser.Param_declContext ctx) {
+        LyraParser.ParamsContext params = (LyraParser.ParamsContext) ctx.getParent();
+        MethodSymbol method = (MethodSymbol) scopes.get(params.getParent());
+        UnresolvedType type = new UnresolvedType(ctx.type().IDENT().getText());
+        String name = ctx.IDENT().getText();
+        VariableSymbol arg = new VariableSymbol(name, type);
+        method.addArgument(arg);
+    }
+
     @Override
     public void enterClassdecl(lyra.LyraParser.ClassdeclContext ctx) {
         String className = ctx.IDENT().getText();
