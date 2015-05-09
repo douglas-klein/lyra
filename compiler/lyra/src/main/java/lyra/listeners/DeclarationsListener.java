@@ -6,7 +6,9 @@ import lyra.scopes.BaseScope;
 import lyra.symbols.*;
 import lyra.scopes.Scope;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class DeclarationsListener extends lyra.LyraParserBaseListener {
     private ParseTreeProperty<Scope> scopes;
@@ -92,16 +94,23 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
-    public void enterVar_decl(LyraParser.Var_declContext ctx) {
-
-    }
-
-    @Override
     public void enterVar_decl_unit(LyraParser.Var_decl_unitContext ctx) {
         String name = ctx.IDENT().getText();
         LyraParser.Var_declContext parent = (LyraParser.Var_declContext)ctx.getParent();
         UnresolvedType type = new UnresolvedType(parent.type().IDENT().getText());
         VariableSymbol symbol = new VariableSymbol(name, type);
+
+        if (parent.getParent() instanceof LyraParser.Attribute_declContext) {
+            LyraParser.Attribute_declContext parentParent;
+            parentParent = (LyraParser.Attribute_declContext)parent.getParent();
+
+            TerminalNode modifier = parentParent.VISIBILITY_MODIFIER();
+            Visibility visibility = Visibility.PUBLIC;
+            if (modifier != null)
+                visibility = Visibility.fromName(modifier.getText());
+            symbol.setVisibility(visibility);
+        }
+
         currentScope.define(symbol);
     }
 
