@@ -8,6 +8,7 @@ public class VariableSymbol extends Symbol {
 
     public VariableSymbol(String name, TypeSymbol type) {
         super(name, SymbolType.VARIABLE);
+        this.type = type;
     }
 
     public TypeSymbol getType() {

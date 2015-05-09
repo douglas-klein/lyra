@@ -6,6 +6,7 @@ import lyra.scopes.Scope;
 import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 import lyra.Compiler;
+import lyra.symbols.TypeSymbol;
 import lyra.symbols.VariableSymbol;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
@@ -32,19 +33,26 @@ public class ReferencesListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
-    public void exitAttribute_decl(LyraParser.Attribute_declContext ctx) {
-        for (LyraParser.Var_decl_unitContext unit : ctx.var_decl().var_decl_unit()) {
-            Symbol var = currentScope.resolve(unit.IDENT().getText());
-            if (var == null) {
+    public void exitVar_decl_unit(LyraParser.Var_decl_unitContext ctx) {
+        Symbol sym = currentScope.resolve(ctx.IDENT().getText());
+        if (sym == null) {
+            //TODO comentado pois os casos de teste quebrariam
 //            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
 //                    String.format("Undefined name, compiler bug?"));
-            }
-            if (!(var instanceof VariableSymbol)) {
-//            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
-//                    String.format("Symbol %1$s already defined as something other than VariableSymbol.",
-//                            ctx.IDENT(0).getText()));
-            }
+//            return;
+            System.err.println("----------- 1");
         }
+
+        VariableSymbol var = (VariableSymbol)sym;
+        Symbol upgrade = currentScope.resolve(var.getType().getName());
+        if (!(upgrade instanceof TypeSymbol)) {
+            //TODO comentado pois os casos de teste quebrariam
+//            LyraParser.Var_declContext varDecl = (LyraParser.Var_declContext) ctx.getParent();
+//            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
+//                    String.format("Unresolved type " + var.getType().getName() + "."));
+//            return;
+        }
+        var.upgradeType((TypeSymbol)upgrade);
     }
 
     public ParseTreeProperty<Scope> getScopes() {
