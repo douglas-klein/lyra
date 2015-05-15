@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class DeclarationsListener extends lyra.LyraParserBaseListener {
+public class DeclarationsListener extends ScopedBaseListener {
     private ParseTreeProperty<Scope> scopes;
     private BaseScope globals;
     private Scope currentScope; // define symbols in this scope
@@ -28,7 +28,6 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     @Override
     public void exitProgram(lyra.LyraParser.ProgramContext ctx) {
         leaveScope();
-        // System.out.println(globals);
     }
 
     @Override
@@ -52,12 +51,6 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
-    public void exitMethod_decl(lyra.LyraParser.Method_declContext ctx) {
-        leaveScope();
-    }
-
-
-    @Override
     public void enterMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
         //TODO repeated code from enterMethod_decl.
         String name = ctx.IDENT().getText();
@@ -74,11 +67,6 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
         currentScope.define(method); // Define function in current scope
         saveScope(ctx, method);// Push: set function's parent to current
         currentScope = method; // Current scope is now function scope
-    }
-
-    @Override
-    public void exitMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
-        leaveScope();
     }
 
     @Override
@@ -110,22 +98,12 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
-    public void exitClassdecl(lyra.LyraParser.ClassdeclContext ctx) {
-        leaveScope();
-    }
-
-    @Override
     public void enterInterfacedecl(LyraParser.InterfacedeclContext ctx) {
         String name = ctx.IDENT().getText();
         InterfaceSymbol symbol = new InterfaceSymbol(name, currentScope);
         currentScope.define(symbol);
         saveScope(ctx, symbol);
         currentScope = symbol;
-    }
-
-    @Override
-    public void exitInterfacedecl(LyraParser.InterfacedeclContext ctx) {
-        leaveScope();
     }
 
     @Override
@@ -150,67 +128,17 @@ public class DeclarationsListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
-    public void enterScopestat(LyraParser.ScopestatContext ctx) {
-        enterAnonymousScope(ctx);
+    protected void beginScopeVisit(boolean named, ParserRuleContext ctx) {
+        if (!named) {
+            enterAnonymousScope(ctx);
+        } else {
+            throw new RuntimeException("This beginScopeVisit() implementation can't " +
+                    "be called for named scopes");
+        }
     }
 
     @Override
-    public void exitScopestat(LyraParser.ScopestatContext ctx) {
-        leaveScope();
-    }
-
-    @Override
-    public void enterForstat(LyraParser.ForstatContext ctx) {
-        enterAnonymousScope(ctx);
-    }
-
-    @Override
-    public void enterWhilestat(LyraParser.WhilestatContext ctx) {
-        enterAnonymousScope(ctx);
-    }
-
-    @Override
-    public void exitWhilestat(LyraParser.WhilestatContext ctx) {
-        leaveScope();
-    }
-
-    @Override
-    public void enterForever(LyraParser.ForeverContext ctx) {
-        enterAnonymousScope(ctx);
-    }
-
-    @Override
-    public void exitForever(LyraParser.ForeverContext ctx) {
-        leaveScope();
-    }
-
-    @Override
-    public void enterSwitchstat(LyraParser.SwitchstatContext ctx) {
-        enterAnonymousScope(ctx);
-    }
-
-    @Override
-    public void exitSwitchstat(LyraParser.SwitchstatContext ctx) {
-        leaveScope();
-    }
-
-    @Override
-    public void enterIfstat(LyraParser.IfstatContext ctx) {
-        enterAnonymousScope(ctx);
-    }
-
-    @Override
-    public void exitIfstat(LyraParser.IfstatContext ctx) {
-        leaveScope();
-    }
-
-    @Override
-    public void enterElsestat(LyraParser.ElsestatContext ctx) {
-        enterAnonymousScope(ctx);
-    }
-
-    @Override
-    public void exitElsestat(LyraParser.ElsestatContext ctx) {
+    protected void endScopeVisit(boolean named, ParserRuleContext ctx) {
         leaveScope();
     }
 

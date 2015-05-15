@@ -8,9 +8,10 @@ import lyra.symbols.Symbol;
 import lyra.Compiler;
 import lyra.symbols.TypeSymbol;
 import lyra.symbols.VariableSymbol;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
-public class ReferencesListener extends lyra.LyraParserBaseListener {
+public class ReferencesListener extends ScopedBaseListener {
     private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
     private BaseScope globals;
     private Scope currentScope; // define symbols in this scope
@@ -28,8 +29,18 @@ public class ReferencesListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
-    public void enterClassdecl(LyraParser.ClassdeclContext ctx) {
+    public void exitProgram(LyraParser.ProgramContext ctx) {
+        currentScope = null;
+    }
+
+    @Override
+    protected void beginScopeVisit(boolean named, ParserRuleContext ctx) {
         currentScope = scopes.get(ctx);
+    }
+
+    @Override
+    protected void endScopeVisit(boolean named, ParserRuleContext ctx) {
+        currentScope = currentScope.getEnclosingScope();
     }
 
     @Override
@@ -52,7 +63,9 @@ public class ReferencesListener extends lyra.LyraParserBaseListener {
 //                    String.format("Unresolved type " + var.getType().getName() + "."));
 //            return;
         }
-        var.upgradeType((TypeSymbol)upgrade);
+
+        //TODO comentado pois Int, e vários tipos built-in não existem ainda
+        //var.upgradeType((TypeSymbol)upgrade);
     }
 
     public ParseTreeProperty<Scope> getScopes() {

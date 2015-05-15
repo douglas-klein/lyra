@@ -24,7 +24,7 @@ public class VariableSymbol extends Symbol {
      * @param type new TypeSymbol.
      */
     public void upgradeType(TypeSymbol type) {
-        if (this.type.getQualifiedName().equals(type.getQualifiedName()))
+        if (!this.type.getQualifiedName().equals(type.getQualifiedName()))
             throw new RuntimeException("upgraded type must have same qualified name.");
         this.type = type;
     }
