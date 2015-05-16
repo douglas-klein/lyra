@@ -35,11 +35,15 @@ expr                    : unaryexpr
                         | expr AND expr
                         | expr OR expr
                         | expr IDENT expr
+                        | IDENT EQUALOP expr
                         ;
 
 unaryexpr               : ( NOT | PLUS | MINUS )? unaryexpr_2 ;
 unaryexpr_2             : factor INCREMENT_DECREMENT?;
-factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_VALUE
+factor                  : factor DOT IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )?
+                        | IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )?
+                        | factor LEFTBRACKET expr RIGHTBRACKET
+                        | NUMBER | STRING | NULL | IDENT | aloc_expr | BOOLEAN_VALUE
                         | LEFTPARENTHESES expr RIGHTPARENTHESES
                         | LEFTPARENTHESES expr {notifyErrorListeners("Unclosed '('");}
                         | LEFTPARENTHESES expr RIGHTPARENTHESES {notifyErrorListeners("Extra ')' after parenthised expression.");}
@@ -47,6 +51,7 @@ factor                  : NUMBER | STRING | NULL | lvalue | aloc_expr | BOOLEAN_
                         ;
 
 aloc_expr               : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
+
 method_decl             : VISIBILITY_MODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTCURLYBRACE method_body? RIGHTCURLYBRACE ;
 method_body             : statlist;
 param_decl              : IDENT COLON type
@@ -56,7 +61,6 @@ params                  : param_decl (COMMA param_decl)* ;
 args                    : ( expr (COMMA expr)* )? ;
 argsWs                  : expr+ ;
 statement               : attribute_decl SEMICOLON
-                        | atribstat  SEMICOLON
                         | returnstat SEMICOLON
                         | superstat  SEMICOLON
                         | ifstat
@@ -65,13 +69,11 @@ statement               : attribute_decl SEMICOLON
                         | forever
                         | switchstat
                         | scopestat
-                        | lvalue     SEMICOLON
                         | expr SEMICOLON
                         | BREAK SEMICOLON
                         | CONTINUE SEMICOLON
                         | SEMICOLON ;
 scopestat               : LEFTCURLYBRACE statlist RIGHTCURLYBRACE ;
-atribstat               : lvalue EQUALOP (aloc_expr | expr);
 returnstat              : RETURN (expr)?;
 superstat               : SUPER LEFTPARENTHESES args RIGHTPARENTHESES;
 ifstat                  : IF  expr  LEFTCURLYBRACE statlist RIGHTCURLYBRACE elsestat? ;
@@ -84,8 +86,6 @@ caselist                : casedecl (caselist)? | casedefault;
 casedecl                : CASE expr COLON statlist ;
 casedefault             : CASE DEFAULT COLON statlist ;
 statlist                : statement (statlist)?;
-lvalue                  : (IDENT | callOp) ( LEFTBRACKET expr RIGHTBRACKET | DOT IDENT (LEFTPARENTHESES args RIGHTPARENTHESES)?)*  ;
-callOp                  : IDENT LEFTPARENTHESES args RIGHTPARENTHESES ;
 enumdecl                : ENUM IDENT LEFTCURLYBRACE enum_body RIGHTCURLYBRACE ;
 enum_body               : default_enum | named_enum ;
 default_enum            : IDENT (COMMA IDENT) ;
