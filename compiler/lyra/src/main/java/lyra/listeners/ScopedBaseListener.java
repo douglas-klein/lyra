@@ -13,20 +13,20 @@ import org.antlr.v4.runtime.ParserRuleContext;
 public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
 
     @Override
-    public void enterMethod_decl(LyraParser.Method_declContext ctx) {
+    public void enterMethodDecl(LyraParser.MethodDeclContext ctx) {
         beginScopeVisit(true, ctx);
     }
     @Override
-    public void exitMethod_decl(LyraParser.Method_declContext ctx) {
+    public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
         endScopeVisit(true, ctx);
     }
 
     @Override
-    public void enterMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
+    public void enterMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
         beginScopeVisit(true, ctx);
     }
     @Override
-    public void exitMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
+    public void exitMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
         endScopeVisit(true, ctx);
     }
 

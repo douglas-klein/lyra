@@ -31,7 +31,7 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
-    public void enterMethod_decl(lyra.LyraParser.Method_declContext ctx) {
+    public void enterMethodDecl(lyra.LyraParser.MethodDeclContext ctx) {
         String name = ctx.IDENT().getText();
         UnresolvedType type ;
         // Quando o tipo do método estiver explicito
@@ -51,8 +51,8 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
-    public void enterMethod_decl_abstract(LyraParser.Method_decl_abstractContext ctx) {
-        //TODO repeated code from enterMethod_decl.
+    public void enterMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
+        //TODO repeated code from enterMethodDecl.
         String name = ctx.IDENT().getText();
         UnresolvedType type ;
         if(ctx.type() != null) {
@@ -70,7 +70,7 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
-    public void exitParam_decl(LyraParser.Param_declContext ctx) {
+    public void exitParamDecl(LyraParser.ParamDeclContext ctx) {
         LyraParser.ParamsContext params = (LyraParser.ParamsContext) ctx.getParent();
         MethodSymbol method = (MethodSymbol) scopes.get(params.getParent());
         UnresolvedType type = new UnresolvedType(ctx.type().IDENT().getText());
@@ -107,17 +107,17 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
-    public void enterVar_decl_unit(LyraParser.Var_decl_unitContext ctx) {
+    public void enterVarDeclUnit(LyraParser.VarDeclUnitContext ctx) {
         String name = ctx.IDENT().getText();
-        LyraParser.Var_declContext parent = (LyraParser.Var_declContext)ctx.getParent();
+        LyraParser.VarDeclContext parent = (LyraParser.VarDeclContext)ctx.getParent();
         UnresolvedType type = new UnresolvedType(parent.type().IDENT().getText());
         VariableSymbol symbol = new VariableSymbol(name, type);
 
-        if (parent.getParent() instanceof LyraParser.Attribute_declContext) {
-            LyraParser.Attribute_declContext parentParent;
-            parentParent = (LyraParser.Attribute_declContext)parent.getParent();
+        if (parent.getParent() instanceof LyraParser.AttributeDeclContext) {
+            LyraParser.AttributeDeclContext parentParent;
+            parentParent = (LyraParser.AttributeDeclContext)parent.getParent();
 
-            TerminalNode modifier = parentParent.VISIBILITY_MODIFIER();
+            TerminalNode modifier = parentParent.VISIBILITYMODIFIER();
             Visibility visibility = Visibility.PUBLIC;
             if (modifier != null)
                 visibility = Visibility.fromName(modifier.getText());

@@ -44,7 +44,7 @@ public class ReferencesListener extends ScopedBaseListener {
     }
 
     @Override
-    public void exitVar_decl_unit(LyraParser.Var_decl_unitContext ctx) {
+    public void exitVarDeclUnit(LyraParser.VarDeclUnitContext ctx) {
         Symbol sym = currentScope.resolve(ctx.IDENT().getText());
         if (sym == null) {
             //TODO comentado pois os casos de teste quebrariam
@@ -58,7 +58,7 @@ public class ReferencesListener extends ScopedBaseListener {
         Symbol upgrade = currentScope.resolve(var.getType().getName());
         if (!(upgrade instanceof TypeSymbol)) {
             //TODO comentado pois os casos de teste quebrariam
-//            LyraParser.Var_declContext varDecl = (LyraParser.Var_declContext) ctx.getParent();
+//            LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
 //            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
 //                    String.format("Unresolved type " + var.getType().getName() + "."));
 //            return;
