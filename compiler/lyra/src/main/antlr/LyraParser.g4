@@ -76,7 +76,7 @@ returnstat              : RETURN (expr)?;
 superstat               : SUPER LEFTPARENTHESES args RIGHTPARENTHESES;
 ifstat                  : IF  expr  LEFTCURLYBRACE statlist RIGHTCURLYBRACE elsestat? ;
 elsestat                : ELSE LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
-forstat                 : FOR attributeDecl?  SEMICOLON  expr SEMICOLON expr?  LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
+forstat                 : FOR varDecl?  SEMICOLON  expr SEMICOLON expr?  LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
 whilestat               : WHILE expr LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
 forever                 : FOREVER LEFTCURLYBRACE statlist RIGHTCURLYBRACE;
 switchstat              : SWITCH IDENT LEFTCURLYBRACE caselist RIGHTCURLYBRACE;
