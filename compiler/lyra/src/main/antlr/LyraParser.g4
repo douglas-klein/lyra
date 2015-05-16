@@ -3,21 +3,19 @@ options{ tokenVocab=LyraLexer; }
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
 importdecl              : IMPORT STRING SEMICOLON ;
 classdecl               : classModifiers CLASS IDENT extendsdecl? implementsdecl? LEFTCURLYBRACE classBody RIGHTCURLYBRACE ;
-classModifiers         : VISIBILITYMODIFIER? ( FINAL | ABSTRACT )? ;
+classModifiers          : VISIBILITYMODIFIER? ( FINAL | ABSTRACT )? ;
 extendsdecl             : (EXTENDS IDENT);
 implementsdecl          : IMPLEMENTS identList;
-classBody              : ( attributeDecl SEMICOLON | methodDecl )* ;
+classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
 
-//attributeDecl          : VISIBILITYMODIFIER? type IDENT( LEFTBRACKET RIGHTBRACKET)* ( COMMA IDENT (LEFTBRACKET RIGHTBRACKET)* )* ( EQUALOP ( exprlist | alocExpr ))?;
-
-attributeDecl          : VISIBILITYMODIFIER? varDecl;
-varDecl                : VISIBILITYMODIFIER? type varDeclUnit (COMMA varDeclUnit)* (EQUALOP exprlist )? ;
-varDeclUnit           : IDENT arrayDeclSuffix*;
-arrayDeclSuffix       : LEFTBRACKET RIGHTBRACKET;
+attributeDecl           : VISIBILITYMODIFIER? varDecl;
+varDecl                 : type varDeclUnit (COMMA varDeclUnit)* (EQUALOP exprlist )? ;
+varDeclUnit             : IDENT arrayDeclSuffix*;
+arrayDeclSuffix         : LEFTBRACKET RIGHTBRACKET;
 
 interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE methodDeclAbstract+ RIGHTCURLYBRACE ;
 
-methodDeclAbstract    : VISIBILITYMODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? SEMICOLON ;
+methodDeclAbstract      : VISIBILITYMODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? SEMICOLON ;
 
 exprlist                : expr (COMMA expr)*;
 
@@ -60,7 +58,7 @@ paramDecl               : IDENT COLON type
 params                  : paramDecl (COMMA paramDecl)* ;
 args                    : ( expr (COMMA expr)* )? ;
 argsWs                  : expr+ ;
-statement               : attributeDecl SEMICOLON
+statement               : varDecl SEMICOLON
                         | returnstat SEMICOLON
                         | superstat  SEMICOLON
                         | ifstat
