@@ -121,4 +121,54 @@ public class SyntacticSugarListenerTests {
 
         assertTrue(visited[0]);
     }
+
+    @Test
+    public void testChainedPostFix() throws Exception {
+        Compiler compiler = new Compiler();
+        InputStreamReader reader = getReader("samples/RewriteChainedIncrement.ly");
+        assertNotNull(reader);
+        compiler.init(reader);
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        SyntacticSugarListener listener = new SyntacticSugarListener();
+        walker.walk(listener, compiler.getParseTree());
+
+        final boolean[] visited = {false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitVarDecl(LyraParser.VarDeclContext ctx) {
+                if (!ctx.varDeclUnit(0).IDENT().getText().equals("y"))
+                    return;
+                visited[0] = true;
+
+                assertNotNull(ctx.exprlist());
+                assertEquals(1, ctx.exprlist().expr().size());
+                assertNotNull(ctx.exprlist().expr(0).unaryexpr());
+                LyraParser.FactorContext f1 = ctx.exprlist().expr(0).unaryexpr().factor();
+                assertNotNull(f1);
+
+                //x++++--
+                //((x.__inc()).__inc()).__dec()
+
+                assertTrue(f1 instanceof LyraParser.MemberFactorContext);
+                LyraParser.MemberFactorContext m1 = (LyraParser.MemberFactorContext)f1;
+                assertEquals("__dec", m1.IDENT().getText());
+
+                LyraParser.FactorContext f2 = m1.factor();
+                assertTrue(f2 instanceof LyraParser.MemberFactorContext);
+                LyraParser.MemberFactorContext m2 = (LyraParser.MemberFactorContext)f2;
+                assertEquals("__inc", m2.IDENT().getText());
+
+                LyraParser.FactorContext f3 = m2.factor();
+                assertTrue(f3 instanceof LyraParser.MemberFactorContext);
+                LyraParser.MemberFactorContext m3 = (LyraParser.MemberFactorContext)f3;
+                assertEquals("__inc", m3.IDENT().getText());
+
+                assertEquals("x", m3.factor().getText());
+            }
+        }, compiler.getParseTree());
+
+        assertTrue(visited[0]);
+    }
 }
