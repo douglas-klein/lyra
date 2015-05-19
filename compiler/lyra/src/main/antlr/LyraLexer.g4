@@ -52,7 +52,8 @@ IMPORT                  : 'import';
 IDENT                   : [a-zA-Z_] [a-zA-Z_0-9]* ;
 STRING                  : '"' ( '\\"' | . )*? '"' ;
 NUMBER                  : ([0-9] | [1-9][0-9]*)( '.' [0-9]+ )? ;
-INCREMENTDECREMENT      : ('++' | '--') ;
+INCREMENT               : '++' ;
+DECREMENT               : '--' ;
 BOOLEANVALUE            : 'true' | 'false' ;
 NULL                    : 'null' ;
 COMMENT                 : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */

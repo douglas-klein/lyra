@@ -1,13 +1,8 @@
 package lyra;
 
-import junit.framework.Assert;
 import lyra.LyraParser;
 import lyra.listeners.SyntacticSugarListener;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.junit.Test;
 
 import java.io.*;
@@ -87,5 +82,43 @@ public class SyntacticSugarListenerTests {
         }, compiler.getParseTree());
 
         assertTrue(gotCalled[0]);
+    }
+
+    @Test
+    public void testRewritePrefixNot() throws Exception {
+        Compiler compiler = new Compiler();
+        InputStreamReader reader = getReader("samples/RewritePrefixNot.ly");
+        assertNotNull(reader);
+        compiler.init(reader);
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        SyntacticSugarListener listener = new SyntacticSugarListener();
+        walker.walk(listener, compiler.getParseTree());
+
+        final boolean[] visited = {false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void enterVarDecl(LyraParser.VarDeclContext ctx) {
+                if (!ctx.varDeclUnit(0).IDENT().getText().equals("truth"))
+                    return;
+                visited[0] = true;
+
+                LyraParser.ExprContext expr = ctx.exprlist().expr(0);
+                assertNotNull(expr);
+                assertNotNull(expr.unaryexpr());
+                assertNotNull(expr.unaryexpr().factor());
+                LyraParser.FactorContext factor = expr.unaryexpr().factor();
+
+                assertTrue(factor instanceof LyraParser.MemberFactorContext);
+                LyraParser.MemberFactorContext member = (LyraParser.MemberFactorContext) factor;
+
+                assertEquals(member.factor().getText(), "false");
+                assertEquals(member.IDENT().getText(), "__not");
+                assertEquals(member.args().expr().size(), 0);
+            }
+        }, compiler.getParseTree());
+
+        assertTrue(visited[0]);
     }
 }

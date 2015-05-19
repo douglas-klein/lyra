@@ -5,7 +5,6 @@ import lyra.LyraParser;
 import lyra.LyraParserBaseListener;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -59,7 +58,7 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
 
         memberFactor.addChild(wrapExpressionIntoFactor(memberFactor, ctx.expr(0)));
         memberFactor.addChild(new CommonToken(LyraLexer.DOT, "."));
-        memberFactor.addChild(new CommonToken(LyraLexer.IDENT, getOperatorMethod(ctx.binOp)));
+        memberFactor.addChild(new CommonToken(LyraLexer.IDENT, getBinaryOperatorMethod(ctx.binOp)));
         memberFactor.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
 
         LyraParser.ArgsContext args = new LyraParser.ArgsContext(memberFactor, -1);
@@ -74,7 +73,70 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
         replaceChild(ctx, parent, rewritten);
     }
 
-    private String getOperatorMethod(Token token) {
+    @Override
+    public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
+        if (ctx.factor() != null) return;
+
+        String method = null;
+        if (ctx.prefixOp != null) {
+            method = getPrefixOperatorMethod(ctx.prefixOp);
+        } else if (ctx.postfixOp != null) {
+            method = getPostfixOperatorMethod(ctx.postfixOp);
+        }
+
+        ParserRuleContext parent = ctx.getParent();
+        LyraParser.UnaryexprContext rewritten = new LyraParser.UnaryexprContext(parent, -1);
+        LyraParser.MemberFactorContext factor = new LyraParser.MemberFactorContext(
+                new LyraParser.FactorContext(rewritten, -1));
+
+        /* Due to the parse tree algorithm, our operand is already converted to the
+         * "unaryexpr -> factor" form. */
+        LyraParser.FactorContext operand = ctx.unaryexpr().factor();
+        operand.parent = factor;
+        factor.addChild(operand);
+
+        factor.addChild(new CommonToken(LyraLexer.DOT, "."));
+        factor.addChild(new CommonToken(LyraLexer.IDENT, method));
+        factor.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+        /* args rule is required (but it matches epsilon) */
+        factor.addChild(new LyraParser.ArgsContext(factor, -1));
+        factor.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+
+        rewritten.addChild(factor);
+
+        replaceChild(ctx, parent, rewritten);
+    }
+
+    private String getPostfixOperatorMethod(Token token) {
+        String method = null;
+        switch (token.getType()) {
+            case LyraLexer.INCREMENT:
+                method = "__inc";
+                break;
+            case LyraLexer.DECREMENT:
+                method = "__dec";
+                break;
+        }
+        return method;
+    }
+
+    private String getPrefixOperatorMethod(Token token) {
+        String method = null;
+        switch (token.getType()) {
+            case LyraLexer.NOT:
+                method = "__not";
+                break;
+            case LyraLexer.PLUS:
+                method = "__positive";
+                break;
+            case LyraLexer.MINUS:
+                method = "__negative";
+                break;
+        }
+        return method;
+    }
+
+    private String getBinaryOperatorMethod(Token token) {
         String methodName = null;
         switch (token.getType()) {
             case LyraLexer.MULTOP:

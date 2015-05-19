@@ -37,8 +37,8 @@ expr                    : unaryexpr
                         ;
 
 unaryexpr               : factor
-                        | ( NOT | PLUS | MINUS ) unaryexpr
-                        | unaryexpr INCREMENTDECREMENT
+                        | prefixOp=( NOT | PLUS | MINUS ) unaryexpr
+                        | unaryexpr postfixOp=(INCREMENT | DECREMENT)
                         ;
 
 factor                  : factor DOT IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )?  # memberFactor
