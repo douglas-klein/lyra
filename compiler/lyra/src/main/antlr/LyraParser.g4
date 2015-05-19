@@ -26,26 +26,33 @@ exprlist                : expr (COMMA expr)*;
  * no semestre passado, funcione exatamente como desejado.
  */
 expr                    : unaryexpr
-                        | expr (MULTOP | SLASH | MODOP) expr
-                        | expr (PLUS | MINUS) expr
-                        | expr (LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr
-                        | expr (DOUBLEEQUALOP | NOTEQUAL | IS) expr
-                        | expr AND expr
-                        | expr OR expr
-                        | expr IDENT expr
-                        | IDENT EQUALOP expr
+                        | expr  binOp=(MULTOP | SLASH | MODOP) expr
+                        | expr  binOp=(PLUS | MINUS) expr
+                        | expr  binOp=(LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr
+                        | expr  binOp=(DOUBLEEQUALOP | NOTEQUAL | IS) expr
+                        | expr  binOp=AND expr
+                        | expr  binOp=OR expr
+                        | expr  binOp=IDENT expr
+                        | IDENT binOp=EQUALOP expr
                         ;
 
-unaryexpr               : ( NOT | PLUS | MINUS )? unaryexpr2 ;
-unaryexpr2              : factor INCREMENTDECREMENT?;
-factor                  : factor DOT IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )?
-                        | IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )?
-                        | factor LEFTBRACKET expr RIGHTBRACKET
-                        | NUMBER | STRING | NULL | IDENT | alocExpr | BOOLEANVALUE
-                        | LEFTPARENTHESES expr RIGHTPARENTHESES
-                        | LEFTPARENTHESES expr {notifyErrorListeners("Unclosed '('");}
-                        | LEFTPARENTHESES expr RIGHTPARENTHESES {notifyErrorListeners("Extra ')' after parenthised expression.");}
-                        | LEFTPARENTHESES expr RIGHTPARENTHESES RIGHTPARENTHESES+ {notifyErrorListeners("Two or more extra ')' after parenthised expression.");}
+unaryexpr               : factor
+                        | ( NOT | PLUS | MINUS ) unaryexpr
+                        | unaryexpr INCREMENTDECREMENT
+                        ;
+
+factor                  : factor DOT IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )?  # memberFactor
+                        | IDENT ( LEFTPARENTHESES args RIGHTPARENTHESES )              # thisMethodFactor
+                        | factor LEFTBRACKET expr RIGHTBRACKET                         # arrayFactor
+                        | NUMBER                                # numberFactor
+                        | STRING                                # stringFactor
+                        | NULL                                  # nullFactor
+                        | IDENT                                 # nameFactor
+                        | alocExpr                              # newfactor
+                        | BOOLEANVALUE                          # boolFactor
+                        | LEFTPARENTHESES expr RIGHTPARENTHESES # wrappedFactor
+                        | LEFTPARENTHESES expr {notifyErrorListeners("Unclosed '('");}  # wrong1WrappedFactor
+                        | LEFTPARENTHESES expr RIGHTPARENTHESES RIGHTPARENTHESES+ {notifyErrorListeners("Extra ')'s after parenthised expression.");} # wrong2WrappedFactor
                         ;
 
 alocExpr                : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
