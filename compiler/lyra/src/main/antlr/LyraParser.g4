@@ -26,14 +26,14 @@ exprlist                : expr (COMMA expr)*;
  * no semestre passado, funcione exatamente como desejado.
  */
 expr                    : unaryexpr
-                        | expr  binOp=(MULTOP | SLASH | MODOP) expr
-                        | expr  binOp=(PLUS | MINUS) expr
-                        | expr  binOp=(LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr
-                        | expr  binOp=(DOUBLEEQUALOP | NOTEQUAL | IS) expr
-                        | expr  binOp=AND expr
-                        | expr  binOp=OR expr
-                        | expr  binOp=IDENT expr
-                        | IDENT binOp=EQUALOP expr
+                        | expr binOp=(MULTOP | SLASH | MODOP) expr
+                        | expr binOp=(PLUS | MINUS) expr
+                        | expr binOp=(LESSTHAN | LESSTHANOREQUAL | MORETHANOREQUAL | MORETHAN) expr
+                        | expr binOp=(DOUBLEEQUALOP | NOTEQUAL | IS) expr
+                        | expr binOp=AND expr
+                        | expr binOp=OR expr
+                        | expr binOp=IDENT expr
+                        | <assoc=right> expr binOp=EQUALOP expr
                         ;
 
 unaryexpr               : factor

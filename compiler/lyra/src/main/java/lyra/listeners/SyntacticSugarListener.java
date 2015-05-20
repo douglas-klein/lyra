@@ -7,13 +7,26 @@ import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
+import java.util.HashSet;
 import java.util.ListIterator;
 
 /**
  *
  */
 public class SyntacticSugarListener extends LyraParserBaseListener {
+    /**
+     * If a particular MemberFactorContext instance is in this set, then it is a falsification
+     * inserted into the parse tree by exitArrayFactor. It is a rewrite of
+     *   factor '[' expr ']'
+     * into
+     *   factor.__at(expr)
+     * .
+     */
+    private HashSet<LyraParser.MemberFactorContext> rewrittenArrayAcess = new HashSet<>();
+
     @Override
     public void exitWhilestat(LyraParser.WhilestatContext ctx) {
         ParserRuleContext parent = (ParserRuleContext)ctx.parent;
@@ -43,8 +56,10 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
     public void exitExpr(LyraParser.ExprContext ctx) {
         if (ctx.unaryexpr() != null)
             return; //handled at exitUnaryexpr
-        if (ctx.IDENT() != null)
-            return; //non-rewritable
+        if (ctx.binOp.getType() == LyraLexer.EQUALOP) {
+            exitAssignment(ctx);
+            return;
+        }
 
         /* input has the form rewritten : rewritten opBin rewritten
          * get appropriate method name and rewrite to (rewritten(0)).method(rewritten(1)) */
@@ -71,6 +86,39 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
         rewritten.addChild(uExpr);
 
         replaceChild(ctx, parent, rewritten);
+    }
+
+    private void exitAssignment(LyraParser.ExprContext ctx) {
+        if (ctx.expr(0).unaryexpr() == null)
+            return; //semantic error: assigning anonymous reference
+        LyraParser.FactorContext factor = ctx.expr(0).unaryexpr().factor();
+        if (factor == null) return;
+        if (!(factor instanceof LyraParser.MemberFactorContext)) return;
+
+        LyraParser.MemberFactorContext left = (LyraParser.MemberFactorContext) factor;
+        if (!rewrittenArrayAcess.contains(left))
+            return; //not a array access rewrite
+
+        /* detach right from ctx */
+        LyraParser.ExprContext right = ctx.expr(1);
+        right.parent = left.args();
+        ctx.children.remove(right);
+
+        /* replace "__at()" in left with "__set(" + right + ")" */
+        TerminalNodeImpl set = new TerminalNodeImpl(new CommonToken(LyraLexer.IDENT, "__set"));
+        set.parent = left;
+        replaceChild(left.IDENT(), left, set);
+        left.args().addChild(right);
+
+        /* rewrite whole expr as modified expr */
+        LyraParser.ExprContext rewritten = new LyraParser.ExprContext(ctx.getParent(), -1);
+        LyraParser.UnaryexprContext uExpr = new LyraParser.UnaryexprContext(rewritten, -1);
+        left.parent = uExpr;
+        uExpr.addChild(left);
+        rewritten.addChild(uExpr);
+
+        rewrittenArrayAcess.remove(left); //or mabe not?
+        replaceChild(ctx, ctx.getParent(), rewritten);
     }
 
     @Override
@@ -105,6 +153,32 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
         rewritten.addChild(factor);
 
         replaceChild(ctx, parent, rewritten);
+    }
+
+    @Override
+    public void exitArrayFactor(LyraParser.ArrayFactorContext ctx) {
+        ParserRuleContext parent = ctx.getParent();
+        LyraParser.MemberFactorContext rewritten = new LyraParser.MemberFactorContext(
+                new LyraParser.FactorContext(parent, -1));
+
+        LyraParser.FactorContext object = ctx.factor();
+        object.parent = rewritten;
+        rewritten.addChild(object);
+
+        rewritten.addChild(new CommonToken(LyraLexer.DOT, "."));
+        rewritten.addChild(new CommonToken(LyraLexer.IDENT, "__at"));
+        rewritten.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+
+        LyraParser.ArgsContext args = new LyraParser.ArgsContext(rewritten, -1);
+        LyraParser.ExprContext expr = ctx.expr();
+        expr.parent = args;
+        args.addChild(expr);
+        rewritten.addChild(args);
+
+        rewritten.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+
+        replaceChild(ctx, parent, rewritten);
+        rewrittenArrayAcess.add(rewritten);
     }
 
     private String getPostfixOperatorMethod(Token token) {
