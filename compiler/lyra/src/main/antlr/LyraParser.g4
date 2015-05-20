@@ -3,7 +3,7 @@ options{ tokenVocab=LyraLexer; }
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
 importdecl              : IMPORT STRING SEMICOLON ;
 classdecl               : classModifiers CLASS IDENT extendsdecl? implementsdecl? LEFTCURLYBRACE classBody RIGHTCURLYBRACE ;
-classModifiers          : VISIBILITYMODIFIER? ( FINAL | ABSTRACT )? ;
+classModifiers          : ( FINAL | ABSTRACT )? ;
 extendsdecl             : (EXTENDS IDENT);
 implementsdecl          : IMPLEMENTS identList;
 classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
