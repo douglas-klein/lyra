@@ -3,7 +3,6 @@ package lyra.listeners;
 import lyra.LyraParser;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
-import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 import lyra.Compiler;
 import lyra.symbols.TypeSymbol;
@@ -51,7 +50,7 @@ public class ReferencesListener extends ScopedBaseListener {
 //            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
 //                    String.format("Undefined name, compiler bug?"));
 //            return;
-            System.err.println("----------- 1");
+            return;
         }
 
         VariableSymbol var = (VariableSymbol)sym;
@@ -61,7 +60,7 @@ public class ReferencesListener extends ScopedBaseListener {
 //            LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
 //            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
 //                    String.format("Unresolved type " + var.getType().getName() + "."));
-//            return;
+            return;
         }
 
         //TODO comentado pois Int, e vários tipos built-in não existem ainda
