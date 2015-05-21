@@ -54,7 +54,8 @@ STRING                  : '"' ( '\\"' | . )*? '"' ;
 NUMBER                  : ([0-9] | [1-9][0-9]*)( '.' [0-9]+ )? ;
 INCREMENT               : '++' ;
 DECREMENT               : '--' ;
-BOOLEANVALUE            : 'true' | 'false' ;
+TRUE                    : 'true' ;
+FALSE                   : 'false' ;
 NULL                    : 'null' ;
 COMMENT                 : '/*' .*? '*/' -> skip ; // .*? matches anything until the first */
 LINECOMMENT             : '//' .*? ('\r' | '\n') -> skip ;

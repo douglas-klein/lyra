@@ -53,6 +53,34 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
     }
 
     @Override
+    public void exitForever(LyraParser.ForeverContext ctx) {
+        LyraParser.ForstatContext rewritten = new LyraParser.ForstatContext(ctx.getParent(), -1);
+
+        rewritten.addChild(new CommonToken(LyraLexer.FOR, "for"));
+        rewritten.addChild(new CommonToken(LyraLexer.SEMICOLON, ";"));
+
+        LyraParser.ExprContext expr = new LyraParser.ExprContext(rewritten, -1);
+        LyraParser.UnaryexprContext uExpr = new LyraParser.UnaryexprContext(expr, -1);
+        LyraParser.BoolFactorContext factor = new LyraParser.BoolFactorContext(
+                new LyraParser.FactorContext(uExpr, -1));
+        factor.addChild(new CommonToken(LyraLexer.TRUE, "true"));
+        uExpr.addChild(factor);
+        expr.addChild(uExpr);
+        rewritten.addChild(expr);
+
+        rewritten.addChild(new CommonToken(LyraLexer.SEMICOLON, ";"));
+        rewritten.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
+
+        LyraParser.StatlistContext statlist = ctx.statlist();
+        statlist.parent = rewritten;
+        rewritten.addChild(statlist);
+
+        rewritten.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
+
+        replaceChild(ctx, ctx.getParent(), rewritten);
+    }
+
+    @Override
     public void exitExpr(LyraParser.ExprContext ctx) {
         if (ctx.unaryexpr() != null)
             return; //handled at exitUnaryexpr
@@ -243,11 +271,11 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
             case LyraLexer.DOUBLEEQUALOP:
                 methodName = "__equals";
                 break;
-            case LyraLexer.NOTEQUAL:
-                methodName = "__notequals";
-                break;
             case LyraLexer.IS:
                 methodName = "__is";
+                break;
+            case LyraLexer.NOTEQUAL:
+                methodName = "__notequals";
                 break;
             case LyraLexer.AND:
                 methodName = "__and";

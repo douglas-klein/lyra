@@ -49,7 +49,7 @@ factor                  : factor DOT IDENT ( LEFTPARENTHESES args RIGHTPARENTHES
                         | NULL                                  # nullFactor
                         | IDENT                                 # nameFactor
                         | alocExpr                              # newfactor
-                        | BOOLEANVALUE                          # boolFactor
+                        | (TRUE | FALSE)                        # boolFactor
                         | LEFTPARENTHESES expr RIGHTPARENTHESES # wrappedFactor
                         | LEFTPARENTHESES expr {notifyErrorListeners("Unclosed '('");}  # wrong1WrappedFactor
                         | LEFTPARENTHESES expr RIGHTPARENTHESES RIGHTPARENTHESES+ {notifyErrorListeners("Extra ')'s after parenthised expression.");} # wrong2WrappedFactor
@@ -90,7 +90,7 @@ switchstat              : SWITCH IDENT LEFTCURLYBRACE caselist RIGHTCURLYBRACE;
 caselist                : casedecl (caselist)? | casedefault;
 casedecl                : CASE expr COLON statlist ;
 casedefault             : CASE DEFAULT COLON statlist ;
-statlist                : statement (statlist)?;
+statlist                : statement+;
 enumdecl                : ENUM IDENT LEFTCURLYBRACE enumBody RIGHTCURLYBRACE ;
 enumBody                : defaultEnum | namedEnum ;
 defaultEnum             : IDENT (COMMA IDENT) ;

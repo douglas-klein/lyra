@@ -5,6 +5,7 @@ import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.Test;
 
+import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.util.regex.Pattern;
 
@@ -230,5 +231,43 @@ public class SyntacticSugarListenerTests {
         assertTrue(visited[0]);
         assertTrue(visited[1]);
     }
+
+    @Test
+    public void testRewriteForever() throws Exception {
+        Compiler compiler = new Compiler();
+        InputStreamReader reader = getReader("samples/RewriteForever.ly");
+        assertNotNull(reader);
+        compiler.init(reader);
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        SyntacticSugarListener listener = new SyntacticSugarListener();
+        walker.walk(listener, compiler.getParseTree());
+
+        final boolean[] visited = {false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitForstat(LyraParser.ForstatContext ctx) {
+                visited[0] = true;
+
+                assertNull(ctx.varDecl());
+                assertEquals(1, ctx.expr().size());
+
+                assertNotNull(ctx.expr(0).unaryexpr());
+                LyraParser.FactorContext factor = ctx.expr(0).unaryexpr().factor();
+                assertNotNull(factor);
+                assertTrue(factor instanceof LyraParser.BoolFactorContext);
+
+                LyraParser.BoolFactorContext bool = (LyraParser.BoolFactorContext) factor;
+                assertEquals("true", bool.getText());
+
+                assertEquals(2, ctx.statlist().statement().size());
+            }
+        }, compiler.getParseTree());
+
+        assertTrue(visited[0]);
+
+    }
+
 
 }
