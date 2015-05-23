@@ -11,6 +11,7 @@ import java.util.Map;
 public class BaseScope implements Scope {
     Scope enclosingScope; // null if global (outermost) scope
     Map<String, Symbol> symbols = new LinkedHashMap<>();
+    String name = "(anonymous)";
 
     public BaseScope(Scope parent) { this.enclosingScope = parent;	}
 
@@ -36,5 +37,6 @@ public class BaseScope implements Scope {
 
     public String toString() { return symbols.keySet().toString(); }
 
-    public String getScopeName(){return "(anonymous)";}
+    public String getScopeName() {return name;}
+    public void setScopeName(String name) {this.name = name;}
 }

@@ -5,6 +5,7 @@ import lyra.listeners.ReferencesListener;
 import lyra.listeners.SyntacticSugarListener;
 import lyra.scopes.Scope;
 import lyra.symbols.BaseTypes;
+import lyra.symbols.SymbolTable;
 import lyra.tokens.TokenFactory;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -23,6 +24,7 @@ public class Compiler {
     private lyra.LyraLexer lexer;
     public static BaseTypes types = new BaseTypes();
     private ParseTreeProperty<Scope> treeScopes;
+    private SymbolTable symbolTable;
 
     public void init(Reader input) throws IOException {
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
@@ -46,13 +48,13 @@ public class Compiler {
     }
 
     private boolean fillSymbolTable() {
+        symbolTable = new SymbolTable();
         ParseTreeWalker walker = new ParseTreeWalker();
-        treeScopes = new ParseTreeProperty<>();
-        DeclarationsListener declarationsListener = new DeclarationsListener(treeScopes);
+
+        DeclarationsListener declarationsListener = new DeclarationsListener(symbolTable);
         walker.walk(declarationsListener, parseTree);
 
-        ReferencesListener referencesListener = new ReferencesListener(declarationsListener.getGlobals(),
-                treeScopes, this);
+        ReferencesListener referencesListener = new ReferencesListener(symbolTable, this);
         walker.walk(referencesListener, parseTree);
 
         return getErrorListener().getNumberOfErrors() == 0;
@@ -89,5 +91,9 @@ public class Compiler {
     }
     public lyra.LyraParser getParser() {
         return parser;
+    }
+
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
     }
 }

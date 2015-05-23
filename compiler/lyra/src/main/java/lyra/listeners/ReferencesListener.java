@@ -5,26 +5,25 @@ import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 import lyra.symbols.Symbol;
 import lyra.Compiler;
+import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
 import lyra.symbols.VariableSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 public class ReferencesListener extends ScopedBaseListener {
-    private ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
-    private BaseScope globals;
     private Scope currentScope; // define symbols in this scope
+    private SymbolTable table;
     private Compiler compiler;
 
-    public ReferencesListener(BaseScope globals, ParseTreeProperty<Scope> scopes, Compiler compiler) {
-        this.scopes = scopes;
-        this.globals = globals;
+    public ReferencesListener(SymbolTable table, Compiler compiler) {
+        this.table = table;
         this.compiler = compiler;
     }
 
     @Override
     public void enterProgram(LyraParser.ProgramContext ctx) {
-        currentScope = globals;
+        currentScope = table.getNodeScope(ctx);
     }
 
     @Override
@@ -34,7 +33,7 @@ public class ReferencesListener extends ScopedBaseListener {
 
     @Override
     protected void beginScopeVisit(boolean named, ParserRuleContext ctx) {
-        currentScope = scopes.get(ctx);
+        currentScope = table.getNodeScope(ctx);
     }
 
     @Override
@@ -48,7 +47,7 @@ public class ReferencesListener extends ScopedBaseListener {
         if (sym == null) {
             //TODO comentado pois os casos de teste quebrariam
 //            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
-//                    String.format("Undefined name, compiler bug?"));
+//                    LyraString.format("Undefined name, compiler bug?"));
 //            return;
             return;
         }
@@ -59,19 +58,11 @@ public class ReferencesListener extends ScopedBaseListener {
             //TODO comentado pois os casos de teste quebrariam
 //            LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
 //            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
-//                    String.format("Unresolved type " + var.getType().getName() + "."));
+//                    LyraString.format("Unresolved type " + var.getType().getName() + "."));
             return;
         }
 
         //TODO comentado pois Int, e vários tipos built-in não existem ainda
         //var.upgradeType((TypeSymbol)upgrade);
-    }
-
-    public ParseTreeProperty<Scope> getScopes() {
-        return scopes;
-    }
-
-    public BaseScope getGlobals() {
-        return globals;
     }
 }

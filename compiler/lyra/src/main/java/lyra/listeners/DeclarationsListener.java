@@ -11,18 +11,16 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class DeclarationsListener extends ScopedBaseListener {
-    private ParseTreeProperty<Scope> scopes;
-    private BaseScope globals;
+    private SymbolTable table;
     private Scope currentScope; // define symbols in this scope
 
-    public DeclarationsListener(ParseTreeProperty<Scope> scopes) {
-        this.scopes = scopes;
+    public DeclarationsListener(SymbolTable table) {
+        this.table = table;
     }
 
     @Override
     public void enterProgram(lyra.LyraParser.ProgramContext ctx) {
-        globals = new BaseScope(null);
-        currentScope = globals;
+        currentScope = table.getGlobal();
     }
 
     @Override
@@ -72,7 +70,7 @@ public class DeclarationsListener extends ScopedBaseListener {
     @Override
     public void exitParamDecl(LyraParser.ParamDeclContext ctx) {
         LyraParser.ParamsContext params = (LyraParser.ParamsContext) ctx.getParent();
-        MethodSymbol method = (MethodSymbol) scopes.get(params.getParent());
+        MethodSymbol method = (MethodSymbol) table.getNodeScope(params.getParent());
         UnresolvedType type = new UnresolvedType(ctx.type().IDENT().getText());
         String name = ctx.IDENT().getText();
         VariableSymbol arg = new VariableSymbol(name, type);
@@ -151,9 +149,5 @@ public class DeclarationsListener extends ScopedBaseListener {
         currentScope = scope;
     }
 
-    public BaseScope getGlobals() {
-        return globals;
-    }
-
-    void saveScope(ParserRuleContext ctx, Scope s) { scopes.put(ctx, s); }
+    void saveScope(ParserRuleContext ctx, Scope s) { table.setNodeScope(ctx, s); }
 }

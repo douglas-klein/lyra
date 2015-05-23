@@ -4,6 +4,7 @@ package lyra.symbols;
  * Symbol implementation for classes.
  */
 import lyra.scopes.Scope;
+import org.omg.CosNaming.NamingContextPackage.InvalidNameHolder;
 
 import java.util.*;
 
@@ -17,6 +18,8 @@ public class ClassSymbol extends TypeSymbol {
 
     /** List of all fields and methods */
     public Map<String,Symbol> members = new LinkedHashMap<>();
+    private boolean aFinal;
+    private boolean aAbstract;
 
     public ClassSymbol(String name, Scope enclosingScope, ClassSymbol superClass) {
         super(name, SymbolType.CLASS, enclosingScope);
@@ -50,5 +53,41 @@ public class ClassSymbol extends TypeSymbol {
 
     public void setInterfaceSymbol(InterfaceSymbol interfaceSymbol) {
         this.interfaceSymbol = interfaceSymbol;
+    }
+
+    public boolean isFinal() {
+        return aFinal;
+    }
+
+    public void setFinal(boolean aFinal) {
+        this.aFinal = aFinal;
+    }
+
+    public void setAbstract(boolean anAbstract) {
+        this.aAbstract = anAbstract;
+    }
+
+    public boolean isAbstract() {
+        return aAbstract;
+    }
+
+    /**
+     * Replaces any type used inside this class (recursing into methods) that has the same
+     * qualified name as the given type with the given type.
+     *
+     * @param type new TypeSymbol
+     */
+    public void upgradeType(TypeSymbol type) {
+        if (interfaceSymbol != null) {
+            if (interfaceSymbol.getQualifiedName().equals(type.getQualifiedName()))
+                interfaceSymbol = (InterfaceSymbol) type;
+        }
+
+        for (Symbol symbol : members.values()) {
+            if (symbol instanceof MethodSymbol)
+                ((MethodSymbol)symbol).upgradeType(type);
+            if (symbol instanceof VariableSymbol)
+                ((VariableSymbol)symbol).upgradeType(type);
+        }
     }
 }
