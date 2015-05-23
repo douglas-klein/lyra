@@ -47,7 +47,7 @@ public class ReferencesListener extends ScopedBaseListener {
         if (sym == null) {
             //TODO comentado pois os casos de teste quebrariam
 //            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(0),
-//                    LyraString.format("Undefined name, compiler bug?"));
+//                    String.format("Undefined name, compiler bug?"));
 //            return;
             return;
         }
@@ -56,9 +56,9 @@ public class ReferencesListener extends ScopedBaseListener {
         Symbol upgrade = currentScope.resolve(var.getType().getName());
         if (!(upgrade instanceof TypeSymbol)) {
             //TODO comentado pois os casos de teste quebrariam
-//            LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
-//            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
-//                    LyraString.format("Unresolved type " + var.getType().getName() + "."));
+            LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
+            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
+                    String.format("Unresolved type " + var.getType().getName() + "."));
             return;
         }
 

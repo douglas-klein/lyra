@@ -1,3 +1,11 @@
+class Value {
+    Int value;
+
+    def constructor(value : Int) {
+        this.value = value;
+    }
+}
+
 class Application {
     Int a, b = 1, 2;
 
