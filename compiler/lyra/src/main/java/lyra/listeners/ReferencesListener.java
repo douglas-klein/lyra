@@ -3,13 +3,12 @@ package lyra.listeners;
 import lyra.LyraParser;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
-import lyra.symbols.Symbol;
+import lyra.symbols.*;
 import lyra.Compiler;
-import lyra.symbols.SymbolTable;
-import lyra.symbols.TypeSymbol;
-import lyra.symbols.VariableSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class ReferencesListener extends ScopedBaseListener {
     private Scope currentScope; // define symbols in this scope
@@ -57,12 +56,28 @@ public class ReferencesListener extends ScopedBaseListener {
         if (!(upgrade instanceof TypeSymbol)) {
             //TODO comentado pois os casos de teste quebrariam
             LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
-            compiler.getErrorListener().semanticError(compiler.getParser(), varDecl.type().IDENT(),
-                    String.format("Unresolved type " + var.getType().getName() + "."));
+            unresolvedTypeError(varDecl.type().IDENT(), var.getType().getName());
             return;
         }
 
         //TODO comentado pois Int, e vários tipos built-in não existem ainda
         //var.upgradeType((TypeSymbol)upgrade);
+    }
+
+    private void unresolvedTypeError(Object offendingSymbol, String typeName) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Unresolved type" + typeName + ".");
+    }
+
+
+    @Override
+    public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
+        MethodSymbol methodSymbol = (MethodSymbol) currentScope.resolve(ctx.type().IDENT().getText());
+        Symbol returnTypeSymbol = currentScope.resolve(ctx.type().IDENT().getText());
+        if (returnTypeSymbol == null || !(returnTypeSymbol instanceof TypeSymbol)) {
+            unresolvedTypeError(ctx.type().IDENT(), ctx.type().IDENT().getText());
+            return;
+        }
+        methodSymbol.upgradeType((TypeSymbol)returnTypeSymbol);
     }
 }

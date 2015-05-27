@@ -1,5 +1,6 @@
 package lyra.symbols;
 
+import lyra.LyraParser;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 import lyra.symbols.predefined.*;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 public class SymbolTable {
     private BaseScope global = new BaseScope(null);
     private ParseTreeProperty<Scope> nodeScope = new ParseTreeProperty<>();
+    private ParseTreeProperty<TypeSymbol> nodeType = new ParseTreeProperty<>();
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
 
 
@@ -50,4 +52,9 @@ public class SymbolTable {
     public Scope getNodeScope(ParseTree node) {
         return nodeScope.get(node);
     }
+
+    public void setNodeType(ParseTree node, TypeSymbol symbol) {
+        nodeType.put(node, symbol);
+    }
+    public TypeSymbol getNodeType(ParseTree node) {return nodeType.get(node);}
 }
