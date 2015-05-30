@@ -81,6 +81,25 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
     }
 
     @Override
+    public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
+        if (ctx.type() != null)  return;
+
+        /* default return type is void */
+        LyraParser.TypeContext type = new LyraParser.TypeContext(ctx, -1);
+        type.addChild(new CommonToken(LyraLexer.IDENT, "void"));
+        ctx.addChild(type);
+    }
+
+    @Override
+    public void exitMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
+        if (ctx.type() != null) return;
+
+        LyraParser.TypeContext type = new LyraParser.TypeContext(ctx, -1);
+        type.addChild(new CommonToken(LyraLexer.IDENT, "void"));
+        ctx.addChild(type);
+    }
+
+    @Override
     public void exitExpr(LyraParser.ExprContext ctx) {
         if (ctx.unaryexpr() != null)
             return; //handled at exitUnaryexpr
