@@ -2,6 +2,9 @@ package lyra.symbols;
 
 import lyra.scopes.Scope;
 
+import java.sql.Types;
+import java.util.Collection;
+
 /**
  * Umbrella class for all things that represent types: classes, interfaces and enums.
  */
@@ -18,19 +21,34 @@ public abstract class TypeSymbol extends ScopedSymbol {
      */
     @Override
     public Symbol resolve(String name) {
-        Symbol symbol = inheritanceResolve(name);
+        Symbol symbol = resolveField(name);
         if (symbol != null) return symbol;
-        return super.resolve(name);
+        return getEnclosingScope().resolve(name);
     }
 
     /**
-     * Look for a symbol by its name only in the inheritance tree of this TypeSymbol: the scopes where the type and
-     * its super types are defined is ignored.
+     * Look for a field by its name only in the inheritance tree of this TypeSymbol: the scopes
+     * where the type and its super types are defined are ignored.
      *
      * @param name Name of the symbol looked for.
-     * @return Symbol instance found, or null.
+     * @return VariableSymbol instance found, or null.
      */
-    public abstract Symbol inheritanceResolve(String name);
+    public abstract VariableSymbol resolveField(String name);
+
+
+    /**
+     * Look for a MethodSymbol on this class or in super types that has the given name and
+     * expects a list of arguments which are compatible with \p argTypes.
+     *
+     * Check the algorithm on the project wiki or on the ClassSymbol implementation.
+     *
+     * @param name Name of the method
+     * @param argTypes List of types of the arguments the caller can provide.
+     * @return MethodSymbol that is a unambiguous match or null if none or more than one match is
+     *         found.
+     */
+    public abstract MethodSymbol resolveOverload(String name, Collection<TypeSymbol> argTypes);
+
 
     @Override
     public String toString() {
@@ -48,4 +66,10 @@ public abstract class TypeSymbol extends ScopedSymbol {
         }
         return qualifiedName;
     }
+
+    public abstract boolean isA(TypeSymbol type);
+
+    public boolean convertible(TypeSymbol type) {return type.converts(this);}
+
+    public abstract boolean converts(TypeSymbol type);
 }

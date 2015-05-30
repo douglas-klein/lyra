@@ -1,5 +1,6 @@
 package lyra.symbols.predefined;
 
+import lyra.SemanticErrorException;
 import lyra.scopes.Scope;
 import lyra.symbols.ClassSymbol;
 
@@ -11,6 +12,10 @@ public class Void extends AbstractPredefinedSymbol {
                 (ClassSymbol)scope.resolve("Object"));
         c.setFinal(true);
         c.setAbstract(true);
-        defineClass(scope, c);
+        try {
+            defineClass(scope, c);
+        } catch (SemanticErrorException e) {
+            throw new RuntimeException("Compiler not obeying it's own rules.", e);
+        }
     }
 }

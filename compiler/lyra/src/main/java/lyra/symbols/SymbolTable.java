@@ -22,6 +22,8 @@ public class SymbolTable {
     private BaseScope global = new BaseScope(null);
     private ParseTreeProperty<Scope> nodeScope = new ParseTreeProperty<>();
     private ParseTreeProperty<TypeSymbol> nodeType = new ParseTreeProperty<>();
+    private ParseTreeProperty<Symbol> nodeSymbol = new ParseTreeProperty<>();
+
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
 
 
@@ -57,4 +59,7 @@ public class SymbolTable {
         nodeType.put(node, symbol);
     }
     public TypeSymbol getNodeType(ParseTree node) {return nodeType.get(node);}
+
+    public void setNodeSymbol(ParseTree node, Symbol symbol) { nodeSymbol.put(node, symbol); }
+    public Symbol getNodeSymbol(ParseTree node) { return nodeSymbol.get(node);}
 }

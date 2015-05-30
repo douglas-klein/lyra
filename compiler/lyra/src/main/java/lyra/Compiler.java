@@ -51,11 +51,15 @@ public class Compiler {
         symbolTable = new SymbolTable();
         ParseTreeWalker walker = new ParseTreeWalker();
 
-        DeclarationsListener declarationsListener = new DeclarationsListener(symbolTable);
-        walker.walk(declarationsListener, parseTree);
+        try {
+            DeclarationsListener declarationsListener = new DeclarationsListener(symbolTable, this);
+            walker.walk(declarationsListener, parseTree);
 
-        ReferencesListener referencesListener = new ReferencesListener(symbolTable, this);
-        walker.walk(referencesListener, parseTree);
+            ReferencesListener referencesListener = new ReferencesListener(symbolTable, this);
+            walker.walk(referencesListener, parseTree);
+        } catch (SemanticErrorException e) {
+            getErrorListener().semanticError(parser, e);
+        }
 
         return getErrorListener().getNumberOfErrors() == 0;
     }

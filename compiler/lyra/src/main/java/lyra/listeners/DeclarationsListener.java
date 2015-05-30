@@ -2,6 +2,7 @@ package lyra.listeners;
 
 import lyra.Compiler;
 import lyra.LyraParser;
+import lyra.SemanticErrorException;
 import lyra.scopes.BaseScope;
 import lyra.symbols.*;
 import lyra.scopes.Scope;
@@ -13,9 +14,11 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 public class DeclarationsListener extends ScopedBaseListener {
     private SymbolTable table;
     private Scope currentScope; // define symbols in this scope
+    private Compiler compiler;
 
-    public DeclarationsListener(SymbolTable table) {
+    public DeclarationsListener(SymbolTable table, Compiler compiler) {
         this.table = table;
+        this.compiler = compiler;
     }
 
     @Override
@@ -26,6 +29,11 @@ public class DeclarationsListener extends ScopedBaseListener {
     @Override
     public void exitProgram(lyra.LyraParser.ProgramContext ctx) {
         leaveScope();
+    }
+
+    private void reportSemanticException(TerminalNode node, SemanticErrorException e) {
+        e.setOffendingSymbol(node);
+        compiler.getErrorListener().semanticError(compiler.getParser(), e);
     }
 
     @Override
@@ -43,7 +51,12 @@ public class DeclarationsListener extends ScopedBaseListener {
         }
         // push new scope by making new one that points to enclosing scope
         MethodSymbol method = new MethodSymbol(name, type, currentScope);
-        currentScope.define(method); // Define function in current scope
+        try {
+            currentScope.define(method); // Define function in current scope
+        } catch (SemanticErrorException e) {
+            reportSemanticException(ctx.IDENT(), e);
+        }
+        table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current
         currentScope = method; // Current scope is now function scope
     }
@@ -62,7 +75,12 @@ public class DeclarationsListener extends ScopedBaseListener {
         }
         // push new scope by making new one that points to enclosing scope
         MethodSymbol method = new MethodSymbol(name, type, currentScope);
-        currentScope.define(method); // Define function in current scope
+        try {
+            currentScope.define(method); // Define function in current scope
+        } catch (SemanticErrorException e) {
+            reportSemanticException(ctx.IDENT(), e);
+        }
+        table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current
         currentScope = method; // Current scope is now function scope
     }
@@ -91,6 +109,7 @@ public class DeclarationsListener extends ScopedBaseListener {
         // push new scope by making new one that points to enclosing scope
         clas =  new ClassSymbol(className, currentScope, (ClassSymbol)superClass);
         currentScope.define(clas); // Define class in current scope
+        table.setNodeSymbol(ctx, clas);
         saveScope(ctx, clas); // Push: set classes's parent to current
         currentScope = clas;  // Current scope is now class scope
     }
@@ -100,6 +119,7 @@ public class DeclarationsListener extends ScopedBaseListener {
         String name = ctx.IDENT().getText();
         InterfaceSymbol symbol = new InterfaceSymbol(name, currentScope);
         currentScope.define(symbol);
+        table.setNodeSymbol(ctx, symbol);
         saveScope(ctx, symbol);
         currentScope = symbol;
     }
@@ -122,7 +142,12 @@ public class DeclarationsListener extends ScopedBaseListener {
             symbol.setVisibility(visibility);
         }
 
-        currentScope.define(symbol);
+        try {
+            currentScope.define(symbol);
+        } catch (SemanticErrorException e) {
+            reportSemanticException(ctx.IDENT(), e);
+        }
+        table.setNodeSymbol(ctx, symbol);
     }
 
     @Override

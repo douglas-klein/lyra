@@ -1,5 +1,6 @@
 package lyra.symbols.predefined;
 
+import lyra.SemanticErrorException;
 import lyra.scopes.Scope;
 import lyra.symbols.*;
 
@@ -24,7 +25,7 @@ public abstract class AbstractPredefinedSymbol implements PredefinedSymbol {
 
     protected void forwardMethod(ClassSymbol classSymbol, String name,
                                  String returnType, boolean infix,
-                                 ArgumentStrings... args) {
+                                 ArgumentStrings... args) throws SemanticErrorException {
         MethodSymbol symbol = new MethodSymbol(name, getType(returnType), classSymbol);
         symbol.setInfix(infix);
         for (ArgumentStrings pair : args)
@@ -32,11 +33,11 @@ public abstract class AbstractPredefinedSymbol implements PredefinedSymbol {
         classSymbol.define(symbol);
     }
 
-    protected void defineClass(Scope scope, ClassSymbol symbol) {
+    protected void defineClass(Scope scope, ClassSymbol symbol) throws SemanticErrorException {
         classes.add(symbol);
         scope.define(symbol);
     }
-    protected void defineGlobal(Scope scope, VariableSymbol symbol) {
+    protected void defineGlobal(Scope scope, VariableSymbol symbol) throws SemanticErrorException {
         vars.add(symbol);
         scope.define(symbol);
     }

@@ -72,8 +72,9 @@ public class ReferencesListener extends ScopedBaseListener {
 
     @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
-        MethodSymbol methodSymbol = (MethodSymbol) currentScope.resolve(ctx.type().IDENT().getText());
+        MethodSymbol methodSymbol = (MethodSymbol)table.getNodeSymbol(ctx);
         Symbol returnTypeSymbol = currentScope.resolve(ctx.type().IDENT().getText());
+
         if (returnTypeSymbol == null || !(returnTypeSymbol instanceof TypeSymbol)) {
             unresolvedTypeError(ctx.type().IDENT(), ctx.type().IDENT().getText());
             return;

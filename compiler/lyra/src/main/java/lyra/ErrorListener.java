@@ -63,6 +63,11 @@ public class ErrorListener extends BaseErrorListener {
         captureErrorContext(recognizer);
     }
 
+    public void semanticError(Recognizer<?, ?> recognizer, SemanticErrorException exception) {
+        semanticError(recognizer, exception.getOffendingSymbol(), exception.getLine(),
+                exception.getColumn(), exception.getMessage());
+    }
+
     private String getWhereString(int line, int charPositionInLine) {
         String where = "";
         if (line > 0)

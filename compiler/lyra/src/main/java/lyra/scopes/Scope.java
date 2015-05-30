@@ -1,5 +1,6 @@
 package lyra.scopes;
 
+import lyra.SemanticErrorException;
 import lyra.symbols.Symbol;
 
 public interface Scope {
@@ -9,7 +10,7 @@ public interface Scope {
     Scope getEnclosingScope();
 
     /** Define a symbol in the current scope */
-    void define(Symbol sym);
+    void define(Symbol sym) throws SemanticErrorException;
 
     /** Look up name in this scope or in enclosing scope if not here */
     Symbol resolve(String name);
