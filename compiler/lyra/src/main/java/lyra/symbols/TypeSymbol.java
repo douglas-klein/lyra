@@ -57,7 +57,7 @@ public abstract class TypeSymbol extends ScopedSymbol {
 
 
     public String getQualifiedName() {
-        String qualifiedName = "";
+        String qualifiedName = getName();
         Scope parent = getEnclosingScope();
         while (parent != null) {
             if (!parent.getScopeName().matches("^\\(.*\\)$"))

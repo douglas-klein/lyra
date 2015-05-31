@@ -16,17 +16,21 @@ public class VariableSymbol extends Symbol {
     }
 
     /**
-     * Replaces this variable TypeSymbol with a new instance. The new instance must refer to the same
-     * qualified name, but may have a different TypeSymbol subclass.
+     * Replaces this variable TypeSymbol with a new instance. The new instance must refer to the
+     * same qualified name, but may have a different TypeSymbol subclass. If \p type does
+     * not obeys this restrictions, the upgrade is not done.
      *
      * This is used mostly to convert UnresolvedType's into proper types.
      *
      * @param type new TypeSymbol.
+     * @return true iff the upgrade took place.
      */
-    public void upgradeType(TypeSymbol type) {
-        if (!this.type.getQualifiedName().equals(type.getQualifiedName()))
-            throw new RuntimeException("upgraded type must have same qualified name.");
-        this.type = type;
+    public boolean upgradeType(TypeSymbol type) {
+        if (this.type.getQualifiedName().equals(type.getQualifiedName())) {
+            this.type = type;
+            return true;
+        }
+        return false;
     }
 
 }
