@@ -37,8 +37,8 @@ public class MethodSymbol extends ScopedSymbol {
         return arguments.get(name);
     }
 
-    public Collection<VariableSymbol> getArguments() {
-        return arguments.values();
+    public List<VariableSymbol> getArguments() {
+        return arguments.values().stream().collect(Collectors.toList());
     }
 
     public boolean isInfix() {
@@ -57,11 +57,16 @@ public class MethodSymbol extends ScopedSymbol {
      */
     public void upgradeType(TypeSymbol type) {
         String name = type.getQualifiedName();
-        if (this.returnType.getQualifiedName().equals(name))
+        if (this.returnType.getQualifiedName().equals(name)) {
             this.returnType = type;
-        arguments.values().stream().filter(
-                var -> var.getType().getQualifiedName().equals(name)
-            ).forEach(var -> var.upgradeType(type));
+            cachedArgumentTypes = null;
+        }
+        for (VariableSymbol var : arguments.values()) {
+            if (var.getType().getQualifiedName().equals(name)) {
+                var.upgradeType(type);
+                cachedArgumentTypes = null;
+            }
+        }
     }
 
     public List<TypeSymbol> getArgumentTypes() {

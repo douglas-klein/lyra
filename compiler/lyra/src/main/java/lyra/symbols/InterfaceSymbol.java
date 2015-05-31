@@ -36,9 +36,7 @@ public class InterfaceSymbol extends TypeSymbol {
         HashSet<CandidateMethodSymbol> set = members.get(methodName).stream()
                 .map(m -> new CandidateMethodSymbol(m))
                 .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
-        superInterfaces.stream()
-                .forEach(i -> i.getOverloadsImpl(methodName).stream()
-                        .forEach(m -> set.add(m)));
+        superInterfaces.forEach(i -> i.getOverloadsImpl(methodName).forEach(m -> set.add(m)));
         return set;
     }
     private Stream<MethodSymbol> getOverloads(String methodName) {
