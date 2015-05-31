@@ -83,6 +83,42 @@ public class ResolveOverloadTests {
         assertTrue(CollectionUtils.isEqualCollection(args, methodSymbol.getArgumentTypes()));
     }
 
+    @Test
+    public void testResolveAmbiguityChoosingFromSecondArg() throws IOException {
+        Compiler compiler = analyse();
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol)global.resolve("A");
+
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+        args.add((TypeSymbol)global.resolve("Int"));
+        args.add((TypeSymbol)global.resolve("Int"));
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("method3", args);
+
+        assertNotNull(methodSymbol);
+        assertTrue(CollectionUtils.isEqualCollection(args, methodSymbol.getArgumentTypes()));
+    }
+
+    @Test
+    public void testResolveByIsAThenConvertible() throws IOException {
+        Compiler compiler = analyse();
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol)global.resolve("A");
+
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+        args.add((TypeSymbol)global.resolve("Int"));
+        args.add((TypeSymbol)global.resolve("U"));
+
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("method4", args);
+
+        ArrayList<TypeSymbol> expectedArgs = new ArrayList<>();
+        expectedArgs.add((TypeSymbol)global.resolve("Number"));
+        expectedArgs.add((TypeSymbol)global.resolve("T"));
+
+        assertNotNull(methodSymbol);
+        assertTrue(CollectionUtils.isEqualCollection(expectedArgs,
+                methodSymbol.getArgumentTypes()));
+    }
+
     private Compiler analyse() throws IOException {
         Compiler compiler = new Compiler();
         ClassLoader loader = getClass().getClassLoader();
