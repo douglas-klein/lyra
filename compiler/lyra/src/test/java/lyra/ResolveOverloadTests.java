@@ -37,6 +37,52 @@ public class ResolveOverloadTests {
                 methodSymbol.getArgumentTypes()));
     }
 
+    @Test
+    public void testGetSingleCandidateSpecializedArgumentGeneralizedParameter() throws IOException {
+        Compiler compiler = analyse();
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol) global.resolve("A");
+
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+        args.add((TypeSymbol)global.resolve("Int"));
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("method1", args);
+
+        ArrayList<TypeSymbol> expectedArgs = new ArrayList<>();
+        expectedArgs.add((ClassSymbol)global.resolve("Number"));
+
+        assertNotNull(methodSymbol);
+        assertTrue(CollectionUtils.isEqualCollection(expectedArgs,
+                methodSymbol.getArgumentTypes()));
+    }
+
+    @Test
+    public void testGetMoreSpecializedOverload() throws IOException {
+        Compiler compiler = analyse();
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol) global.resolve("A");
+
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+        args.add((ClassSymbol)global.resolve("Int"));
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("method2", args);
+
+        assertNotNull(methodSymbol);
+        assertTrue(CollectionUtils.isEqualCollection(args, methodSymbol.getArgumentTypes()));
+    }
+
+    @Test
+    public void testGetMoreSpecializedOverloadFromSuperclass() throws IOException {
+        Compiler compiler = analyse();
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol) global.resolve("A");
+
+        ArrayList<TypeSymbol> args  = new ArrayList<>();
+        args.add((TypeSymbol)global.resolve("Int"));
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("inheritedSpec", args);
+
+        assertNotNull(methodSymbol);
+        assertTrue(CollectionUtils.isEqualCollection(args, methodSymbol.getArgumentTypes()));
+    }
+
     private Compiler analyse() throws IOException {
         Compiler compiler = new Compiler();
         ClassLoader loader = getClass().getClassLoader();

@@ -14,7 +14,7 @@ class OverloadResolver {
         //terminating condition
         if (argTypes.isEmpty()) {
             List<MethodSymbol> list = overloads.limit(2).collect(Collectors.toList());
-            return list.size() == 1 ? list.get(0) : null;
+            return list.size() == 1 ? list.get(0) : fixAmbiguity(list, 0);
         }
 
         TypeSymbol head = argTypes.get(0);
@@ -26,9 +26,9 @@ class OverloadResolver {
         for (Iterator<MethodSymbol> it = overloads.iterator(); it.hasNext(); ) {
             MethodSymbol m = it.next();
             TypeSymbol argType = m.getArgumentTypes().get(argIdx);
-            if (argType.isA(head)) {
+            if (head.isA(argType)) {
                 isA.add(m);
-            } else if (allowConvertible && argType.convertible(head)) {
+            } else if (allowConvertible && head.convertible(argType)) {
                 convertible.add(m);
             }
         }
@@ -41,6 +41,29 @@ class OverloadResolver {
             method = resolveImpl(convertible.stream(), argIdx + 1, tail, allowConvertible);
 
         return method;
+    }
+
+    private static MethodSymbol fixAmbiguity(List<MethodSymbol> list, int argIdx) {
+        if (list.size() == 0)
+            return null;
+
+        int arity = list.get(0).getArgumentTypes().size();
+        if (argIdx == arity)
+            return list.size() == 1 ? list.get(0) : null;
+
+        //Find the most specialized of all argIdx-th arguments of the candidates
+        TypeSymbol mostSpecialized = list.get(0).getArgumentTypes().get(argIdx);
+        for (int i = 1; i < list.size(); ++i) {
+            TypeSymbol candidate = list.get(i).getArgumentTypes().get(argIdx);
+            if (candidate.isA(mostSpecialized) && !mostSpecialized.isA(candidate))
+                mostSpecialized = candidate;
+        }
+        final TypeSymbol finalMostSpecialized = mostSpecialized;
+
+        List<MethodSymbol> selected = list.stream()
+                .filter(m -> m.getArgumentTypes().get(argIdx).equals(finalMostSpecialized))
+                .collect(Collectors.toList());
+        return fixAmbiguity(selected, argIdx+1);
     }
 
     static public MethodSymbol resolve(Stream<MethodSymbol> overloads,
