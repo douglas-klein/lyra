@@ -10,6 +10,8 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.List;
+
 public class ReferencesListener extends ScopedBaseListener {
     private Scope currentScope; // define symbols in this scope
     private SymbolTable table;
@@ -80,5 +82,27 @@ public class ReferencesListener extends ScopedBaseListener {
             return;
         }
         methodSymbol.upgradeType((TypeSymbol)returnTypeSymbol);
+    }
+
+    @Override
+    public void exitParamDecl(LyraParser.ParamDeclContext ctx) {
+        Symbol sym = currentScope.resolve(ctx.type().IDENT().getText());
+        if (sym == null || !(sym instanceof TypeSymbol)) {
+            unresolvedTypeError(ctx.type().IDENT(), ctx.type().IDENT().getText());
+            return;
+        }
+
+        ParserRuleContext parent = ctx.getParent();
+        if (!(parent instanceof LyraParser.ParamsContext)) return;
+        parent = parent.getParent();
+        MethodSymbol methodSymbol;
+        if ((parent instanceof LyraParser.MethodDeclContext)
+                || (parent instanceof LyraParser.MethodDeclAbstractContext)) {
+            methodSymbol = (MethodSymbol) table.getNodeSymbol(parent);
+        } else {
+            return;
+        }
+
+        methodSymbol.upgradeType((TypeSymbol)sym);
     }
 }
