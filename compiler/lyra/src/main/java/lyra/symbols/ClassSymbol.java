@@ -54,13 +54,13 @@ public class ClassSymbol extends TypeSymbol {
 
     @Override
     public boolean isA(TypeSymbol type) {
-        if (type == this || type == superClass || type == interfaceSymbol)
+        if (type == this)
             return true;
-        if (!superClass.isA(type)) {
-            if (!interfaceSymbol.isA(type))
-                return false;
-        }
-        return true;
+        if (superClass != null && superClass.isA(type))
+            return true;
+        if (interfaceSymbol != null && interfaceSymbol.isA(type))
+            return true;
+        return false;
     }
 
     @Override
@@ -82,10 +82,17 @@ public class ClassSymbol extends TypeSymbol {
     }
 
     private HashSet<CandidateMethodSymbol> getOverloadsImpl(String methodName) {
-        HashSet<CandidateMethodSymbol> set = members.get(methodName).stream()
-                .filter(s -> s instanceof MethodSymbol)
-                .map(s -> new CandidateMethodSymbol((MethodSymbol) s))
-                .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
+
+        HashSet<CandidateMethodSymbol> set;
+        List<Symbol> list = members.get(methodName);
+        if (list == null) {
+            set = new HashSet<>();
+        } else {
+            set = list.stream()
+                    .filter(s -> s instanceof MethodSymbol)
+                    .map(s -> new CandidateMethodSymbol((MethodSymbol) s))
+                    .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
+        }
 
         /* Once we got the methods from this class, check the parent and add only the parent
          * (and indirect parent) methods that do not have exact match of argument types. This is
@@ -120,14 +127,18 @@ public class ClassSymbol extends TypeSymbol {
             list.add(sym);
             members.put(sym.getName(), list);
         } else if (sym instanceof MethodSymbol) {
+            List<Symbol> list;
             if (members.containsKey(sym.getName())) {
-                List<Symbol> list = members.get(sym.getName());
+                list = members.get(sym.getName());
                 if (!list.isEmpty() && !(list.get(0) instanceof MethodSymbol)) {
                     throw new SemanticErrorException("Using name \"" + sym.getName()
                             + "\" previously used for something that was not a method");
                 }
-                list.add(sym);
+            } else {
+                list = new LinkedList<>();
+                members.put(sym.getName(), list);
             }
+            list.add(sym);
         } else {
             throw new SemanticErrorException("A class may only contain methods and fields. \""
                     + sym.getName() + "\" is neither.");
