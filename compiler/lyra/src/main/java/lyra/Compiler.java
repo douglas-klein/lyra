@@ -64,13 +64,20 @@ public class Compiler {
         return getErrorListener().getNumberOfErrors() == 0;
     }
 
-    public boolean compile() {
+    public boolean analyse() {
         if (!parse()) return false;
         rewriteSugar();
 
         if (!fillSymbolTable()) return false;
-
         // Add more steps
+
+        return true;
+    }
+
+    public boolean compile() {
+        if (!analyse()) return false;
+
+        //Add code generation
         return true;
     }
 
