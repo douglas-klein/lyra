@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
  * Method Symbol, used for classes and interfaces.
  */
 public class MethodSymbol extends ScopedSymbol {
-    LinkedHashMap<String, VariableSymbol> arguments = new LinkedHashMap<>();
-    ArrayList<TypeSymbol> cachedArgumentTypes;
+    private LinkedHashMap<String, VariableSymbol> arguments = new LinkedHashMap<>();
+    private ArrayList<TypeSymbol> cachedArgumentTypes;
     private boolean infix = false;
-    TypeSymbol returnType;
-    BaseScope scope;
+    private TypeSymbol returnType;
+    private BaseScope scope;
 
     public MethodSymbol(String name, TypeSymbol returnType, Scope enclosingScope) {
         super(name, SymbolType.METHOD, enclosingScope);
@@ -39,6 +39,10 @@ public class MethodSymbol extends ScopedSymbol {
 
     public List<VariableSymbol> getArguments() {
         return arguments.values().stream().collect(Collectors.toList());
+    }
+
+    public TypeSymbol getReturnType(){
+        return returnType;
     }
 
     public boolean isInfix() {
