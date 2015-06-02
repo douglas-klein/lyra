@@ -12,13 +12,9 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class DeclarationsListener extends ScopedBaseListener {
-    private SymbolTable table;
-    private Scope currentScope; // define symbols in this scope
-    private Compiler compiler;
 
-    public DeclarationsListener(SymbolTable table, Compiler compiler) {
-        this.table = table;
-        this.compiler = compiler;
+    public DeclarationsListener(Compiler compiler) {
+        super(compiler);
     }
 
     @Override

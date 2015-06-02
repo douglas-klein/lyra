@@ -3,6 +3,7 @@ package lyra;
 import lyra.listeners.DeclarationsListener;
 import lyra.listeners.ReferencesListener;
 import lyra.listeners.SyntacticSugarListener;
+import lyra.listeners.TypeListener;
 import lyra.scopes.Scope;
 import lyra.symbols.BaseTypes;
 import lyra.symbols.SymbolTable;
@@ -52,11 +53,16 @@ public class Compiler {
         ParseTreeWalker walker = new ParseTreeWalker();
 
         try {
-            DeclarationsListener declarationsListener = new DeclarationsListener(symbolTable, this);
+            DeclarationsListener declarationsListener = new DeclarationsListener(this);
             walker.walk(declarationsListener, parseTree);
 
-            ReferencesListener referencesListener = new ReferencesListener(symbolTable, this);
+            ReferencesListener referencesListener = new ReferencesListener(this);
             walker.walk(referencesListener, parseTree);
+
+            //TODO mandar ver
+//            TypeListener typeListener = new TypeListener(this);
+//            walker.walk(typeListener, parseTree);
+
         } catch (SemanticErrorException e) {
             getErrorListener().semanticError(parser, e);
         }

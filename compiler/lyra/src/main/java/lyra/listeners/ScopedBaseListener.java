@@ -1,7 +1,17 @@
 package lyra.listeners;
 
+import jdk.nashorn.internal.ir.TernaryNode;
+import lyra.*;
+import lyra.Compiler;
 import lyra.LyraParser;
+import lyra.scopes.Scope;
+import lyra.symbols.MethodSymbol;
+import lyra.symbols.SymbolTable;
+import lyra.symbols.TypeSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Helper base class that, for all scope-creating rules, calls abstract methods
@@ -11,6 +21,15 @@ import org.antlr.v4.runtime.ParserRuleContext;
  * overriding methods for all rules.
  */
 public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
+
+    protected Compiler compiler;
+    protected Scope currentScope; // define symbols in this scope
+    protected SymbolTable table;
+
+    protected ScopedBaseListener(lyra.Compiler compiler){
+        this.compiler = compiler;
+        this.table = compiler.getSymbolTable();
+    }
 
     @Override
     public void enterMethodDecl(LyraParser.MethodDeclContext ctx) {
@@ -119,4 +138,21 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
 
     protected abstract void beginScopeVisit(boolean named, ParserRuleContext ctx);
     protected abstract void endScopeVisit(boolean named, ParserRuleContext ctx);
+
+    protected void unresolvedTypeError(Object offendingSymbol, String typeName) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Unresolved type" + typeName + ".");
+    }
+
+    protected void expectedTypeError(Object offendingSymbol) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Expected a type.");
+    }
+
+    protected void overloadNotFoundError(Object offendingSymbol, Collection<TypeSymbol> types) {
+        String typeNames = types.stream().map(TypeSymbol::getQualifiedName).reduce("", (a, b) -> a + ", " + b);
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Overload not found for arguments: " + typeNames);
+    }
+
 }

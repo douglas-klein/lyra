@@ -13,13 +13,9 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.List;
 
 public class ReferencesListener extends ScopedBaseListener {
-    private Scope currentScope; // define symbols in this scope
-    private SymbolTable table;
-    private Compiler compiler;
 
-    public ReferencesListener(SymbolTable table, Compiler compiler) {
-        this.table = table;
-        this.compiler = compiler;
+    public ReferencesListener(Compiler compiler) {
+        super(compiler);
     }
 
     @Override
@@ -65,12 +61,6 @@ public class ReferencesListener extends ScopedBaseListener {
         //TODO comentado pois Int, e vários tipos built-in não existem ainda
         //var.upgradeType((TypeSymbol)upgrade);
     }
-
-    private void unresolvedTypeError(Object offendingSymbol, String typeName) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Unresolved type" + typeName + ".");
-    }
-
 
     @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
