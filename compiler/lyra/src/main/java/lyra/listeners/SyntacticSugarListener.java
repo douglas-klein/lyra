@@ -81,6 +81,27 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
     }
 
     @Override
+    public void exitThisMethodFactor(LyraParser.ThisMethodFactorContext ctx) {
+        LyraParser.MemberFactorContext rewritten = new LyraParser.MemberFactorContext(new LyraParser.FactorContext(ctx.getParent(), -1));
+
+        LyraParser.NameFactorContext _this = new LyraParser.NameFactorContext(new LyraParser.FactorContext(rewritten, -1));
+        _this.addChild(new CommonToken(LyraLexer.IDENT, "this"));
+        rewritten.addChild(_this);
+
+        rewritten.addChild(new CommonToken(LyraLexer.DOT, "."));
+        rewritten.addChild(new CommonToken(LyraLexer.IDENT, ctx.IDENT().getText()));
+        if(ctx.LEFTPARENTHESES() != null){
+            rewritten.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+            LyraParser.ArgsContext args = ctx.args();
+            args.parent = rewritten;
+            rewritten.addChild(args);
+            rewritten.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+        }
+
+        replaceChild(ctx, ctx.getParent(), rewritten);
+    }
+
+    @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
         if (ctx.type() != null)  return;
 
