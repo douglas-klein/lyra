@@ -55,7 +55,9 @@ factor                  : factor DOT IDENT ( LEFTPARENTHESES args RIGHTPARENTHES
                         | LEFTPARENTHESES expr RIGHTPARENTHESES RIGHTPARENTHESES+ {notifyErrorListeners("Extra ')'s after parenthised expression.");} # wrong2WrappedFactor
                         ;
 
-alocExpr                : NEW ( IDENT LEFTPARENTHESES args RIGHTPARENTHESES | IDENT (LEFTBRACKET expr RIGHTBRACKET)+);
+alocExpr                : NEW IDENT LEFTPARENTHESES args RIGHTPARENTHESES   # objectAlocExpr
+                        | NEW IDENT (LEFTBRACKET expr RIGHTBRACKET)+        # arrayAlocExpr
+                        ;
 
 methodDecl              : VISIBILITYMODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? LEFTCURLYBRACE methodBody? RIGHTCURLYBRACE ;
 methodBody              : statlist;
