@@ -63,6 +63,7 @@ public class Compiler {
 //            TypeListener typeListener = new TypeListener(this);
 //            walker.walk(typeListener, parseTree);
 
+
         } catch (SemanticErrorException e) {
             getErrorListener().semanticError(parser, e);
         }

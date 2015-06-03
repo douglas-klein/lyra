@@ -7,11 +7,11 @@ class Value {
 }
 
 class Application {
-    Int a, b = 1, 2;
+    Int a = 1, b = 2;
 
     def main {
-        Int x, y, z = 1, 2, 3;
-        Value i, j = new Value(x), new Value(2);
-        Int k, h = x, y;
+        Int x = 1, y = 2, z = 3;
+        Value i = new Value(x), j = new Value(2);
+        Int k = x, h = y;
     }
 }

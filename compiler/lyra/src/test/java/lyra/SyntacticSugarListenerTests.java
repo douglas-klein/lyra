@@ -106,7 +106,7 @@ public class SyntacticSugarListenerTests {
                     return;
                 visited[0] = true;
 
-                LyraParser.ExprContext expr = ctx.exprlist().expr(0);
+                LyraParser.ExprContext expr = ctx.varDeclUnit(0).expr();
                 assertNotNull(expr);
                 assertNotNull(expr.unaryexpr());
                 assertNotNull(expr.unaryexpr().factor());
@@ -144,10 +144,10 @@ public class SyntacticSugarListenerTests {
                     return;
                 visited[0] = true;
 
-                assertNotNull(ctx.exprlist());
-                assertEquals(1, ctx.exprlist().expr().size());
-                assertNotNull(ctx.exprlist().expr(0).unaryexpr());
-                LyraParser.FactorContext f1 = ctx.exprlist().expr(0).unaryexpr().factor();
+                assertEquals(1, ctx.varDeclUnit().size());
+                assertNotNull(ctx.varDeclUnit(0).expr());
+                assertNotNull(ctx.varDeclUnit(0).expr().unaryexpr());
+                LyraParser.FactorContext f1 = ctx.varDeclUnit(0).expr().unaryexpr().factor();
                 assertNotNull(f1);
 
                 //x++++--
@@ -193,9 +193,10 @@ public class SyntacticSugarListenerTests {
 
                 visited[0] = true;
 
-                assertEquals(1, ctx.exprlist().expr().size());
-                assertNotNull(ctx.exprlist().expr(0).unaryexpr());
-                LyraParser.FactorContext factor = ctx.exprlist().expr(0).unaryexpr().factor();
+                assertEquals(1, ctx.varDeclUnit().size());
+                assertNotNull(ctx.varDeclUnit(0).expr());
+                assertNotNull(ctx.varDeclUnit(0).expr().unaryexpr());
+                LyraParser.FactorContext factor = ctx.varDeclUnit(0).expr().unaryexpr().factor();
                 assertNotNull(factor);
                 assertTrue(factor instanceof LyraParser.MemberFactorContext);
 

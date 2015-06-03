@@ -2,6 +2,7 @@ package lyra.listeners;
 
 import lyra.*;
 import lyra.Compiler;
+import lyra.LyraParser;
 import lyra.LyraParser.VarDeclContext;
 import lyra.LyraParser.VarDeclUnitContext;
 import lyra.scopes.Scope;
