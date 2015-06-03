@@ -3,6 +3,8 @@ package lyra.listeners;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.LyraParserBaseListener;
+import lyra.LyraParser.VarDeclContext;
+
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -155,7 +157,7 @@ public class SyntacticSugarListener extends LyraParserBaseListener {
 
         replaceChild(ctx, parent, rewritten);
     }
-
+    
     private void exitAssignment(LyraParser.ExprContext ctx) {
         if (ctx.expr(0).unaryexpr() == null)
             return; //semantic error: assigning anonymous reference

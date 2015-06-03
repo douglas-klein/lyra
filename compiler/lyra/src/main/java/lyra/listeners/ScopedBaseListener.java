@@ -1,17 +1,16 @@
 package lyra.listeners;
 
-import jdk.nashorn.internal.ir.TernaryNode;
-import lyra.*;
+import java.util.Collection;
+
 import lyra.Compiler;
 import lyra.LyraParser;
+import lyra.SemanticErrorException;
 import lyra.scopes.Scope;
-import lyra.symbols.MethodSymbol;
+import lyra.symbols.Symbol;
 import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
-import org.antlr.v4.runtime.ParserRuleContext;
 
-import java.util.Collection;
-import java.util.Collections;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  * Helper base class that, for all scope-creating rules, calls abstract methods
@@ -139,20 +138,35 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected abstract void beginScopeVisit(boolean named, ParserRuleContext ctx);
     protected abstract void endScopeVisit(boolean named, ParserRuleContext ctx);
 
+
     protected void unresolvedTypeError(Object offendingSymbol, String typeName) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Unresolved type" + typeName + ".");
+        compiler.getErrorListener()
+        		.semanticError(compiler.getParser(), 
+        					   offendingSymbol,
+        					   "Unresolved type" + typeName + ".");
     }
 
     protected void expectedTypeError(Object offendingSymbol) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+        compiler.getErrorListener()
+        		.semanticError(compiler.getParser(), 
+        		offendingSymbol,
                 "Expected a type.");
     }
 
     protected void overloadNotFoundError(Object offendingSymbol, Collection<TypeSymbol> types) {
         String typeNames = types.stream().map(TypeSymbol::getQualifiedName).reduce("", (a, b) -> a + ", " + b);
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Overload not found for arguments: " + typeNames);
+
+        compiler.getErrorListener()
+        		.semanticError(compiler.getParser(), 
+        					   offendingSymbol,
+        					   "Overload not found for arguments: " + typeNames);
+    }
+
+    protected void notConvertibleError(Object offendingSymbol, Symbol type) {
+        compiler.getErrorListener()
+        	    .semanticError(compiler.getParser(), 
+        	    			   offendingSymbol, 
+        	    			   "Type is not convertible to: " + type.getName());
     }
 
 }

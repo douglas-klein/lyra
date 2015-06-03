@@ -2,12 +2,14 @@ package lyra.listeners;
 
 import lyra.*;
 import lyra.Compiler;
-import lyra.LyraParser;
+import lyra.LyraParser.VarDeclContext;
+import lyra.LyraParser.VarDeclUnitContext;
 import lyra.scopes.Scope;
 import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -108,4 +110,29 @@ public class TypeListener extends ScopedBaseListener {
     public void exitNumberFactor(LyraParser.NumberFactorContext ctx) {
         table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("Number"));
     }
+    
+    @Override
+    public void exitVarDecl(LyraParser.VarDeclContext ctx) {
+    	TerminalNode typeNode = ctx.type().IDENT();
+    	Symbol type = currentScope.resolve(typeNode.getText());
+    	if(type == null || !(type instanceof TypeSymbol)){
+    		expectedTypeError(typeNode);
+    	}
+    	for (VarDeclUnitContext varDeclUnit : ctx.varDeclUnit()) {
+    		if(varDeclUnit.expr() != null){
+    			TypeSymbol exprType = table.getNodeType(varDeclUnit.expr());
+    			if(!exprType.convertible((TypeSymbol) type)){
+    				notConvertibleError(exprType, type);
+    			}
+    		}
+		}
+    }
+    
+    @Override
+    public void exitVarDeclUnit(VarDeclUnitContext ctx) {
+    	VarDeclContext parent = (VarDeclContext) ctx.getParent();
+    	Symbol parentType = currentScope.resolve(parent.type().IDENT().getText());
+//    	Symbol f = ctx.exprlist().
+    }
+
 }

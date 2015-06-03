@@ -120,8 +120,7 @@ public class ClassSymbol extends TypeSymbol {
     public void define(Symbol sym) throws SemanticErrorException {
         if (sym instanceof VariableSymbol) {
             if (members.containsKey(sym.getName())) {
-                throw new SemanticErrorException("name \"" + sym.getName()
-                        + "\" has already been used on this class");
+                throw new SemanticErrorException("name \"" + sym.getName() + "\" has already been used on this class");
             }
             LinkedList<Symbol> list = new LinkedList<>();
             list.add(sym);
@@ -131,8 +130,7 @@ public class ClassSymbol extends TypeSymbol {
             if (members.containsKey(sym.getName())) {
                 list = members.get(sym.getName());
                 if (!list.isEmpty() && !(list.get(0) instanceof MethodSymbol)) {
-                    throw new SemanticErrorException("Using name \"" + sym.getName()
-                            + "\" previously used for something that was not a method");
+                    throw new SemanticErrorException("Using name \"" + sym.getName() + "\" previously used for something that was not a method");
                 }
             } else {
                 list = new LinkedList<>();
@@ -140,8 +138,7 @@ public class ClassSymbol extends TypeSymbol {
             }
             list.add(sym);
         } else {
-            throw new SemanticErrorException("A class may only contain methods and fields. \""
-                    + sym.getName() + "\" is neither.");
+            throw new SemanticErrorException("A class may only contain methods and fields. \"" + sym.getName() + "\" is neither.");
         }
     }
 
