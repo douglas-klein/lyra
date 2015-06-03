@@ -9,15 +9,15 @@ implementsdecl          : IMPLEMENTS identList;
 classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
 
 attributeDecl           : VISIBILITYMODIFIER? varDecl;
-varDecl                 : type varDeclUnit (COMMA varDeclUnit)* (EQUALOP exprlist )? ;
-varDeclUnit             : IDENT arrayDeclSuffix*;
+
+varDecl                 : type varDeclUnit (COMMA varDeclUnit )* ;
+
+varDeclUnit             : IDENT arrayDeclSuffix* (EQUALOP expr )?;
 arrayDeclSuffix         : LEFTBRACKET RIGHTBRACKET;
 
 interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE methodDeclAbstract+ RIGHTCURLYBRACE ;
 
 methodDeclAbstract      : VISIBILITYMODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? SEMICOLON ;
-
-exprlist                : expr (COMMA expr)*;
 
 /* O ANTLR 4, cf. Caps 5.4 e 14 do livro dele, suporta recursão esquerda direta
  * e usa por padrão uma estratégia de precedência baseada na ordem das
@@ -99,3 +99,4 @@ defaultEnum             : IDENT (COMMA IDENT) ;
 namedEnum               : IDENT EQUALOP ( STRING | NUMBER ) (SEMICOLON IDENT EQUALOP ( STRING | NUMBER ))* ;
 type                    : IDENT ;
 identList               : IDENT ( COMMA IDENT )* ;
+
