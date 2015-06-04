@@ -10,7 +10,8 @@ classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
 
 attributeDecl           : VISIBILITYMODIFIER? varDecl;
 
-varDecl                 : type arrayDeclSuffix* varDeclUnit (COMMA varDeclUnit )* ;
+type                    : IDENT arrayDeclSuffix* ;
+varDecl                 : type varDeclUnit (COMMA varDeclUnit )* ;
 
 varDeclUnit             : IDENT (EQUALOP expr )?;
 arrayDeclSuffix         : LEFTBRACKET RIGHTBRACKET;
@@ -97,6 +98,5 @@ enumdecl                : ENUM IDENT LEFTCURLYBRACE enumBody RIGHTCURLYBRACE ;
 enumBody                : defaultEnum | namedEnum ;
 defaultEnum             : IDENT (COMMA IDENT) ;
 namedEnum               : IDENT EQUALOP ( STRING | NUMBER ) (SEMICOLON IDENT EQUALOP ( STRING | NUMBER ))* ;
-type                    : IDENT ;
 identList               : IDENT ( COMMA IDENT )* ;
 
