@@ -117,7 +117,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         if (ctx.unaryexpr() != null)
             return; //handled at exitUnaryexpr
         if (ctx.binOp.getType() == LyraLexer.EQUALOP) {
-            return; //handled by ArrayGeneratorListener
+            return; //handled by ArrayRewriterListener
         }
 
         /* input has the form rewritten : rewritten opBin rewritten

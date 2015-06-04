@@ -1,9 +1,6 @@
 package lyra;
 
-import lyra.listeners.DeclarationsListener;
-import lyra.listeners.ReferencesListener;
-import lyra.listeners.SyntacticSugarListener;
-import lyra.listeners.TypeListener;
+import lyra.listeners.*;
 import lyra.scopes.Scope;
 import lyra.symbols.BaseTypes;
 import lyra.symbols.SymbolTable;
@@ -90,8 +87,8 @@ public class Compiler {
 
     private void rewriteSugar() {
         ParseTreeWalker walker = new ParseTreeWalker();
-        SyntacticSugarListener listener = new SyntacticSugarListener();
-        walker.walk(listener, parseTree);
+        walker.walk(new SyntacticSugarListener(), parseTree);
+        walker.walk(new ArrayRewriterListener(), parseTree);
     }
 
     public void setLemonadeRecovery(boolean lemonadeRecovery) {

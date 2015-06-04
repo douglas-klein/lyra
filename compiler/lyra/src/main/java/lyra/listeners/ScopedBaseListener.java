@@ -159,7 +159,7 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         compiler.getErrorListener()
         		.semanticError(compiler.getParser(), 
         					   offendingSymbol,
-        					   "Unresolved type" + typeName + ".");
+        					   "Unresolved type " + typeName + ".");
     }
 
     protected void expectedTypeError(Object offendingSymbol) {

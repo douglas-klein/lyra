@@ -1,6 +1,7 @@
 package lyra.symbols;
 
 import lyra.LyraParser;
+import lyra.SemanticErrorException;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 import lyra.symbols.predefined.*;
@@ -23,6 +24,7 @@ public class SymbolTable {
     private ParseTreeProperty<Scope> nodeScope = new ParseTreeProperty<>();
     private ParseTreeProperty<TypeSymbol> nodeType = new ParseTreeProperty<>();
     private ParseTreeProperty<Symbol> nodeSymbol = new ParseTreeProperty<>();
+    private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
 
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
 
@@ -35,6 +37,7 @@ public class SymbolTable {
         predefinedSymbols.add(new Int());
         predefinedSymbols.add(new Bool());
         predefinedSymbols.add(new LyraString());
+        predefinedSymbols.add(new Array());
         predefinedSymbols.add(new Output());
         predefinedSymbols.add(new Input());
 
@@ -46,6 +49,17 @@ public class SymbolTable {
 
     public Scope getGlobal() {
         return global;
+    }
+
+    public ClassSymbol getPredefinedClass(String name) {
+        Symbol symbol = getGlobal().resolve(name);
+        if (symbol == null)
+            throw new SemanticErrorException("Predefined symbol " + name + " is not defined!");
+        if (!(symbol instanceof ClassSymbol)) {
+            throw new SemanticErrorException("Predefined class symbol " + name + " has been " +
+                    "redefined to something else");
+        }
+        return (ClassSymbol)symbol;
     }
 
     public void setNodeScope(ParseTree node, Scope scope) {
@@ -62,4 +76,8 @@ public class SymbolTable {
 
     public void setNodeSymbol(ParseTree node, Symbol symbol) { nodeSymbol.put(node, symbol); }
     public Symbol getNodeSymbol(ParseTree node) { return nodeSymbol.get(node);}
+
+    public ArrayClassFactory getArrayClassFactory() {
+        return arrayClassFactory;
+    }
 }

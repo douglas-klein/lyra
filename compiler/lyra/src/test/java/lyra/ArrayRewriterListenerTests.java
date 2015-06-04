@@ -1,5 +1,6 @@
 package lyra;
 
+import junit.framework.Assert;
 import lyra.listeners.ArrayRewriterListener;
 import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -23,6 +24,70 @@ public class ArrayRewriterListenerTests {
         InputStream stream = loader.getResourceAsStream(name);
         InputStreamReader reader = new InputStreamReader(stream);
         return reader;
+    }
+
+    @Test
+    public void testRewrite1DArrayType() throws Exception {
+        Compiler compiler = new Compiler();
+        InputStreamReader reader = getReader("samples/Rewrite1DArrayAccess.ly");
+        compiler.init(reader);
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
+        walker.walk(new ArrayRewriterListener(), compiler.getParseTree());
+
+        final boolean visited[] = {false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitVarDecl(lyra.LyraParser.VarDeclContext ctx) {
+                if (!ctx.varDeclUnit(0).IDENT().getText().equals("arr"))
+                    return;
+
+                visited[0] = true;
+                assertEquals(0, ctx.type().arrayDeclSuffix().size());
+                assertEquals("Int$Array", ctx.type().IDENT().getText());
+            }
+        }, compiler.getParseTree());
+
+        assertTrue(visited[0]);
+    }
+
+    @Test
+    public void testRewriteNAryArrayType() throws Exception {
+        Compiler compiler = new Compiler();
+        compiler.init(getReader("samples/ArraysDeclaration.ly"));
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
+        walker.walk(new ArrayRewriterListener(), compiler.getParseTree());
+
+        final boolean visited[] = {false, false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitAttributeDecl(lyra.LyraParser.AttributeDeclContext ctx) {
+                if (!ctx.varDecl().varDeclUnit(0).IDENT().getText().equals("cube"))
+                    return;
+
+                visited[0] = true;
+                assertEquals(0, ctx.varDecl().type().arrayDeclSuffix().size());
+                assertEquals("Value$Array$Array$Array", ctx.varDecl().type().IDENT().getText());
+            }
+
+            @Override
+            public void exitVarDecl(lyra.LyraParser.VarDeclContext ctx) {
+                if (!ctx.varDeclUnit(0).IDENT().getText().equals("cube"))
+                    return;
+
+                visited[1] = true;
+                assertEquals(0, ctx.type().arrayDeclSuffix().size());
+                assertEquals("Value$Array$Array$Array", ctx.type().IDENT().getText());
+            }
+        }, compiler.getParseTree());
+
+        assertTrue(visited[0]);
+        assertTrue(visited[1]);
     }
 
     @Test

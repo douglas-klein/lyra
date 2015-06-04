@@ -3,8 +3,10 @@ package lyra.listeners;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.LyraParserBaseListener;
+import lyra.symbols.*;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.util.HashSet;
@@ -28,7 +30,7 @@ import java.util.HashSet;
  * $Array classes provide cleaner methods called set() and at() that are equivalent to their
  * underlined counterparts.
  */
-public class ArrayGeneratorListener extends TreeRewriterBaseListener {
+public class ArrayRewriterListener extends TreeRewriterBaseListener {
     /**
      * If a particular MemberFactorContext instance is in this set, then it is a falsification
      * inserted into the parse tree by exitArrayFactor. It is a rewrite of
@@ -63,6 +65,21 @@ public class ArrayGeneratorListener extends TreeRewriterBaseListener {
 
         replaceChild(ctx, parent, rewritten);
         rewrittenArrayAcess.add(rewritten);
+    }
+
+    @Override
+    public void exitType(LyraParser.TypeContext ctx) {
+        int dimensions = ctx.arrayDeclSuffix().size();
+        if (dimensions == 0)
+            return; // not an array
+
+        String elementTypeName = ctx.IDENT().getText();
+        String arrayName = ArrayClassFactory.getArrayTypeName(elementTypeName, dimensions);
+
+        LyraParser.TypeContext rewritten = new LyraParser.TypeContext(ctx.getParent(), -1);
+        rewritten.addChild(new CommonToken(LyraLexer.IDENT, arrayName));
+
+        replaceChild(ctx, ctx.getParent(), rewritten);
     }
 
     @Override
