@@ -1,6 +1,6 @@
 package lyra;
 
-import lyra.listeners.ArrayGeneratorListener;
+import lyra.listeners.ArrayRewriterListener;
 import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.Test;
@@ -14,9 +14,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Tests for ArrayGeneratorListener
+ * Tests for ArrayRewriterListener
  */
-public class ArrayGeneratorListenerTests {
+public class ArrayRewriterListenerTests {
 
     private InputStreamReader getReader(String name) {
         ClassLoader loader = getClass().getClassLoader();
@@ -34,7 +34,7 @@ public class ArrayGeneratorListenerTests {
 
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
-        walker.walk(new ArrayGeneratorListener(), compiler.getParseTree());
+        walker.walk(new ArrayRewriterListener(), compiler.getParseTree());
 
         final boolean visited[] = {false, false};
         walker.walk(new lyra.LyraParserBaseListener() {

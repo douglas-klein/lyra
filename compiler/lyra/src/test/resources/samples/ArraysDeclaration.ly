@@ -1,15 +1,15 @@
 class Value {}
 
 class Application {
-    Int line[];
-    Int square[][];
+    Int[] line;
+    Int[][] square;
 
-    Value cube[][][];
+    Value[][][] cube;
 
     def main {
-        Int myLine[];
-        Int mySquare[][];
+        Int[] myLine;
+        Int[][] mySquare;
 
-        Value myCube[][][];
+        Value[][][] myCube;
     }
 }

@@ -10,9 +10,9 @@ classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
 
 attributeDecl           : VISIBILITYMODIFIER? varDecl;
 
-varDecl                 : type varDeclUnit (COMMA varDeclUnit )* ;
+varDecl                 : type arrayDeclSuffix* varDeclUnit (COMMA varDeclUnit )* ;
 
-varDeclUnit             : IDENT arrayDeclSuffix* (EQUALOP expr )?;
+varDeclUnit             : IDENT (EQUALOP expr )?;
 arrayDeclSuffix         : LEFTBRACKET RIGHTBRACKET;
 
 interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE methodDeclAbstract+ RIGHTCURLYBRACE ;
