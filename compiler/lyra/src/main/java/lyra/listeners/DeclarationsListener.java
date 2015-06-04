@@ -18,21 +18,6 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
-    public void enterProgram(lyra.LyraParser.ProgramContext ctx) {
-        currentScope = table.getGlobal();
-    }
-
-    @Override
-    public void exitProgram(lyra.LyraParser.ProgramContext ctx) {
-        leaveScope();
-    }
-
-    private void reportSemanticException(TerminalNode node, SemanticErrorException e) {
-        e.setOffendingSymbol(node);
-        compiler.getErrorListener().semanticError(compiler.getParser(), e);
-    }
-
-    @Override
     public void enterMethodDecl(lyra.LyraParser.MethodDeclContext ctx) {
         String name = ctx.IDENT().getText();
         UnresolvedType type ;

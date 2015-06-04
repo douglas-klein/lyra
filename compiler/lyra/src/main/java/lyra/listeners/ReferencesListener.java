@@ -19,16 +19,6 @@ public class ReferencesListener extends ScopedBaseListener {
     }
 
     @Override
-    public void enterProgram(LyraParser.ProgramContext ctx) {
-        currentScope = table.getNodeScope(ctx);
-    }
-
-    @Override
-    public void exitProgram(LyraParser.ProgramContext ctx) {
-        currentScope = null;
-    }
-
-    @Override
     protected void beginScopeVisit(boolean named, ParserRuleContext ctx) {
         currentScope = table.getNodeScope(ctx);
     }

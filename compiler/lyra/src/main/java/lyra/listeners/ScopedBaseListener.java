@@ -11,6 +11,7 @@ import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Helper base class that, for all scope-creating rules, calls abstract methods
@@ -28,6 +29,21 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected ScopedBaseListener(lyra.Compiler compiler){
         this.compiler = compiler;
         this.table = compiler.getSymbolTable();
+    }
+
+    @Override
+    public void enterProgram(LyraParser.ProgramContext ctx) {
+        currentScope = table.getGlobal();
+    }
+
+    @Override
+    public void exitProgram(LyraParser.ProgramContext ctx) {
+        currentScope = null;
+    }
+
+    protected void reportSemanticException(TerminalNode node, SemanticErrorException e) {
+        e.setOffendingSymbol(node);
+        compiler.getErrorListener().semanticError(compiler.getParser(), e);
     }
 
     @Override
