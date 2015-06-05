@@ -79,4 +79,16 @@ public class InterfaceSymbol extends TypeSymbol {
         }
         list.add((MethodSymbol)sym);
     }
+
+    public void upgradeType(TypeSymbol typeSymbol) {
+        boolean upgrade = false;
+        for (List<MethodSymbol> overloads : members.values()) {
+            for (MethodSymbol method : overloads) {
+                method.upgradeType(typeSymbol);
+            }
+        }
+
+        for (InterfaceSymbol superIface : superInterfaces)
+            superIface.upgradeType(typeSymbol);
+    }
 }

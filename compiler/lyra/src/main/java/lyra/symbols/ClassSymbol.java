@@ -19,7 +19,7 @@ public class ClassSymbol extends TypeSymbol {
     ClassSymbol superClass;
 
     /** Interface implemented by the class, may be null. */
-    private InterfaceSymbol interfaceSymbol;
+    private List<InterfaceSymbol> interfaceSymbols = new LinkedList<>();
 
     /** List of all fields and methods */
     public Map<String,List<Symbol>> members = new LinkedHashMap<>();
@@ -29,6 +29,13 @@ public class ClassSymbol extends TypeSymbol {
     public ClassSymbol(String name, Scope enclosingScope, ClassSymbol superClass) {
         super(name, SymbolType.CLASS, enclosingScope);
         this.superClass = superClass;
+    }
+
+    public void addInterface(InterfaceSymbol iface) {
+        interfaceSymbols.add(iface);
+    }
+    public Collection<InterfaceSymbol> getInterfaces() {
+        return interfaceSymbols;
     }
 
     public void setSuperClass(ClassSymbol superClass) {
@@ -62,7 +69,7 @@ public class ClassSymbol extends TypeSymbol {
             return true;
         if (superClass != null && superClass.isA(type))
             return true;
-        if (interfaceSymbol != null && interfaceSymbol.isA(type))
+        if (interfaceSymbols.stream().anyMatch(i -> i.isA(type)))
             return true;
         return false;
     }
@@ -146,14 +153,6 @@ public class ClassSymbol extends TypeSymbol {
         }
     }
 
-    public InterfaceSymbol getInterfaceSymbol() {
-        return interfaceSymbol;
-    }
-
-    public void setInterfaceSymbol(InterfaceSymbol interfaceSymbol) {
-        this.interfaceSymbol = interfaceSymbol;
-    }
-
     public boolean isFinal() {
         return aFinal;
     }
@@ -177,9 +176,8 @@ public class ClassSymbol extends TypeSymbol {
      * @param type new TypeSymbol
      */
     public void upgradeType(TypeSymbol type) {
-        if (interfaceSymbol != null) {
-            if (interfaceSymbol.getQualifiedName().equals(type.getQualifiedName()))
-                interfaceSymbol = (InterfaceSymbol) type;
+        for (InterfaceSymbol iface : interfaceSymbols) {
+            iface.upgradeType(type);
         }
 
         for (List<Symbol> list : members.values()) {

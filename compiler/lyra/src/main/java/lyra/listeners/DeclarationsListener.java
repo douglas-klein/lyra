@@ -105,6 +105,22 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
+    public void exitImplementsdecl(LyraParser.ImplementsdeclContext ctx) {
+        if (!(ctx.getParent() instanceof LyraParser.ClassdeclContext)) return;
+        LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
+        ClassSymbol classSymbol = (ClassSymbol) table.getNodeSymbol(parent);
+
+        for (TerminalNode node : ctx.identList().IDENT()) {
+            Symbol symbol = currentScope.resolve(node.getText());
+            if (symbol == null || !(symbol instanceof InterfaceSymbol)) {
+                expectedInterfaceError(node);
+                return;
+            }
+            classSymbol.addInterface((InterfaceSymbol)symbol);
+        }
+    }
+
+    @Override
     public void enterInterfacedecl(LyraParser.InterfacedeclContext ctx) {
         String name = ctx.IDENT().getText();
         InterfaceSymbol symbol = new InterfaceSymbol(name, currentScope);
