@@ -15,8 +15,14 @@ public class InterfaceSymbol extends TypeSymbol {
     List<InterfaceSymbol> superInterfaces = new LinkedList<>();
 
     public InterfaceSymbol(String name, Scope enclosingScope) {
-        //TODO we know the scope where we were declared, but where are our super-interfaces?
         super(name, SymbolType.INTERFACE, enclosingScope);
+    }
+
+    public void addSuperInterfaces(InterfaceSymbol superInterface) {
+        superInterfaces.add(superInterface);
+    }
+    public Collection<InterfaceSymbol> getSuperInterfaces() {
+        return superInterfaces;
     }
 
     @Override

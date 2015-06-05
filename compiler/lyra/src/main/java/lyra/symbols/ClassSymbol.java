@@ -31,6 +31,10 @@ public class ClassSymbol extends TypeSymbol {
         this.superClass = superClass;
     }
 
+    public void setSuperClass(ClassSymbol superClass) {
+        this.superClass = superClass;
+    }
+
     @Override
     public VariableSymbol resolveField(String name) {
         Symbol sym = shallowResolve(name);

@@ -1,11 +1,11 @@
-interface Object {
+interface ArtsyObject {
     def interfaceMethod1 : Int;
     def interfaceMethod2(x : Int) : Int;
     def interfaceMethod3;
 }
 
 
-class ConcreteObject implements Object {
+class ConcreteObject implements ArtsyObject {
     def interfaceMethod1 : Int {
         return 1;
     }
@@ -19,7 +19,7 @@ class ConcreteObject implements Object {
 
 class Application {
     def main {
-        Object o = new ConcreteObject();
+        ArtsyObject o = new ConcreteObject();
         o.interfaceMethod1;
         o.interfaceMethod2(2);
         o.interfaceMethod3;

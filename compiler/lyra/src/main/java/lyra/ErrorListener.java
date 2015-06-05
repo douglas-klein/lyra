@@ -82,7 +82,8 @@ public class ErrorListener extends BaseErrorListener {
     }
 
     private String getOffendingSymbolString(Object offendingSymbol, Recognizer<?, ?> recognizer) {
-        String offendingSymbolString = offendingSymbol.toString();
+        String offendingSymbolString = (offendingSymbol == null)
+                ? "null" : offendingSymbol.toString();
         if (offendingSymbol instanceof Token) {
             Token token = ((Token) offendingSymbol);
             String tokenText = token.getText();

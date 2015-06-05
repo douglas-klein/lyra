@@ -1,5 +1,6 @@
 package lyra.listeners;
 
+import java.lang.Object;
 import java.util.Collection;
 
 import lyra.Compiler;
@@ -10,6 +11,7 @@ import lyra.symbols.Symbol;
 import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
 
+import lyra.symbols.predefined.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -167,6 +169,15 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         		.semanticError(compiler.getParser(), 
         		offendingSymbol,
                 "Expected a type.");
+    }
+    protected void expectedInterfaceError(Object offendingSymbol) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Expected an interface.");
+    }
+
+    protected void expectedClassError(Object offendingSymbol) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Expected a class name.");
     }
 
     protected void overloadNotFoundError(Object offendingSymbol, Collection<TypeSymbol> types) {

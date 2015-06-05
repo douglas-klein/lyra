@@ -76,19 +76,32 @@ public class DeclarationsListener extends ScopedBaseListener {
     public void enterClassdecl(lyra.LyraParser.ClassdeclContext ctx) {
         String className = ctx.IDENT().getText();
         Symbol superClass = null;
-        ClassSymbol clas;
-        if( ctx.extendsdecl() != null) {
-            String superClassName = ctx.extendsdecl().IDENT().getText();
-            if( currentScope.resolve(superClassName) instanceof ClassSymbol)
-                superClass = currentScope.resolve(superClassName);
-        }
 
-        // push new scope by making new one that points to enclosing scope
-        clas =  new ClassSymbol(className, currentScope, (ClassSymbol)superClass);
+        //start extending Object, soon we will enter extendsdecl and refine this
+        ClassSymbol clas = new ClassSymbol(className, currentScope,
+                table.getPredefinedClass("Object"));
+        clas.setFinal(ctx.FINAL() != null);
+        clas.setAbstract(ctx.ABSTRACT() != null);
+
         currentScope.define(clas); // Define class in current scope
         table.setNodeSymbol(ctx, clas);
         saveScope(ctx, clas); // Push: set classes's parent to current
         currentScope = clas;  // Current scope is now class scope
+    }
+
+    @Override
+    public void exitExtendsdecl(LyraParser.ExtendsdeclContext ctx) {
+        if (!(ctx.getParent() instanceof LyraParser.ClassdeclContext))
+            return;
+        LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
+        ClassSymbol classSymbol = (ClassSymbol)table.getNodeSymbol(parent);
+
+        Symbol superClass = currentScope.resolve(ctx.IDENT().getText());
+        if (superClass == null || !(superClass instanceof ClassSymbol)) {
+            expectedClassError(ctx.IDENT());
+            return;
+        }
+        classSymbol.setSuperClass((ClassSymbol)superClass);
     }
 
     @Override
@@ -99,6 +112,23 @@ public class DeclarationsListener extends ScopedBaseListener {
         table.setNodeSymbol(ctx, symbol);
         saveScope(ctx, symbol);
         currentScope = symbol;
+    }
+
+    @Override
+    public void enterSuperInterfaces(LyraParser.SuperInterfacesContext ctx) {
+        if (!(ctx.getParent() instanceof LyraParser.InterfacedeclContext))
+            return;
+
+        LyraParser.InterfacedeclContext parent = (LyraParser.InterfacedeclContext) ctx.getParent();
+        InterfaceSymbol iface = (InterfaceSymbol) table.getNodeSymbol(parent);
+
+        for (TerminalNode node : ctx.IDENT()) {
+            Symbol symbol = currentScope.resolve(node.getText());
+            if (symbol == null || !(symbol instanceof InterfaceSymbol)) {
+                expectedInterfaceError(node);
+            }
+            iface.addSuperInterfaces((InterfaceSymbol) symbol);
+        }
     }
 
     @Override

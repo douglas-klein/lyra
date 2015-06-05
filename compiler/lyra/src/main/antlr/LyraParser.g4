@@ -2,8 +2,7 @@ parser grammar LyraParser;
 options{ tokenVocab=LyraLexer; }
 program                 : importdecl* ( classdecl | interfacedecl | enumdecl )+ ;
 importdecl              : IMPORT STRING SEMICOLON ;
-classdecl               : classModifiers CLASS IDENT extendsdecl? implementsdecl? LEFTCURLYBRACE classBody RIGHTCURLYBRACE ;
-classModifiers          : ( FINAL | ABSTRACT )? ;
+classdecl               : FINAL? ABSTRACT? CLASS IDENT extendsdecl? implementsdecl? LEFTCURLYBRACE classBody RIGHTCURLYBRACE ;
 extendsdecl             : (EXTENDS IDENT);
 implementsdecl          : IMPLEMENTS identList;
 classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
@@ -16,7 +15,8 @@ varDecl                 : type varDeclUnit (COMMA varDeclUnit )* ;
 varDeclUnit             : IDENT (EQUALOP expr )?;
 arrayDeclSuffix         : LEFTBRACKET RIGHTBRACKET;
 
-interfacedecl           : INTERFACE IDENT LEFTCURLYBRACE methodDeclAbstract+ RIGHTCURLYBRACE ;
+superInterfaces         : EXTENDS IDENT+;
+interfacedecl           : INTERFACE IDENT superInterfaces? LEFTCURLYBRACE methodDeclAbstract+ RIGHTCURLYBRACE ;
 
 methodDeclAbstract      : VISIBILITYMODIFIER? DEF INFIX? IDENT (LEFTPARENTHESES params RIGHTPARENTHESES)? (COLON type)? SEMICOLON ;
 
