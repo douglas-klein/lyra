@@ -101,12 +101,6 @@ public class TypeListener extends ScopedBaseListener {
         table.setNodeType(ctx, method.getReturnType());
     }
 
-
-    @Override
-    public void exitArrayAlocExpr(LyraParser.ArrayAlocExprContext ctx) {
-        // TODO
-    }
-
     @Override
     public void exitNumberFactor(LyraParser.NumberFactorContext ctx) {
         table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("Number"));

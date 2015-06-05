@@ -46,31 +46,33 @@ public class ArrayClassFactory {
     }
 
     private ClassSymbol makeArray(TypeSymbol elementType, int dimensions) {
-        return  (dimensions > 1)
-                ? makeArray(getArrayOf(elementType, dimensions-1))
-                : makeArray(elementType) ;
-    }
+        TypeSymbol valueType = elementType;
+        if (dimensions > 1)
+            valueType = getArrayOf(elementType, dimensions-1);
 
-    private ClassSymbol makeArray(TypeSymbol elementType) {
-        String name = elementType.getName() + "$Array";
+        String name = valueType.getName() + "$Array";
         ClassSymbol c = new ClassSymbol(name, elementType.getEnclosingScope(), getArrayClass());
 
-        MethodSymbol m = new MethodSymbol("at", elementType, c);
+        MethodSymbol m = new MethodSymbol("constructor", getVoidClass(), c);
+        for (int i = 0; i < dimensions; i++)
+            m.addArgument(new VariableSymbol("size", getIntClass()));
+
+        m = new MethodSymbol("at", valueType, c);
         m.addArgument(new VariableSymbol("idx", getIntClass()));
         c.define(m);
 
-        m = new MethodSymbol("__at", elementType, c);
+        m = new MethodSymbol("__at", valueType, c);
         m.addArgument(new VariableSymbol("idx", getIntClass()));
         c.define(m);
 
-        m = new MethodSymbol("__set", elementType, c);
+        m = new MethodSymbol("__set", valueType, c);
         m.addArgument(new VariableSymbol("idx", getIntClass()));
-        m.addArgument(new VariableSymbol("value", elementType));
+        m.addArgument(new VariableSymbol("value", valueType));
         c.define(m);
 
-        m = new MethodSymbol("set", elementType, c);
+        m = new MethodSymbol("set", valueType, c);
         m.addArgument(new VariableSymbol("idx", getIntClass()));
-        m.addArgument(new VariableSymbol("value", elementType));
+        m.addArgument(new VariableSymbol("value", valueType));
         c.define(m);
 
         elementType.getEnclosingScope().define(c);
@@ -97,10 +99,8 @@ public class ArrayClassFactory {
         return count;
     }
 
-    private TypeSymbol getIntClass() {
-        return symbolTable.getPredefinedClass("Int");
-    }
-
+    private ClassSymbol getVoidClass() { return symbolTable.getPredefinedClass("void"); }
+    private TypeSymbol getIntClass() { return symbolTable.getPredefinedClass("Int"); }
     private ClassSymbol getArrayClass() {
         return symbolTable.getPredefinedClass("Array");
     }

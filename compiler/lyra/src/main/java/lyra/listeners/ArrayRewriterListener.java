@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * This listener locates avery occurrence of arrays of any dimension count and rewrites the
@@ -78,6 +79,35 @@ public class ArrayRewriterListener extends TreeRewriterBaseListener {
 
         LyraParser.TypeContext rewritten = new LyraParser.TypeContext(ctx.getParent(), -1);
         rewritten.addChild(new CommonToken(LyraLexer.IDENT, arrayName));
+
+        replaceChild(ctx, ctx.getParent(), rewritten);
+    }
+
+    @Override
+    public void exitArrayAlocExpr(LyraParser.ArrayAlocExprContext ctx) {
+        int dimensions = ctx.LEFTBRACKET().size();
+        if (dimensions == 0) return;
+
+        String elementTypeName = ctx.IDENT().getText();
+        String arrayName = ArrayClassFactory.getArrayTypeName(elementTypeName, dimensions);
+
+        LyraParser.ObjectAlocExprContext rewritten = new LyraParser.ObjectAlocExprContext(
+                new LyraParser.AlocExprContext(ctx.getParent(), -1));
+        rewritten.addChild(new CommonToken(LyraLexer.NEW, "new"));
+        rewritten.addChild(new CommonToken(LyraLexer.IDENT, arrayName));
+        rewritten.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+
+        LyraParser.ArgsContext args = new LyraParser.ArgsContext(rewritten, -1);
+        for(Iterator<LyraParser.ExprContext> it = ctx.expr().iterator(); it.hasNext();) {
+            LyraParser.ExprContext expr = it.next();
+            expr.parent = args;
+            args.addChild(expr);
+            if (it.hasNext())
+                args.addChild(new CommonToken(LyraLexer.COMMA, ","));
+        }
+        rewritten.addChild(args);
+
+        rewritten.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
 
         replaceChild(ctx, ctx.getParent(), rewritten);
     }

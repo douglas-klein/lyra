@@ -208,4 +208,30 @@ public class ArrayRewriterListenerTests {
         assertTrue(visited[0]);
         assertTrue(visited[1]);
     }
+
+    @Test
+    public void testRewriteArrayConstructor() throws Exception {
+        Compiler compiler = new Compiler();
+        compiler.init(getReader("samples/Rewrite2DArrayAccess.ly"));
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
+        walker.walk(new ArrayRewriterListener(), compiler.getParseTree());
+
+        final boolean visited[] = {false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitObjectAlocExpr(LyraParser.ObjectAlocExprContext ctx) {
+                visited[0] = true;
+
+                assertEquals("Int$Array$Array", ctx.IDENT().getText());
+                assertEquals(2, ctx.args().expr().size());
+                assertTrue(Pattern.matches("\\(*2\\)*", ctx.args().expr(0).getText()));
+                assertTrue(Pattern.matches("\\(*3\\)*", ctx.args().expr(1).getText()));
+            }
+        }, compiler.getParseTree());
+
+        assertTrue(visited[0]);
+    }
 }
