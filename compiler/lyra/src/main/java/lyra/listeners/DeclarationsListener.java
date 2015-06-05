@@ -20,16 +20,7 @@ public class DeclarationsListener extends ScopedBaseListener {
     @Override
     public void enterMethodDecl(lyra.LyraParser.MethodDeclContext ctx) {
         String name = ctx.IDENT().getText();
-        UnresolvedType type ;
-        // Quando o tipo do método estiver explicito
-        if(ctx.type() != null){
-            // O tipo de retorno do método já está definido na declaração do método
-            type = new UnresolvedType(ctx.type().IDENT().getText());
-        }
-        // Quando o tipo do método for não estiver explicito então seu tipo é void
-        else{
-            type = Compiler.types.get("Void");
-        }
+        UnresolvedType type = new UnresolvedType(ctx.type().IDENT().getText());
         // push new scope by making new one that points to enclosing scope
         MethodSymbol method = new MethodSymbol(name, type, currentScope);
         try {
@@ -58,14 +49,7 @@ public class DeclarationsListener extends ScopedBaseListener {
     public void enterMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
         //TODO repeated code from enterMethodDecl.
         String name = ctx.IDENT().getText();
-        UnresolvedType type ;
-        if(ctx.type() != null) {
-            // O tipo de retorno do método já está definido na declaração do método
-            type = new UnresolvedType(ctx.type().IDENT().getText());
-        } else {
-            // Quando o tipo do método for não estiver explicito então seu tipo é void
-            type = Compiler.types.get("Void");
-        }
+        UnresolvedType type = new UnresolvedType(ctx.type().IDENT().getText());
         // push new scope by making new one that points to enclosing scope
         MethodSymbol method = new MethodSymbol(name, type, currentScope);
         try {

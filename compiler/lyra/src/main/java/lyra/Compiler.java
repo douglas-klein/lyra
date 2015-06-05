@@ -2,7 +2,6 @@ package lyra;
 
 import lyra.listeners.*;
 import lyra.scopes.Scope;
-import lyra.symbols.BaseTypes;
 import lyra.symbols.SymbolTable;
 import lyra.tokens.TokenFactory;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -20,7 +19,6 @@ public class Compiler {
     private boolean lemonadeRecovery;
     private lyra.LyraParser.ProgramContext parseTree;
     private lyra.LyraLexer lexer;
-    public static BaseTypes types = new BaseTypes();
     private ParseTreeProperty<Scope> treeScopes;
     private SymbolTable symbolTable;
 
