@@ -58,7 +58,8 @@ public class InterfaceSymbol extends TypeSymbol {
     public boolean isA(TypeSymbol type) {
         if (type == this)
             return true;
-        //TODO handle super-interfaces
+        if (superInterfaces.stream().anyMatch(i -> i.isA(type)))
+            return true;
         return false;
     }
 
