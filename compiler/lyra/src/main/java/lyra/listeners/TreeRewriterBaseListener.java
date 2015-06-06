@@ -35,7 +35,8 @@ public class TreeRewriterBaseListener extends LyraParserBaseListener {
 
     protected LyraParser.FactorContext wrapExpressionIntoFactor(ParserRuleContext parent,
                                                                 LyraParser.ExprContext expr) {
-        LyraParser.FactorContext factor = new LyraParser.FactorContext(parent, -1);
+        LyraParser.WrappedFactorContext factor = new LyraParser.WrappedFactorContext(
+                new LyraParser.FactorContext(parent, -1));
         factor.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
         expr.parent = factor;
         factor.addChild(expr);
