@@ -144,7 +144,13 @@ public class TypeListener extends ScopedBaseListener {
         if (ctx.unaryexpr() != null) {
             table.setNodeType(ctx, table.getNodeType(ctx.unaryexpr()));
         } else if (ctx.binOp.getType() == LyraLexer.EQUALOP) {
-            table.setNodeType(ctx, table.getNodeType(ctx.expr(0)));
+            TypeSymbol left = table.getNodeType(ctx.expr(0));
+            TypeSymbol right = table.getNodeType(ctx.expr(1));
+            if (!right.convertible(left)) {
+                notConvertibleError(ctx.expr(1), left);
+                return;
+            }
+            table.setNodeType(ctx, left);
         }
     }
 
