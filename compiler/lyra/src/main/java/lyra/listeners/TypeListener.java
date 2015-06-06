@@ -2,6 +2,7 @@ package lyra.listeners;
 
 import lyra.*;
 import lyra.Compiler;
+import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.LyraParser.VarDeclContext;
 import lyra.LyraParser.VarDeclUnitContext;
@@ -132,7 +133,21 @@ public class TypeListener extends ScopedBaseListener {
     public void exitNumberFactor(LyraParser.NumberFactorContext ctx) {
         table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("Number"));
     }
-    
+
+    @Override
+    public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
+        table.setNodeType(ctx, table.getNodeType(ctx.factor()));
+    }
+
+    @Override
+    public void exitExpr(LyraParser.ExprContext ctx) {
+        if (ctx.unaryexpr() != null) {
+            table.setNodeType(ctx, table.getNodeType(ctx.unaryexpr()));
+        } else if (ctx.binOp.getType() == LyraLexer.EQUALOP) {
+            table.setNodeType(ctx, table.getNodeType(ctx.expr(0)));
+        }
+    }
+
     @Override
     public void exitVarDecl(LyraParser.VarDeclContext ctx) {
     	TerminalNode typeNode = ctx.type().IDENT();
