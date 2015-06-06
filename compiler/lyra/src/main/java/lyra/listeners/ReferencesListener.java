@@ -105,17 +105,4 @@ public class ReferencesListener extends ScopedBaseListener {
 
         methodSymbol.upgradeType((TypeSymbol)sym);
     }
-
-    @Override
-    public void exitNameFactor(LyraParser.NameFactorContext ctx) {
-        Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
-        if (symbol == null) {
-            undefinedNameError(ctx.IDENT());
-            return;
-        }
-        if (!(symbol instanceof VariableSymbol)) {
-            expectedVariableError(ctx.IDENT());
-            return;
-        }
-    }
 }
