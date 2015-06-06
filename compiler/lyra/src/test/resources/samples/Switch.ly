@@ -3,12 +3,12 @@ class Application {
         Int x = 1;
         switch x {
             case 1:
-                out.print("Um");
+                out.writeln("Um");
             case 2:
-                out.print("Um");
-                out.print("Dois");
+                out.writeln("Um");
+                out.writeln("Dois");
             case default:
-                out.print(x);
+                out.writeln(x);
         }
     }
 }

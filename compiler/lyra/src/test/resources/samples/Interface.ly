@@ -13,7 +13,7 @@ class ConcreteObject implements ArtsyObject {
         return 2;
     }
     def interfaceMethod3 {
-        out.print("method3");
+        out.writeln("method3");
     }
 }
 

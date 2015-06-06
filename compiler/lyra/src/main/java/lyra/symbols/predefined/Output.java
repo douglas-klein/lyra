@@ -13,8 +13,10 @@ public class Output extends AbstractPredefinedSymbol {
         try {
             forwardMethod(c, "open", "Bool", false, new ArgumentStrings("String", "filename"));
             forwardMethod(c, "hasError", "Bool", false);
-            forwardMethod(c, "write", "void", false, new ArgumentStrings("String", "text"));
-            forwardMethod(c, "write", "void", false, new ArgumentStrings("Object", "obj"));
+            forwardMethod(c, "write",   "void", false, new ArgumentStrings("String", "text"));
+            forwardMethod(c, "write",   "void", false, new ArgumentStrings("Object", "obj"));
+            forwardMethod(c, "writeln", "void", false, new ArgumentStrings("String", "text"));
+            forwardMethod(c, "writeln", "void", false, new ArgumentStrings("Object", "obj"));
             defineClass(scope, c);
 
             defineGlobal(scope, new VariableSymbol("out", c));

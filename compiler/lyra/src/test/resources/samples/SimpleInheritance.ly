@@ -1,12 +1,12 @@
 class Parent {
     def parentMethod {
-        out.print("Hello from parent");
+        out.writeln("Hello from parent");
     }
 }
 
 class Child extends Parent {
     def childMethod {
-        out.print("Hello from child");
+        out.writeln("Hello from child");
     }
 }
 
