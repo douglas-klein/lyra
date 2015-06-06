@@ -163,6 +163,8 @@ public class DeclarationsListener extends ScopedBaseListener {
             if (modifier != null)
                 visibility = Visibility.fromName(modifier.getText());
             symbol.setVisibility(visibility);
+
+            symbol.setClassField(parentParent.STATIC() != null);
         }
 
         try {

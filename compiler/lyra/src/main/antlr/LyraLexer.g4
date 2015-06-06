@@ -38,6 +38,7 @@ EQUALOP                 : '=';
 INTERFACE               : 'interface';
 IMPLEMENTS              : 'implements';
 VISIBILITYMODIFIER      : 'public' | 'protected' | 'private' ;
+STATIC                  : 'static' ;
 ABSTRACT                : 'abstract';
 FINAL                   : 'final';
 COMMA                   : ',';

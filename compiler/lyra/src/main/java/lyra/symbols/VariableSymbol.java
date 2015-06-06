@@ -5,6 +5,7 @@ package lyra.symbols;
  */
 public class VariableSymbol extends Symbol {
     private TypeSymbol type;
+    private boolean classField = false;
 
     public VariableSymbol(String name, TypeSymbol type) {
         super(name, SymbolType.VARIABLE);
@@ -33,4 +34,11 @@ public class VariableSymbol extends Symbol {
         return false;
     }
 
+    public boolean isClassField() {
+        return classField;
+    }
+
+    public void setClassField(boolean classField) {
+        this.classField = classField;
+    }
 }

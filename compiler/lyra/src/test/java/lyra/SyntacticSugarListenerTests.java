@@ -211,5 +211,84 @@ public class SyntacticSugarListenerTests {
 
     }
 
+    @Test
+    public void testUnamedEnumAsClass() throws Exception {
+        Compiler compiler = new Compiler();
+        compiler.init(getReader("samples/Enums.ly"));
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
+
+        final boolean visited[] = {false, false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitClassdecl(LyraParser.ClassdeclContext ctx) {
+                if (!ctx.IDENT().getText().equals("RomanNumerals"))
+                    return;
+                visited[0] = true;
+            }
+
+            @Override
+            public void exitAttributeDecl(LyraParser.AttributeDeclContext ctx) {
+                if (!ctx.varDecl().varDeclUnit(0).IDENT().getText().equals("III"))
+                    return;
+                visited[1] = true;
+
+                assertNotNull(ctx.STATIC());
+                assertEquals("public", ctx.VISIBILITYMODIFIER().getText());
+                assertEquals("Int", ctx.varDecl().type().IDENT().getText());
+
+                LyraParser.FactorContext factor = ctx.varDecl().varDeclUnit(0).expr()
+                        .unaryexpr().factor();
+                assertTrue(factor instanceof LyraParser.NumberFactorContext);
+                assertEquals("3", factor.getText());
+
+            }
+        }, compiler.getParseTree());
+        assertTrue(visited[0]);
+        assertTrue(visited[1]);
+    }
+
+
+    @Test
+    public void testStringEnumAsClass() throws Exception {
+        Compiler compiler = new Compiler();
+        compiler.init(getReader("samples/StringEnums.ly"));
+        assertTrue(compiler.parse());
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
+
+        final boolean visited[] = {false, false};
+        walker.walk(new lyra.LyraParserBaseListener() {
+            @Override
+            public void exitClassdecl(LyraParser.ClassdeclContext ctx) {
+                if (!ctx.IDENT().getText().equals("RomanNumerals"))
+                    return;
+                visited[0] = true;
+            }
+
+            @Override
+            public void exitAttributeDecl(LyraParser.AttributeDeclContext ctx) {
+                if (!ctx.varDecl().varDeclUnit(0).IDENT().getText().equals("III"))
+                    return;
+                visited[1] = true;
+
+                assertNotNull(ctx.STATIC());
+                assertEquals("public", ctx.VISIBILITYMODIFIER().getText());
+                assertEquals("String", ctx.varDecl().type().IDENT().getText());
+
+                LyraParser.FactorContext factor = ctx.varDecl().varDeclUnit(0).expr()
+                        .unaryexpr().factor();
+                assertTrue(factor instanceof LyraParser.StringFactorContext);
+                assertEquals("\"III\"", factor.getText());
+
+            }
+        }, compiler.getParseTree());
+        assertTrue(visited[0]);
+        assertTrue(visited[1]);
+    }
+
 
 }

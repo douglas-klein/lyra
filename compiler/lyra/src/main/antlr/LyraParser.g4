@@ -7,8 +7,9 @@ extendsdecl             : (EXTENDS IDENT);
 implementsdecl          : IMPLEMENTS identList;
 classBody               : ( attributeDecl SEMICOLON | methodDecl )* ;
 
-attributeDecl           : VISIBILITYMODIFIER? varDecl;
+attributeDecl           : STATIC? VISIBILITYMODIFIER? varDecl;
 
+//TODO final em variáveis e atributos?
 type                    : IDENT arrayDeclSuffix* ;
 varDecl                 : type varDeclUnit (COMMA varDeclUnit )* ;
 
@@ -94,9 +95,13 @@ caselist                : casedecl (caselist)? | casedefault;
 casedecl                : CASE expr COLON statlist ;
 casedefault             : CASE DEFAULT COLON statlist ;
 statlist                : statement+;
-enumdecl                : ENUM IDENT LEFTCURLYBRACE enumBody RIGHTCURLYBRACE ;
-enumBody                : defaultEnum | namedEnum ;
-defaultEnum             : IDENT (COMMA IDENT) ;
-namedEnum               : IDENT EQUALOP ( STRING | NUMBER ) (SEMICOLON IDENT EQUALOP ( STRING | NUMBER ))* ;
 identList               : IDENT ( COMMA IDENT )* ;
+
+enumdecl                : ENUM IDENT LEFTCURLYBRACE enumBody RIGHTCURLYBRACE ;
+enumBody                : unamedEnumItem (COMMA unamedEnumItem)*    # unnamedEnumBody
+                        | namedEnumItem (COMMA namedEnumItem)*      # namedEnumBodys
+                        ;
+unamedEnumItem          : IDENT ;
+namedEnumItem           : IDENT EQUALOP ( STRING | NUMBER ) ;
+
 

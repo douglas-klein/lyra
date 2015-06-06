@@ -2,13 +2,12 @@ package lyra.listeners;
 
 import lyra.LyraLexer;
 import lyra.LyraParser;
-import lyra.LyraParserBaseListener;
-import lyra.LyraParser.VarDeclContext;
 
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
@@ -179,5 +178,78 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         rewritten.addChild(factor);
 
         replaceChild(ctx, parent, rewritten);
+    }
+
+    LyraParser.ClassdeclContext enumRewritten = null;
+    int enumMembers = 0;
+
+    @Override
+    public void enterEnumdecl(LyraParser.EnumdeclContext ctx) {
+        enumRewritten = new LyraParser.ClassdeclContext(ctx.getParent(), -1);
+        enumRewritten.addChild(new CommonToken(LyraLexer.CLASS, "class"));
+        enumRewritten.addChild(new CommonToken(LyraLexer.IDENT, ctx.IDENT().getText()));
+        enumRewritten.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
+        enumRewritten.addChild(new LyraParser.ClassBodyContext(enumRewritten, -1));
+    }
+
+    private void addEnumItem(String name, String typeName, LyraParser.FactorContext factorCtx) {
+        LyraParser.ClassBodyContext body = enumRewritten.classBody();
+
+        LyraParser.AttributeDeclContext atrib = new LyraParser.AttributeDeclContext(body, -1);
+        atrib.addChild(new CommonToken(LyraLexer.STATIC, "static"));
+        atrib.addChild(new CommonToken(LyraLexer.VISIBILITYMODIFIER, "public"));
+
+        LyraParser.VarDeclContext var = new LyraParser.VarDeclContext(atrib, -1);
+
+        LyraParser.TypeContext type = new LyraParser.TypeContext(var, -1);
+        type.addChild(new CommonToken(LyraLexer.IDENT, typeName));
+        var.addChild(type);
+
+        LyraParser.VarDeclUnitContext unit = new LyraParser.VarDeclUnitContext(var, -1);
+        unit.addChild(new CommonToken(LyraLexer.IDENT, name));
+        unit.addChild(new CommonToken(LyraLexer.EQUALOP, "="));
+
+        LyraParser.ExprContext expr = new LyraParser.ExprContext(unit, -1);
+        LyraParser.UnaryexprContext uexpr = new LyraParser.UnaryexprContext(expr, -1);
+
+        factorCtx.parent = uexpr;
+        uexpr.addChild(factorCtx);
+        expr.addChild(uexpr);
+        unit.addChild(expr);
+        var.addChild(unit);
+        atrib.addChild(var);
+        body.addChild(atrib);
+    }
+
+    @Override
+    public void exitUnamedEnumItem(LyraParser.UnamedEnumItemContext ctx) {
+        LyraParser.NumberFactorContext factor = new LyraParser.NumberFactorContext(
+                new LyraParser.FactorContext(ctx, -1));
+        factor.addChild(new CommonToken(LyraLexer.NUMBER, (new Integer(enumMembers++)).toString()));
+        addEnumItem(ctx.IDENT().getText(), "Int", factor);
+    }
+
+    @Override
+    public void exitNamedEnumItem(LyraParser.NamedEnumItemContext ctx) {
+        LyraParser.FactorContext factor = null;
+        String typeName = null;
+        if (ctx.STRING() != null) {
+            factor = new LyraParser.StringFactorContext(new LyraParser.FactorContext(ctx, -1));
+            factor.addChild(new CommonToken(LyraLexer.STRING, ctx.STRING().getText()));
+            typeName = "String";
+        } else if (ctx.NUMBER() != null)  {
+            factor = new LyraParser.NumberFactorContext(new LyraParser.FactorContext(ctx, -1));
+            factor.addChild(new CommonToken(LyraLexer.NUMBER, ctx.NUMBER().getText()));
+            typeName = "Int";
+        } else {
+            return; //WTF!?
+        }
+        addEnumItem(ctx.IDENT().getText(), typeName, factor);
+    }
+
+    @Override
+    public void exitEnumdecl(LyraParser.EnumdeclContext ctx) {
+        enumRewritten.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
+        replaceChild(ctx, ctx.getParent(), enumRewritten);
     }
 }
