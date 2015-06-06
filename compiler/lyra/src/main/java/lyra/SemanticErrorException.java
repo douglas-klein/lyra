@@ -24,9 +24,9 @@ public class SemanticErrorException extends RuntimeException {
 
     public SemanticErrorException(String message, Object offendingSymbol, int line, int column) {
         super(message);
-        setOffendingSymbol(offendingSymbol);
         this.line = line;
         this.column = column;
+        setOffendingSymbol(offendingSymbol);
     }
 
     public Object getOffendingSymbol() {

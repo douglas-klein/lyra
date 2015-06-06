@@ -197,8 +197,9 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected SemanticErrorException overloadNotFoundException(Object offendingSymbol,
                                                            Collection<TypeSymbol> types) {
         String typeNames = types.stream().map(TypeSymbol::getQualifiedName)
-                .reduce("", (a, b) -> a + ", " + b);
-        return new SemanticErrorException("Overload not found for arguments: " + typeNames,
+                .reduce("", (a, b) -> a + (a.isEmpty() ? "" : ", ") + b);
+        return new SemanticErrorException(
+                String.format("Overload not found for arguments: (%1$s)", typeNames),
                 offendingSymbol);
     }
 

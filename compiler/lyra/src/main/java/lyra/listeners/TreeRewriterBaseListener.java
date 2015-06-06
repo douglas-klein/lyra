@@ -1,5 +1,6 @@
 package lyra.listeners;
 
+import jdk.nashorn.internal.ir.Terminal;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.LyraParserBaseListener;
@@ -7,19 +8,55 @@ import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ListIterator;
 
 /**
- * Created by alexis on 6/4/15.
+ * Common code between all listeners that rewrite the parse tree before the semantic analysis.
  */
 public class TreeRewriterBaseListener extends LyraParserBaseListener {
-    protected static void replaceChild(ParseTree child, ParserRuleContext parent, ParseTree replacement) {
+    protected static void replaceChild(ParseTree victim, ParserRuleContext parent,
+                                       ParseTree replacement) {
+        int line = getNodeLine(victim);
+        if (line > 0)
+            updateNodeTokensLine(replacement, line);
+
         final ListIterator<ParseTree> iterator = parent.children.listIterator();
         while (iterator.hasNext()) {
-            if (iterator.next() == child)
+            if (iterator.next() == victim)
                 iterator.set(replacement);
         }
+    }
+
+    private static void updateNodeTokensLine(ParseTree node, int line) {
+        for (int i = 0; i < node.getChildCount(); i++) {
+            ParseTree child = node.getChild(i);
+            if (!(child instanceof TerminalNode)) {
+                updateNodeTokensLine(child, line);
+            } else {
+                Token symbol = ((TerminalNode) child).getSymbol();
+                if (!(symbol instanceof CommonToken)) continue;
+
+                CommonToken token = (CommonToken) symbol;
+                if (token.getLine() <= 0)
+                    token.setLine(line);
+            }
+        }
+    }
+
+    private static int getNodeLine(ParseTree node) {
+        int line = 0;
+
+        for (int i = 0; line <= 0 && i < node.getChildCount(); i++) {
+            ParseTree child = node.getChild(i);
+            if (child instanceof TerminalNode) {
+                line = ((TerminalNode) child).getSymbol().getLine();
+            } else  {
+                line = getNodeLine(child);
+            }
+        }
+        return line;
     }
 
     protected LyraParser.ExprContext wrapExpression(ParserRuleContext parent,

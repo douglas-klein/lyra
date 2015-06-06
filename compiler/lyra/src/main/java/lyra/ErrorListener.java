@@ -53,10 +53,10 @@ public class ErrorListener extends BaseErrorListener {
         if (!isQuiet()) {
             String offendingSymbolString = getOffendingSymbolString(offendingSymbol, recognizer);
             if (offendingSymbolString.length() > 0)
-                offendingSymbolString = offendingSymbolString + " ";
+                offendingSymbolString = offendingSymbolString + ", ";
             String where = getWhereString(line, charPositionInLine);
             if (where.length() > 0)
-                where = where + " ";
+                where = where + ", ";
 
             System.err.println(String.format("Error: %1$s%2$s%3$s", where, offendingSymbolString, msg));
         }
