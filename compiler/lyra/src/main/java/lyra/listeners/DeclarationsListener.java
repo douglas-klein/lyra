@@ -98,7 +98,7 @@ public class DeclarationsListener extends ScopedBaseListener {
 
         Symbol superClass = currentScope.resolve(ctx.IDENT().getText());
         if (superClass == null || !(superClass instanceof ClassSymbol)) {
-            expectedClassError(ctx.IDENT());
+            reportSemanticException(expectedClassException(ctx.IDENT()));
             return;
         }
         classSymbol.setSuperClass((ClassSymbol)superClass);
@@ -113,7 +113,7 @@ public class DeclarationsListener extends ScopedBaseListener {
         for (TerminalNode node : ctx.identList().IDENT()) {
             Symbol symbol = currentScope.resolve(node.getText());
             if (symbol == null || !(symbol instanceof InterfaceSymbol)) {
-                expectedInterfaceError(node);
+                reportSemanticException(expectedInterfaceException(node));
                 return;
             }
             classSymbol.addInterface((InterfaceSymbol)symbol);
@@ -141,7 +141,7 @@ public class DeclarationsListener extends ScopedBaseListener {
         for (TerminalNode node : ctx.IDENT()) {
             Symbol symbol = currentScope.resolve(node.getText());
             if (symbol == null || !(symbol instanceof InterfaceSymbol)) {
-                expectedInterfaceError(node);
+                reportSemanticException(expectedInterfaceException(node));
             }
             iface.addSuperInterfaces((InterfaceSymbol) symbol);
         }

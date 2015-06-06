@@ -18,10 +18,13 @@ public class SemanticErrorException extends RuntimeException {
     public SemanticErrorException(String message) {
         this(message, null, -1, -1);
     }
+    public SemanticErrorException(String message, Object offendingSymbol) {
+        this(message, offendingSymbol, -1, -1);
+    }
 
     public SemanticErrorException(String message, Object offendingSymbol, int line, int column) {
         super(message);
-        this.offendingSymbol = offendingSymbol;
+        setOffendingSymbol(offendingSymbol);
         this.line = line;
         this.column = column;
     }

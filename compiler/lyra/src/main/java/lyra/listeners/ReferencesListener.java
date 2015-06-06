@@ -43,7 +43,7 @@ public class ReferencesListener extends ScopedBaseListener {
 
         Symbol symbol = currentScope.resolve(elementTypeName);
         if (symbol == null || !(symbol instanceof TypeSymbol)) {
-            expectedTypeError(ctx.IDENT());
+            reportSemanticException(expectedTypeException(ctx.IDENT()));
             return;
         }
 
@@ -65,7 +65,8 @@ public class ReferencesListener extends ScopedBaseListener {
         Symbol upgrade = currentScope.resolve(var.getType().getName());
         if (!(upgrade instanceof TypeSymbol)) {
             LyraParser.VarDeclContext varDecl = (LyraParser.VarDeclContext) ctx.getParent();
-            unresolvedTypeError(varDecl.type().IDENT(), var.getType().getName());
+            reportSemanticException(
+                    unresolvedTypeException(varDecl.type().IDENT(), var.getType().getName()));
             return;
         }
 
@@ -78,7 +79,8 @@ public class ReferencesListener extends ScopedBaseListener {
         Symbol returnTypeSymbol = currentScope.resolve(ctx.type().IDENT().getText());
 
         if (returnTypeSymbol == null || !(returnTypeSymbol instanceof TypeSymbol)) {
-            unresolvedTypeError(ctx.type().IDENT(), ctx.type().IDENT().getText());
+            reportSemanticException(
+                    unresolvedTypeException(ctx.type().IDENT(), ctx.type().IDENT().getText()));
             return;
         }
         methodSymbol.upgradeType((TypeSymbol)returnTypeSymbol);
@@ -88,7 +90,8 @@ public class ReferencesListener extends ScopedBaseListener {
     public void exitParamDecl(LyraParser.ParamDeclContext ctx) {
         Symbol sym = currentScope.resolve(ctx.type().IDENT().getText());
         if (sym == null || !(sym instanceof TypeSymbol)) {
-            unresolvedTypeError(ctx.type().IDENT(), ctx.type().IDENT().getText());
+            reportSemanticException(
+                    unresolvedTypeException(ctx.type().IDENT(), ctx.type().IDENT().getText()));
             return;
         }
 

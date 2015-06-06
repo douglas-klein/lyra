@@ -45,6 +45,9 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
 
     protected void reportSemanticException(TerminalNode node, SemanticErrorException e) {
         e.setOffendingSymbol(node);
+        reportSemanticException(e);
+    }
+    protected void reportSemanticException(SemanticErrorException e) {
         compiler.getErrorListener().semanticError(compiler.getParser(), e);
     }
 
@@ -157,61 +160,55 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected abstract void endScopeVisit(boolean named, ParserRuleContext ctx);
 
 
-    protected void unresolvedTypeError(Object offendingSymbol, String typeName) {
-        compiler.getErrorListener()
-        		.semanticError(compiler.getParser(), 
-        					   offendingSymbol,
-        					   "Unresolved type " + typeName + ".");
+    protected SemanticErrorException unresolvedTypeException(Object offendingSymbol,
+                                                             String typeName) {
+        return new SemanticErrorException("Unresolved type " + typeName + ".", offendingSymbol);
     }
 
-    protected void undefinedNameError(Object offendingSymbol) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Undefined name.");
+    protected SemanticErrorException undefinedNameException(Object offendingSymbol) {
+        return new SemanticErrorException("Undefined name.", offendingSymbol);
     }
-    protected void expectedVariableError(Object offendingSymbol) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Expected a variable.");
+    protected SemanticErrorException expectedVariableException(Object offendingSymbol) {
+        return new SemanticErrorException("Expected a variable.", offendingSymbol);
     }
 
-    protected void noOverloadError(Object offendingSymbol, String typeName, String methodName,
-                                   Collection<TypeSymbol> arguments) {
+    protected SemanticErrorException noOverloadException(Object offendingSymbol, String typeName,
+                                                         String methodName,
+                                                         Collection<TypeSymbol> arguments) {
         String msg = String.format("No overload for %1$s.%2$s can handle args (%3$s).", typeName,
                 methodName,
                 arguments.stream().map(t -> t.getName())
                         .reduce("", (a, b) -> a + (a.isEmpty() ? ", " : "") + b));
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol, msg);
+        return new SemanticErrorException(msg, offendingSymbol);
     }
 
-    protected void expectedTypeError(Object offendingSymbol) {
-        compiler.getErrorListener()
-        		.semanticError(compiler.getParser(), 
-        		offendingSymbol,
-                "Expected a type.");
-    }
-    protected void expectedInterfaceError(Object offendingSymbol) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Expected an interface.");
+    protected SemanticErrorException expectedTypeException(Object offendingSymbol) {
+        return new SemanticErrorException("Expected a type.", offendingSymbol);
     }
 
-    protected void expectedClassError(Object offendingSymbol) {
-        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
-                "Expected a class name.");
+    protected SemanticErrorException expectedInterfaceException(Object offendingSymbol) {
+        return new SemanticErrorException("Expected an interface.", offendingSymbol);
     }
 
-    protected void overloadNotFoundError(Object offendingSymbol, Collection<TypeSymbol> types) {
-        String typeNames = types.stream().map(TypeSymbol::getQualifiedName).reduce("", (a, b) -> a + ", " + b);
-
-        compiler.getErrorListener()
-        		.semanticError(compiler.getParser(), 
-        					   offendingSymbol,
-        					   "Overload not found for arguments: " + typeNames);
+    protected SemanticErrorException expectedClassException(Object offendingSymbol) {
+        return new SemanticErrorException("Expected a class name.", offendingSymbol);
     }
 
-    protected void notConvertibleError(Object offendingSymbol, Symbol type) {
-        compiler.getErrorListener()
-        	    .semanticError(compiler.getParser(), 
-        	    			   offendingSymbol, 
-        	    			   "Type is not convertible to: " + type.getName());
+    protected SemanticErrorException overloadNotFoundException(Object offendingSymbol,
+                                                           Collection<TypeSymbol> types) {
+        String typeNames = types.stream().map(TypeSymbol::getQualifiedName)
+                .reduce("", (a, b) -> a + ", " + b);
+        return new SemanticErrorException("Overload not found for arguments: " + typeNames,
+                offendingSymbol);
+    }
+
+    protected SemanticErrorException notConvertibleException(Object offendingSymbol, Symbol type,
+                                                             Symbol convertible) {
+        return new SemanticErrorException(
+                String.format("Type %1$s is not convertible to %2$s.", type.getName(),
+                        convertible.getName()),
+                offendingSymbol
+        );
     }
 
 }

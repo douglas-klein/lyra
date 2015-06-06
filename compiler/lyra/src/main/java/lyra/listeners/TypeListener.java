@@ -69,8 +69,7 @@ public class TypeListener extends ScopedBaseListener {
         Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
         if (symbol != null) {
             if (!(symbol instanceof VariableSymbol)) {
-                expectedVariableError(ctx.IDENT());
-                return;
+                throw expectedVariableException(ctx.IDENT());
             } else {
                 VariableSymbol var = (VariableSymbol) symbol;
                 table.setNodeType(ctx, var.getType());
@@ -78,16 +77,14 @@ public class TypeListener extends ScopedBaseListener {
         } else {
             Symbol thisSym = currentScope.resolve("this");
             if (thisSym == null) {
-                undefinedNameError(ctx.IDENT());
-                return;
+                throw  undefinedNameException(ctx.IDENT());
             }
             VariableSymbol me = (VariableSymbol) thisSym;
             MethodSymbol method = me.getType().resolveOverload(ctx.IDENT().getText(),
                     Collections.<TypeSymbol>emptyList());
             if (method == null) {
-                noOverloadError(ctx.IDENT(), me.getType().getName(), ctx.IDENT().getText(),
+                throw noOverloadException(ctx.IDENT(), me.getType().getName(), ctx.IDENT().getText(),
                         Collections.<TypeSymbol>emptyList());
-                return;
             }
             table.setNodeType(ctx, method.getReturnType());
         }
@@ -98,14 +95,14 @@ public class TypeListener extends ScopedBaseListener {
         Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
 
         if(symbol == null || !(symbol instanceof TypeSymbol)){
-            expectedTypeError(ctx.IDENT());
+            throw expectedTypeException(ctx.IDENT());
         }
         TypeSymbol typeSymbol = (TypeSymbol) symbol;
 
         List<TypeSymbol> types = getArgTypes(ctx.args());
         MethodSymbol constructor = typeSymbol.resolveOverload("constructor", types);
-        if(constructor == null){
-            overloadNotFoundError(ctx.IDENT(), types);
+        if(constructor == null) {
+            throw overloadNotFoundException(ctx.IDENT(), types);
         }
 
         table.setNodeType(ctx, typeSymbol);
@@ -124,8 +121,7 @@ public class TypeListener extends ScopedBaseListener {
         List<TypeSymbol> types = getArgTypes(ctx.args());
         MethodSymbol method = factor.resolveOverload(ctx.IDENT().getText(), types);
         if(method == null) {
-            overloadNotFoundError(ctx.IDENT(), types);
-            return;
+            throw  overloadNotFoundException(ctx.IDENT(), types);
         }
         table.setNodeType(ctx, method.getReturnType());
     }
@@ -148,8 +144,7 @@ public class TypeListener extends ScopedBaseListener {
             TypeSymbol left = table.getNodeType(ctx.expr(0));
             TypeSymbol right = table.getNodeType(ctx.expr(1));
             if (!right.convertible(left)) {
-                notConvertibleError(ctx.expr(1), left);
-                return;
+                throw notConvertibleException(ctx.expr(1), left, right);
             }
             table.setNodeType(ctx, left);
         }
@@ -160,13 +155,13 @@ public class TypeListener extends ScopedBaseListener {
     	TerminalNode typeNode = ctx.type().IDENT();
     	Symbol type = currentScope.resolve(typeNode.getText());
     	if(type == null || !(type instanceof TypeSymbol)){
-    		expectedTypeError(typeNode);
+    		throw expectedTypeException(typeNode);
     	}
     	for (VarDeclUnitContext varDeclUnit : ctx.varDeclUnit()) {
     		if(varDeclUnit.expr() != null){
     			TypeSymbol exprType = table.getNodeType(varDeclUnit.expr());
     			if(!exprType.convertible((TypeSymbol) type)){
-    				notConvertibleError(exprType, type);
+    				throw notConvertibleException(varDeclUnit.expr(), exprType, type);
     			}
     		}
 		}

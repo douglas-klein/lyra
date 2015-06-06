@@ -3,6 +3,7 @@ package lyra;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -84,6 +85,10 @@ public class ErrorListener extends BaseErrorListener {
     private String getOffendingSymbolString(Object offendingSymbol, Recognizer<?, ?> recognizer) {
         String offendingSymbolString = (offendingSymbol == null)
                 ? "null" : offendingSymbol.toString();
+        if (offendingSymbol instanceof TerminalNode) {
+            offendingSymbol = ((TerminalNode)offendingSymbol).getSymbol();
+        }
+
         if (offendingSymbol instanceof Token) {
             Token token = ((Token) offendingSymbol);
             String tokenText = token.getText();
@@ -94,6 +99,9 @@ public class ErrorListener extends BaseErrorListener {
                 tokenTypePart = " (" + tokenTypePart + ")";
             offendingSymbolString = String.format("\"%1$s\"%2$s", tokenText, tokenTypePart);
 
+        } else if (offendingSymbol instanceof ParserRuleContext) {
+            ParserRuleContext ctx = (ParserRuleContext) offendingSymbol;
+            offendingSymbolString = String.format("\"%1$s\"", ctx.getText());
         }
         return offendingSymbolString;
     }
