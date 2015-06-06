@@ -200,6 +200,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
                 new LyraParser.FactorContext(null, -1));
         null_.addChild(new CommonToken(LyraLexer.IDENT, "null"));
         attrib.addChild(createSimpleVarDecl(attrib, "Object", "__value", null_));
+        body.addChild(attrib);
 
         addEnumConstructor(body, "Int");
         addEnumConstructor(body, "String");
@@ -243,7 +244,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         LyraParser.StatementContext stmt = new LyraParser.StatementContext(statlist, -1);
 
         LyraParser.ExprContext expr = new LyraParser.ExprContext(stmt, -1);
-        expr.addChild(createNameFactorExpression(expr, "__value"));
+        expr.addChild(createFieldExpression(expr, "this", "__value"));
         expr.addChild(new CommonToken(LyraLexer.EQUALOP, "="));
         expr.addChild(createNameFactorExpression(expr, "value"));
 

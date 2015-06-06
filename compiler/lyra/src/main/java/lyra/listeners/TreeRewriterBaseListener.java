@@ -83,14 +83,25 @@ public class TreeRewriterBaseListener extends LyraParserBaseListener {
 
     protected LyraParser.ExprContext createNameFactorExpression(ParserRuleContext parent,
                                                                 String name) {
-        LyraParser.ExprContext expr = new LyraParser.ExprContext(parent, -1);
-        LyraParser.UnaryexprContext uexpr = new LyraParser.UnaryexprContext(expr, -1);
         LyraParser.NameFactorContext factor = new LyraParser.NameFactorContext(
-                new LyraParser.FactorContext(uexpr, -1));
+                new LyraParser.FactorContext(null, -1));
         factor.addChild(new CommonToken(LyraLexer.IDENT, name));
-        uexpr.addChild(factor);
-        expr.addChild(uexpr);
-        return expr;
+        return createExprForFactor(parent, factor);
+    }
+
+    protected LyraParser.ExprContext createFieldExpression(ParserRuleContext parent,
+                                                           String objName, String fieldName) {
+        LyraParser.MemberFactorContext factor = new LyraParser.MemberFactorContext(
+                new LyraParser.FactorContext(null, -1));
+
+        LyraParser.NameFactorContext left = new LyraParser.NameFactorContext(
+                new LyraParser.FactorContext(factor, -1));
+        left.addChild(new CommonToken(LyraLexer.IDENT, objName));
+        factor.addChild(left);
+
+        factor.addChild(new CommonToken(LyraLexer.DOT, "."));
+        factor.addChild(new CommonToken(LyraLexer.IDENT, fieldName));
+        return createExprForFactor(parent, factor);
     }
 
     protected LyraParser.ExprContext createExprForFactor(ParserRuleContext parent,
