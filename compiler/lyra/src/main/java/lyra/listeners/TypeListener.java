@@ -1,21 +1,15 @@
 package lyra.listeners;
 
-import lyra.*;
-import lyra.Compiler;
 import lyra.LyraLexer;
 import lyra.LyraParser;
-import lyra.LyraParser.VarDeclContext;
 import lyra.LyraParser.VarDeclUnitContext;
-import lyra.scopes.Scope;
 import lyra.symbols.*;
 
 import lyra.tokens.NumberToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +52,7 @@ public class TypeListener extends ScopedBaseListener {
     @Override
     public void exitWrappedFactor(LyraParser.WrappedFactorContext ctx) {
         table.setNodeType(ctx, table.getNodeType(ctx.expr()));
+        table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.expr()));
     }
 
     @Override
@@ -69,13 +64,17 @@ public class TypeListener extends ScopedBaseListener {
     public void exitNameFactor(LyraParser.NameFactorContext ctx) {
         Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
         if (symbol != null) {
-            if (!(symbol instanceof VariableSymbol)) {
-                throw expectedVariableException(ctx.IDENT());
+            if (symbol instanceof VariableSymbol) {
+                table.setNodeType(ctx, ((VariableSymbol)symbol).getType());
+            } else if (symbol instanceof ClassSymbol) {
+                table.setNodeType(ctx, (ClassSymbol)symbol);
+                table.setExprIsClassInstance(ctx, true);
             } else {
-                VariableSymbol var = (VariableSymbol) symbol;
-                table.setNodeType(ctx, var.getType());
+                throw expectedVariableException(ctx.IDENT());
             }
         } else {
+            /* it should be a this method call */
+
             Symbol thisSym = currentScope.resolve("this");
             if (thisSym == null) {
                 throw  undefinedNameException(ctx.IDENT());
@@ -110,19 +109,31 @@ public class TypeListener extends ScopedBaseListener {
     }
 
     private List<TypeSymbol> getArgTypes(LyraParser.ArgsContext ctx) {
-        return ctx.expr().stream()
-                .map(table::getNodeType)
-                .collect(Collectors.toList());
+        if (ctx == null)
+            return Collections.emptyList();
+        return ctx.expr().stream().map(table::getNodeType).collect(Collectors.toList());
     }
 
     @Override
     public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
-        TypeSymbol factor = table.getNodeType(ctx.factor());
-
+        TypeSymbol factorType = table.getNodeType(ctx.factor());
         List<TypeSymbol> types = getArgTypes(ctx.args());
-        MethodSymbol method = factor.resolveOverload(ctx.IDENT().getText(), types);
-        if(method == null) {
-            throw  overloadNotFoundException(ctx.IDENT(), types);
+
+        if (types.isEmpty()) {
+            /* try field access before method call */
+            VariableSymbol field = factorType.resolveField(ctx.IDENT().getText());
+            if (field != null) {
+                if (!field.isClassField() && table.getExprIsClassInstance(ctx.factor()))
+                    throw expectedInstanceValue(ctx.factor());
+                table.setNodeType(ctx, field.getType());
+                return;
+            }
+        }
+
+        /* method call */
+        MethodSymbol method = factorType.resolveOverload(ctx.IDENT().getText(), types);
+        if (method == null) {
+            throw overloadNotFoundException(ctx.IDENT(), types);
         }
         table.setNodeType(ctx, method.getReturnType());
     }
@@ -136,12 +147,14 @@ public class TypeListener extends ScopedBaseListener {
     @Override
     public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
         table.setNodeType(ctx, table.getNodeType(ctx.factor()));
+        table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.factor()));
     }
 
     @Override
     public void exitExpr(LyraParser.ExprContext ctx) {
         if (ctx.unaryexpr() != null) {
             table.setNodeType(ctx, table.getNodeType(ctx.unaryexpr()));
+            table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.unaryexpr()));
         } else if (ctx.binOp.getType() == LyraLexer.EQUALOP) {
             TypeSymbol left = table.getNodeType(ctx.expr(0));
             TypeSymbol right = table.getNodeType(ctx.expr(1));

@@ -24,6 +24,7 @@ public class SymbolTable {
     private ParseTreeProperty<Scope> nodeScope = new ParseTreeProperty<>();
     private ParseTreeProperty<TypeSymbol> nodeType = new ParseTreeProperty<>();
     private ParseTreeProperty<Symbol> nodeSymbol = new ParseTreeProperty<>();
+    private ParseTreeProperty<Boolean> exprIsClassInstance = new ParseTreeProperty<>();
     private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
 
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
@@ -79,5 +80,13 @@ public class SymbolTable {
 
     public ArrayClassFactory getArrayClassFactory() {
         return arrayClassFactory;
+    }
+
+    public boolean getExprIsClassInstance(ParseTree node) {
+        Boolean is = exprIsClassInstance.get(node);
+        return is != null && is.booleanValue();
+    }
+    public void setExprIsClassInstance(ParseTree node, boolean value) {
+        exprIsClassInstance.put(node, value);
     }
 }
