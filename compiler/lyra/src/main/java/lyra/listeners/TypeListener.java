@@ -176,7 +176,7 @@ public class TypeListener extends ScopedBaseListener {
     		if(varDeclUnit.expr() != null){
     			TypeSymbol exprType = table.getNodeType(varDeclUnit.expr());
     			if(!exprType.convertible((TypeSymbol) type)){
-    				throw notConvertibleException(varDeclUnit.expr(), exprType, type);
+    				throw notConvertibleException(varDeclUnit.expr(), type, exprType);
     			}
     		}
 		}
