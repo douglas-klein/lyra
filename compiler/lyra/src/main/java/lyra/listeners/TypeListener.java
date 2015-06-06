@@ -122,12 +122,4 @@ public class TypeListener extends ScopedBaseListener {
     		}
 		}
     }
-    
-    @Override
-    public void exitVarDeclUnit(VarDeclUnitContext ctx) {
-    	VarDeclContext parent = (VarDeclContext) ctx.getParent();
-    	Symbol parentType = currentScope.resolve(parent.type().IDENT().getText());
-//    	Symbol f = ctx.exprlist().
-    }
-
 }
