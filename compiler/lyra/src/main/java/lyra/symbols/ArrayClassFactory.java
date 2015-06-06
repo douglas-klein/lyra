@@ -55,7 +55,8 @@ public class ArrayClassFactory {
 
         MethodSymbol m = new MethodSymbol("constructor", getVoidClass(), c);
         for (int i = 0; i < dimensions; i++)
-            m.addArgument(new VariableSymbol("size", getIntClass()));
+            m.addArgument(new VariableSymbol("size" + i, getIntClass()));
+        c.define(m);
 
         m = new MethodSymbol("at", valueType, c);
         m.addArgument(new VariableSymbol("idx", getIntClass()));
