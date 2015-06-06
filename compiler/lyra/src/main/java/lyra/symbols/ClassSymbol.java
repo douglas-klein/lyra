@@ -42,6 +42,15 @@ public class ClassSymbol extends TypeSymbol {
         this.superClass = superClass;
     }
 
+    public void addPredefinedMembers(Scope global) {
+        if (members.get("constructor") == null) {
+            MethodSymbol ctor = new MethodSymbol("constructor",
+                    (ClassSymbol) global.resolve("void"), this);
+            define(ctor);
+        }
+    }
+
+
     @Override
     public VariableSymbol resolveField(String name) {
         Symbol sym = shallowResolve(name);

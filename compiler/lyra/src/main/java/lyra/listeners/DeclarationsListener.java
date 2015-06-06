@@ -90,6 +90,12 @@ public class DeclarationsListener extends ScopedBaseListener {
     }
 
     @Override
+    public void exitClassdecl(LyraParser.ClassdeclContext ctx) {
+        ((ClassSymbol)currentScope).addPredefinedMembers(table.getGlobal());
+        super.exitClassdecl(ctx);
+    }
+
+    @Override
     public void exitExtendsdecl(LyraParser.ExtendsdeclContext ctx) {
         if (!(ctx.getParent() instanceof LyraParser.ClassdeclContext))
             return;
