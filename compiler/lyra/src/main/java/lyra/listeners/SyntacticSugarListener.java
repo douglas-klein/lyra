@@ -3,6 +3,7 @@ package lyra.listeners;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 
+import lyra.tokens.NumberToken;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -225,7 +226,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
     public void exitUnamedEnumItem(LyraParser.UnamedEnumItemContext ctx) {
         LyraParser.NumberFactorContext factor = new LyraParser.NumberFactorContext(
                 new LyraParser.FactorContext(ctx, -1));
-        factor.addChild(new CommonToken(LyraLexer.NUMBER, (new Integer(enumMembers++)).toString()));
+        factor.addChild(new NumberToken(LyraLexer.NUMBER, (new Integer(enumMembers++)).toString()));
         addEnumItem(ctx.IDENT().getText(), "Int", factor);
     }
 
@@ -239,7 +240,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
             typeName = "String";
         } else if (ctx.NUMBER() != null)  {
             factor = new LyraParser.NumberFactorContext(new LyraParser.FactorContext(ctx, -1));
-            factor.addChild(new CommonToken(LyraLexer.NUMBER, ctx.NUMBER().getText()));
+            factor.addChild(new NumberToken(LyraLexer.NUMBER, ctx.NUMBER().getText()));
             typeName = "Int";
         } else {
             return; //WTF!?
