@@ -69,7 +69,9 @@ public abstract class TypeSymbol extends ScopedSymbol {
 
     public abstract boolean isA(TypeSymbol type);
 
-    public boolean convertible(TypeSymbol type) {return type.converts(this);}
+    public boolean convertible(TypeSymbol type) {
+        return type.isA(this) ? true : type.converts(this);
+    }
 
     public abstract boolean converts(TypeSymbol type);
 }

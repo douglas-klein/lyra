@@ -9,6 +9,7 @@ import lyra.LyraParser.VarDeclUnitContext;
 import lyra.scopes.Scope;
 import lyra.symbols.*;
 
+import lyra.tokens.NumberToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -128,7 +129,8 @@ public class TypeListener extends ScopedBaseListener {
 
     @Override
     public void exitNumberFactor(LyraParser.NumberFactorContext ctx) {
-        table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("Number"));
+        String typeName = ((NumberToken) ctx.NUMBER().getSymbol()).getLyraTypeName();
+        table.setNodeType(ctx, (TypeSymbol) currentScope.resolve(typeName));
     }
 
     @Override

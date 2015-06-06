@@ -35,4 +35,8 @@ public class NumberToken extends CommonToken {
     public Number getValue() {
         return value;
     }
+
+    public String getLyraTypeName() {
+        return (value instanceof Integer) ? "Int" : "Number";
+    }
 }
