@@ -119,6 +119,18 @@ public class ResolveOverloadTests {
                 methodSymbol.getArgumentTypes()));
     }
 
+    @Test
+    public void testResolveIntInc() throws Exception {
+        Compiler compiler = analyse();
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol)global.resolve("Int");
+
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("__inc", args);
+        assertNotNull(methodSymbol);
+    }
+
     private Compiler analyse() throws IOException {
         Compiler compiler = new Compiler();
         ClassLoader loader = getClass().getClassLoader();

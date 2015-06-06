@@ -12,11 +12,18 @@ public class CandidateMethodSymbol  implements Comparable<CandidateMethodSymbol>
 
     @Override
     public boolean equals(Object o) {
+        if (o == null) return false;
+
+        if (o instanceof CandidateMethodSymbol) {
+            o = ((CandidateMethodSymbol)o).wrapped;
+        }
+
         if (o instanceof MethodSymbol) {
             MethodSymbol rhs = (MethodSymbol) o;
             return rhs.getName().equals(wrapped.getName())
                     && rhs.getArgumentTypes().equals(wrapped.getArgumentTypes());
         } else {
+            System.err.println("###");
             return super.equals(o);
         }
     }
