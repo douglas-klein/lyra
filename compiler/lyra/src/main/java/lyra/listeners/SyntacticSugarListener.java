@@ -245,7 +245,8 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
 
         LyraParser.ExprContext expr = new LyraParser.ExprContext(stmt, -1);
         expr.addChild(createFieldExpression(expr, "this", "__value"));
-        expr.addChild(new CommonToken(LyraLexer.EQUALOP, "="));
+        expr.binOp = new CommonToken(LyraLexer.EQUALOP, "=");
+        expr.addChild(expr.binOp);
         expr.addChild(createNameFactorExpression(expr, "value"));
 
         stmt.addChild(expr);
