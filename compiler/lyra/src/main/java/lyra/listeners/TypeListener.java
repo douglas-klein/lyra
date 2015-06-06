@@ -123,8 +123,9 @@ public class TypeListener extends ScopedBaseListener {
 
         List<TypeSymbol> types = getArgTypes(ctx.args());
         MethodSymbol method = factor.resolveOverload(ctx.IDENT().getText(), types);
-        if(method== null){
+        if(method == null) {
             overloadNotFoundError(ctx.IDENT(), types);
+            return;
         }
         table.setNodeType(ctx, method.getReturnType());
     }
