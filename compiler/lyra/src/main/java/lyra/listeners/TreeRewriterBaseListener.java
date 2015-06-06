@@ -81,6 +81,66 @@ public class TreeRewriterBaseListener extends LyraParserBaseListener {
         return factor;
     }
 
+    protected LyraParser.ExprContext createNameFactorExpression(ParserRuleContext parent,
+                                                                String name) {
+        LyraParser.ExprContext expr = new LyraParser.ExprContext(parent, -1);
+        LyraParser.UnaryexprContext uexpr = new LyraParser.UnaryexprContext(expr, -1);
+        LyraParser.NameFactorContext factor = new LyraParser.NameFactorContext(
+                new LyraParser.FactorContext(uexpr, -1));
+        factor.addChild(new CommonToken(LyraLexer.IDENT, name));
+        uexpr.addChild(factor);
+        expr.addChild(uexpr);
+        return expr;
+    }
+
+    protected LyraParser.ExprContext createExprForFactor(ParserRuleContext parent,
+                                                         LyraParser.FactorContext factor) {
+        LyraParser.ExprContext expr = new LyraParser.ExprContext(parent, -1);
+        LyraParser.UnaryexprContext uexpr = new LyraParser.UnaryexprContext(expr, -1);
+        factor.parent = uexpr;
+        uexpr.addChild(factor);
+        expr.addChild(uexpr);
+        return expr;
+    }
+
+    protected LyraParser.VarDeclContext createSimpleVarDecl(ParserRuleContext parent,
+                                                            String typeName, String varName,
+                                                            String literalInitializer,
+                                                            int literalInitializerTokenType) {
+        LyraParser.FactorContext factor = null;
+        if (literalInitializer != null) {
+            if (literalInitializerTokenType == LyraLexer.NUMBER) {
+                factor = new  LyraParser.NumberFactorContext(
+                        new LyraParser.FactorContext(null, -1));
+            } else if (literalInitializerTokenType == LyraLexer.STRING) {
+                factor = new LyraParser.StringFactorContext(
+                        new LyraParser.FactorContext(null, -1));
+            } else {
+                throw new RuntimeException("Bad literalInitializerTokenType ("
+                        + literalInitializerTokenType + ").");
+            }
+        }
+        return createSimpleVarDecl(parent, typeName, varName, factor);
+    }
+
+    protected LyraParser.VarDeclContext createSimpleVarDecl(ParserRuleContext parent,
+                                                            String typeName, String varName,
+                                                            LyraParser.FactorContext initializer) {
+        LyraParser.VarDeclContext var = new LyraParser.VarDeclContext(parent, -1);
+        LyraParser.TypeContext type = new LyraParser.TypeContext(var, -1);
+        type.addChild(new CommonToken(LyraLexer.IDENT, typeName));
+        var.addChild(type);
+
+        LyraParser.VarDeclUnitContext unit = new LyraParser.VarDeclUnitContext(var, -1);
+        unit.addChild(new CommonToken(LyraLexer.IDENT, varName));
+        if (initializer != null) {
+            unit.addChild(new CommonToken(LyraLexer.EQUALOP, "="));
+            unit.addChild(createExprForFactor(unit, initializer));
+        }
+        var.addChild(unit);
+        return var;
+    }
+
     protected String getPostfixOperatorMethod(Token token) {
         String method = null;
         switch (token.getType()) {

@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
+import java.net.IDN;
 import java.util.HashSet;
 import java.util.ListIterator;
 
@@ -190,7 +191,70 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         enumRewritten.addChild(new CommonToken(LyraLexer.CLASS, "class"));
         enumRewritten.addChild(new CommonToken(LyraLexer.IDENT, ctx.IDENT().getText()));
         enumRewritten.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
-        enumRewritten.addChild(new LyraParser.ClassBodyContext(enumRewritten, -1));
+        LyraParser.ClassBodyContext body = new LyraParser.ClassBodyContext(enumRewritten, -1);
+
+        LyraParser.AttributeDeclContext attrib = new LyraParser.AttributeDeclContext(body, -1);
+        attrib.addChild(new CommonToken(LyraLexer.VISIBILITYMODIFIER, "public"));
+
+        LyraParser.NameFactorContext null_ = new LyraParser.NameFactorContext(
+                new LyraParser.FactorContext(null, -1));
+        null_.addChild(new CommonToken(LyraLexer.IDENT, "null"));
+        attrib.addChild(createSimpleVarDecl(attrib, "Object", "__value", null_));
+
+        addEnumConstructor(body, "Int");
+        addEnumConstructor(body, "String");
+
+        enumRewritten.addChild(body);
+
+    }
+
+    private void addEnumConstructor(LyraParser.ClassBodyContext body, String typeName) {
+        LyraParser.MethodDeclContext ctor = new LyraParser.MethodDeclContext(body, -1);
+        ctor.addChild(new CommonToken(LyraLexer.VISIBILITYMODIFIER, "public"));
+        ctor.addChild(new CommonToken(LyraLexer.DEF, "def"));
+        ctor.addChild(new CommonToken(LyraLexer.IDENT, "constructor"));
+
+        /* params */
+        ctor.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+        LyraParser.ParamsContext params = new LyraParser.ParamsContext(ctor, -1);
+        LyraParser.ParamDeclContext param = new LyraParser.ParamDeclContext(params, -1);
+        param.addChild(new CommonToken(LyraLexer.IDENT, "value"));
+        param.addChild(new CommonToken(LyraLexer.COLON, ":"));
+
+        LyraParser.TypeContext type = new LyraParser.TypeContext(param, -1);
+        type.addChild(new CommonToken(LyraLexer.IDENT, typeName));
+        param.addChild(type);
+
+        params.addChild(param);
+        ctor.addChild(params);
+
+        ctor.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+
+        ctor.addChild(new CommonToken(LyraLexer.COLON, ":"));
+        LyraParser.TypeContext retType = new LyraParser.TypeContext(ctor, -1);
+        retType.addChild(new CommonToken(LyraLexer.IDENT, "void"));
+        ctor.addChild(retType);
+
+        ctor.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
+
+        /* method body */
+        LyraParser.MethodBodyContext methodBody = new LyraParser.MethodBodyContext(ctor, -1);
+        LyraParser.StatlistContext statlist = new LyraParser.StatlistContext(methodBody, -1);
+        LyraParser.StatementContext stmt = new LyraParser.StatementContext(statlist, -1);
+
+        LyraParser.ExprContext expr = new LyraParser.ExprContext(stmt, -1);
+        expr.addChild(createNameFactorExpression(expr, "__value"));
+        expr.addChild(new CommonToken(LyraLexer.EQUALOP, "="));
+        expr.addChild(createNameFactorExpression(expr, "value"));
+
+        stmt.addChild(expr);
+        stmt.addChild(new CommonToken(LyraLexer.SEMICOLON, ";"));
+        statlist.addChild(stmt);
+        methodBody.addChild(statlist);
+
+        ctor.addChild(methodBody);
+        ctor.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
+        body.addChild(ctor);
     }
 
     private void addEnumItem(String name, String typeName, LyraParser.FactorContext factorCtx) {
@@ -200,25 +264,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         atrib.addChild(new CommonToken(LyraLexer.STATIC, "static"));
         atrib.addChild(new CommonToken(LyraLexer.VISIBILITYMODIFIER, "public"));
 
-        LyraParser.VarDeclContext var = new LyraParser.VarDeclContext(atrib, -1);
-
-        LyraParser.TypeContext type = new LyraParser.TypeContext(var, -1);
-        type.addChild(new CommonToken(LyraLexer.IDENT, typeName));
-        var.addChild(type);
-
-        LyraParser.VarDeclUnitContext unit = new LyraParser.VarDeclUnitContext(var, -1);
-        unit.addChild(new CommonToken(LyraLexer.IDENT, name));
-        unit.addChild(new CommonToken(LyraLexer.EQUALOP, "="));
-
-        LyraParser.ExprContext expr = new LyraParser.ExprContext(unit, -1);
-        LyraParser.UnaryexprContext uexpr = new LyraParser.UnaryexprContext(expr, -1);
-
-        factorCtx.parent = uexpr;
-        uexpr.addChild(factorCtx);
-        expr.addChild(uexpr);
-        unit.addChild(expr);
-        var.addChild(unit);
-        atrib.addChild(var);
+        atrib.addChild(createSimpleVarDecl(atrib, typeName, name, factorCtx));
         body.addChild(atrib);
     }
 

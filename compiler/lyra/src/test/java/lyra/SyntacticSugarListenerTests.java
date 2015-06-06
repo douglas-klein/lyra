@@ -1,5 +1,6 @@
 package lyra;
 
+import junit.framework.Assert;
 import lyra.LyraParser;
 import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -220,13 +221,30 @@ public class SyntacticSugarListenerTests {
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
 
-        final boolean visited[] = {false, false};
+        final boolean visited[] = {false, false, false, false};
         walker.walk(new lyra.LyraParserBaseListener() {
             @Override
             public void exitClassdecl(LyraParser.ClassdeclContext ctx) {
                 if (!ctx.IDENT().getText().equals("RomanNumerals"))
                     return;
                 visited[0] = true;
+            }
+
+            @Override
+            public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
+                if (!ctx.IDENT().getText().equals("constructor"))
+                    return;
+
+                assertNotNull(ctx.params());
+                assertEquals(1, ctx.params().paramDecl().size());
+                if (ctx.params().paramDecl(0).type().getText().equals("Int")) {
+                    visited[2] = true;
+                } else if (ctx.params().paramDecl(0).type().getText().equals("String")) {
+                    visited[3] = true;
+                }
+
+                assertTrue(Pattern.matches(".*__value\\s*=\\s*value.*",
+                        ctx.methodBody().getText()));
             }
 
             @Override
@@ -246,8 +264,9 @@ public class SyntacticSugarListenerTests {
 
             }
         }, compiler.getParseTree());
-        assertTrue(visited[0]);
-        assertTrue(visited[1]);
+
+        for (int i = 0; i < visited.length; i++)
+            assertTrue(String.format("i=%1$d", i), visited[i]);
     }
 
 
