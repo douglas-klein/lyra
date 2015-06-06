@@ -54,11 +54,8 @@ public class Compiler {
             ReferencesListener referencesListener = new ReferencesListener(this);
             walker.walk(referencesListener, parseTree);
 
-            //TODO mandar ver
-//            TypeListener typeListener = new TypeListener(this);
-//            walker.walk(typeListener, parseTree);
-
-
+            TypeListener typeListener = new TypeListener(this);
+            walker.walk(typeListener, parseTree);
         } catch (SemanticErrorException e) {
             getErrorListener().semanticError(parser, e);
         }

@@ -1,14 +1,14 @@
-class Object {
-    def op(rhs : Object) : Object {}
-    def __add(rhs: Object ) : Object {}
-    def __mul(rhs : Object ) : Object {}
+class A {
+    def op(rhs : A) : A {}
+    def __added(rhs: A ) : A {}
+    def __multiplied(rhs : A ) : A {}
 }
 
 class Application {
     def main {
-        Object a = new Object();
-        Object b = new Object();
-        Object c = new Object();
-        Object c = a op b + c; // ~= a op (b + c)
+        A a = new A();
+        A b = new A();
+        A c = new A();
+        A c = a op b + c; // ~= a op (b + c)
     }
 }
