@@ -206,8 +206,8 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected SemanticErrorException notConvertibleException(Object offendingSymbol, Symbol type,
                                                              Symbol convertible) {
         return new SemanticErrorException(
-                String.format("Type %1$s is not convertible to %2$s.", type.getName(),
-                        convertible.getName()),
+                String.format("Type %1$s is not convertible to %2$s.", convertible.getName(),
+                        type.getName()),
                 offendingSymbol
         );
     }
