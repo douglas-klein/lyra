@@ -6,15 +6,13 @@ import lyra.LyraParser;
 import lyra.LyraParser.VarDeclContext;
 import lyra.LyraParser.VarDeclUnitContext;
 import lyra.scopes.Scope;
-import lyra.symbols.MethodSymbol;
-import lyra.symbols.Symbol;
-import lyra.symbols.SymbolTable;
-import lyra.symbols.TypeSymbol;
+import lyra.symbols.*;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,6 +61,35 @@ public class TypeListener extends ScopedBaseListener {
     @Override
     public void exitNewfactor(LyraParser.NewfactorContext ctx) {
         table.setNodeType(ctx, table.getNodeType(ctx.alocExpr()));
+    }
+
+    @Override
+    public void exitNameFactor(LyraParser.NameFactorContext ctx) {
+        Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
+        if (symbol != null) {
+            if (!(symbol instanceof VariableSymbol)) {
+                expectedVariableError(ctx.IDENT());
+                return;
+            } else {
+                VariableSymbol var = (VariableSymbol) symbol;
+                table.setNodeType(ctx, var.getType());
+            }
+        } else {
+            Symbol thisSym = currentScope.resolve("this");
+            if (thisSym == null) {
+                undefinedNameError(ctx.IDENT());
+                return;
+            }
+            VariableSymbol me = (VariableSymbol) thisSym;
+            MethodSymbol method = me.getType().resolveOverload(ctx.IDENT().getText(),
+                    Collections.<TypeSymbol>emptyList());
+            if (method == null) {
+                noOverloadError(ctx.IDENT(), me.getType().getName(), ctx.IDENT().getText(),
+                        Collections.<TypeSymbol>emptyList());
+                return;
+            }
+            table.setNodeType(ctx, method.getReturnType());
+        }
     }
 
     @Override

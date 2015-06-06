@@ -164,6 +164,24 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         					   "Unresolved type " + typeName + ".");
     }
 
+    protected void undefinedNameError(Object offendingSymbol) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Undefined name.");
+    }
+    protected void expectedVariableError(Object offendingSymbol) {
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol,
+                "Expected a variable.");
+    }
+
+    protected void noOverloadError(Object offendingSymbol, String typeName, String methodName,
+                                   Collection<TypeSymbol> arguments) {
+        String msg = String.format("No overload for %1$s.%2$s can handle args (%3$s).", typeName,
+                methodName,
+                arguments.stream().map(t -> t.getName())
+                        .reduce("", (a, b) -> a + (a.isEmpty() ? ", " : "") + b));
+        compiler.getErrorListener().semanticError(compiler.getParser(), offendingSymbol, msg);
+    }
+
     protected void expectedTypeError(Object offendingSymbol) {
         compiler.getErrorListener()
         		.semanticError(compiler.getParser(), 
