@@ -1,5 +1,6 @@
 package lyra;
 
+import lyra.listeners.ArrayRewriterListener;
 import lyra.scopes.Scope;
 import lyra.symbols.ClassSymbol;
 import lyra.symbols.MethodSymbol;
@@ -131,10 +132,27 @@ public class ResolveOverloadTests {
         assertNotNull(methodSymbol);
     }
 
+    @Test
+    public void testEnumEquality() throws Exception {
+        Compiler compiler = analyse("samples/Enums.ly");
+        Scope global = compiler.getSymbolTable().getGlobal();
+        ClassSymbol classSymbol = (ClassSymbol) global.resolve("RomanNumerals");
+
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+        args.add(classSymbol);
+
+        MethodSymbol methodSymbol = classSymbol.resolveOverload("__equals", args);
+        assertNotNull(methodSymbol);
+    }
+
     private Compiler analyse() throws IOException {
+        return analyse("samples/MethodOverloads.ly");
+    }
+
+    private Compiler analyse(String path) throws IOException {
         Compiler compiler = new Compiler();
         ClassLoader loader = getClass().getClassLoader();
-        InputStream stream = loader.getResourceAsStream("samples/MethodOverloads.ly");
+        InputStream stream = loader.getResourceAsStream(path);
         compiler.init(new InputStreamReader(stream));
         compiler.analyse();
         return compiler;

@@ -104,6 +104,31 @@ public class TreeRewriterBaseListener extends LyraParserBaseListener {
         return createExprForFactor(parent, factor);
     }
 
+    protected LyraParser.ExprContext createMethodExpr(ParserRuleContext parent,
+                                                      LyraParser.FactorContext left,
+                                                      String methodName,
+                                                      LyraParser.ExprContext... args) {
+        LyraParser.MemberFactorContext factor = new LyraParser.MemberFactorContext(
+                new LyraParser.FactorContext(null, -1));
+
+        factor.addChild(left);
+        factor.addChild(new CommonToken(LyraLexer.DOT, "."));
+        factor.addChild(new CommonToken(LyraLexer.IDENT, methodName));
+        if (args.length > 0) {
+            factor.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+            LyraParser.ArgsContext argsCtx = new LyraParser.ArgsContext(factor, -1);
+            for (int i = 0; i < args.length; i++) {
+                if (i > 0)
+                    argsCtx.addChild(new CommonToken(LyraLexer.COMMA, ","));
+
+                argsCtx.addChild(args[i]);
+            }
+            factor.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+        }
+
+        return createExprForFactor(parent, factor);
+    }
+
     protected LyraParser.ExprContext createExprForFactor(ParserRuleContext parent,
                                                          LyraParser.FactorContext factor) {
         LyraParser.ExprContext expr = new LyraParser.ExprContext(parent, -1);
@@ -150,6 +175,57 @@ public class TreeRewriterBaseListener extends LyraParserBaseListener {
         }
         var.addChild(unit);
         return var;
+    }
+
+
+    protected LyraParser.MethodDeclContext createMethod(ParserRuleContext parent, String visibility,
+                                                      boolean infix, String name,
+                                                      String returnType, String... paramStrings) {
+        LyraParser.MethodDeclContext m = new LyraParser.MethodDeclContext(parent, -1);
+        m.addChild(new CommonToken(LyraLexer.VISIBILITYMODIFIER, visibility));
+        m.addChild(new CommonToken(LyraLexer.DEF, "def"));
+        if (infix)
+            m.addChild(new CommonToken(LyraLexer.INFIX, "infix"));
+        m.addChild(new CommonToken(LyraLexer.IDENT, name));
+
+        if (paramStrings.length > 0) {
+            m.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+            LyraParser.ParamsContext params = new LyraParser.ParamsContext(m, -1);
+
+            for (int i = 0; i < paramStrings.length; ) {
+                if (i > 0)
+                    params.addChild(new CommonToken(LyraLexer.COMMA, ","));
+
+                String pName = paramStrings[i++];
+                String pType = paramStrings[i++];
+
+                LyraParser.ParamDeclContext param = new LyraParser.ParamDeclContext(params, -1);
+                param.addChild(new CommonToken(LyraLexer.IDENT, pName));
+                param.addChild(new CommonToken(LyraLexer.COLON, ":"));
+
+                LyraParser.TypeContext type = new LyraParser.TypeContext(param, -1);
+                type.addChild(new CommonToken(LyraLexer.IDENT, pType));
+                param.addChild(type);
+                params.addChild(param);
+            }
+
+            m.addChild(params);
+            m.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+        }
+
+        m.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
+        m.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
+        m.addChild(new CommonToken(LyraLexer.COLON, ":"));
+        LyraParser.TypeContext type = new LyraParser.TypeContext(m, -1);
+        type.addChild(new CommonToken(LyraLexer.IDENT, returnType));
+        m.addChild(type);
+
+        m.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
+        LyraParser.MethodBodyContext methodBody = new LyraParser.MethodBodyContext(m, -1);
+
+        m.addChild(methodBody);
+        m.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
+        return m;
     }
 
     protected String getPostfixOperatorMethod(Token token) {

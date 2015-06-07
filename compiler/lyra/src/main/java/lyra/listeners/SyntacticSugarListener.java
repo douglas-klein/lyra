@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.net.IDN;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.ListIterator;
 
@@ -204,43 +205,16 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
 
         addEnumConstructor(body, "Int");
         addEnumConstructor(body, "String");
+        addEnumEquals(body, ctx.IDENT().getText());
 
         enumRewritten.addChild(body);
 
     }
 
     private void addEnumConstructor(LyraParser.ClassBodyContext body, String typeName) {
-        LyraParser.MethodDeclContext ctor = new LyraParser.MethodDeclContext(body, -1);
-        ctor.addChild(new CommonToken(LyraLexer.VISIBILITYMODIFIER, "public"));
-        ctor.addChild(new CommonToken(LyraLexer.DEF, "def"));
-        ctor.addChild(new CommonToken(LyraLexer.IDENT, "constructor"));
-
-        /* params */
-        ctor.addChild(new CommonToken(LyraLexer.LEFTPARENTHESES, "("));
-        LyraParser.ParamsContext params = new LyraParser.ParamsContext(ctor, -1);
-        LyraParser.ParamDeclContext param = new LyraParser.ParamDeclContext(params, -1);
-        param.addChild(new CommonToken(LyraLexer.IDENT, "value"));
-        param.addChild(new CommonToken(LyraLexer.COLON, ":"));
-
-        LyraParser.TypeContext type = new LyraParser.TypeContext(param, -1);
-        type.addChild(new CommonToken(LyraLexer.IDENT, typeName));
-        param.addChild(type);
-
-        params.addChild(param);
-        ctor.addChild(params);
-
-        ctor.addChild(new CommonToken(LyraLexer.RIGHTPARENTHESES, ")"));
-
-        ctor.addChild(new CommonToken(LyraLexer.COLON, ":"));
-        LyraParser.TypeContext retType = new LyraParser.TypeContext(ctor, -1);
-        retType.addChild(new CommonToken(LyraLexer.IDENT, "void"));
-        ctor.addChild(retType);
-
-        ctor.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
-
-        /* method body */
-        LyraParser.MethodBodyContext methodBody = new LyraParser.MethodBodyContext(ctor, -1);
-        LyraParser.StatlistContext statlist = new LyraParser.StatlistContext(methodBody, -1);
+        LyraParser.MethodDeclContext ctor = createMethod(body, "public", false, "constructor",
+                "void", "value", typeName);
+        LyraParser.StatlistContext statlist = new LyraParser.StatlistContext(ctor.methodBody(), -1);
         LyraParser.StatementContext stmt = new LyraParser.StatementContext(statlist, -1);
 
         LyraParser.ExprContext expr = new LyraParser.ExprContext(stmt, -1);
@@ -252,11 +226,29 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         stmt.addChild(expr);
         stmt.addChild(new CommonToken(LyraLexer.SEMICOLON, ";"));
         statlist.addChild(stmt);
-        methodBody.addChild(statlist);
 
-        ctor.addChild(methodBody);
-        ctor.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
+        ctor.methodBody().addChild(statlist);
         body.addChild(ctor);
+    }
+
+    private void addEnumEquals(LyraParser.ClassBodyContext body, String enumName) {
+        LyraParser.MethodDeclContext m = createMethod(body, "public", true, "__equals", "Bool",
+                "rhs", enumName);
+        LyraParser.MethodBodyContext mBody = m.methodBody();
+        LyraParser.StatlistContext statlist = new LyraParser.StatlistContext(mBody, -1);
+        LyraParser.StatementContext stmt = new LyraParser.StatementContext(statlist, -1);
+        LyraParser.ReturnstatContext ret = new LyraParser.ReturnstatContext(stmt, -1);
+
+        ret.addChild(new CommonToken(LyraLexer.RETURN, "return"));
+        ret.addChild(createMethodExpr(ret,
+                wrapExpressionIntoFactor(null, createFieldExpression(null, "this", "__value")),
+                "__equals", createFieldExpression(null, "rhs", "__value")));
+
+        stmt.addChild(ret);
+        stmt.addChild(new CommonToken(LyraLexer.SEMICOLON, ":"));
+        statlist.addChild(stmt);
+        mBody.addChild(statlist);
+        body.addChild(m);
     }
 
     private void addEnumItem(String name, String typeName, LyraParser.FactorContext factorCtx) {
