@@ -1,6 +1,5 @@
 package lyra;
 
-import junit.framework.Assert;
 import lyra.LyraParser;
 import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
