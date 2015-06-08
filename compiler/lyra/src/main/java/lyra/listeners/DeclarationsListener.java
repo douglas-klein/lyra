@@ -102,12 +102,18 @@ public class DeclarationsListener extends ScopedBaseListener {
         LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
         ClassSymbol classSymbol = (ClassSymbol)table.getNodeSymbol(parent);
 
-        Symbol superClass = currentScope.resolve(ctx.IDENT().getText());
-        if (superClass == null || !(superClass instanceof ClassSymbol)) {
+        Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
+        if (symbol == null || !(symbol instanceof ClassSymbol)) {
             reportSemanticException(expectedClassException(ctx.IDENT()));
             return;
         }
-        classSymbol.setSuperClass((ClassSymbol)superClass);
+        ClassSymbol superClass = (ClassSymbol)symbol;
+        if (superClass.isA(classSymbol)) {
+            reportSemanticException(classInheritanceCycleException(ctx.IDENT()));
+            return;
+        }
+
+        classSymbol.setSuperClass(superClass);
     }
 
     @Override
@@ -122,7 +128,12 @@ public class DeclarationsListener extends ScopedBaseListener {
                 reportSemanticException(expectedInterfaceException(node));
                 return;
             }
-            classSymbol.addInterface((InterfaceSymbol)symbol);
+            InterfaceSymbol iface = (InterfaceSymbol)symbol;
+            if (iface.isA(classSymbol)) {
+                reportSemanticException(classInheritanceCycleException(node));
+                return;
+            }
+            classSymbol.addInterface(iface);
         }
     }
 
@@ -149,7 +160,12 @@ public class DeclarationsListener extends ScopedBaseListener {
             if (symbol == null || !(symbol instanceof InterfaceSymbol)) {
                 reportSemanticException(expectedInterfaceException(node));
             }
-            iface.addSuperInterfaces((InterfaceSymbol) symbol);
+            InterfaceSymbol superIface = (InterfaceSymbol)symbol;
+            if (superIface.isA(iface)) {
+                reportSemanticException(classInheritanceCycleException(node));
+                return;
+            }
+            iface.addSuperInterfaces(superIface);
         }
     }
 

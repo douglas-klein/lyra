@@ -194,6 +194,10 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         return new SemanticErrorException("Expected a class name.", offendingSymbol);
     }
 
+    protected SemanticErrorException classInheritanceCycleException(Object offendingSymbol) {
+        return new SemanticErrorException("Cycle on inheritance/interface tree.", offendingSymbol);
+    }
+
     protected SemanticErrorException overloadNotFoundException(Object offendingSymbol,
                                                            Collection<TypeSymbol> types) {
         String typeNames = types.stream().map(TypeSymbol::getQualifiedName)

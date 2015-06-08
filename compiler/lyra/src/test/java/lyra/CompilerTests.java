@@ -53,4 +53,19 @@ public class CompilerTests {
             assertFalse(file.getName() + " compiled without error!", compiler.compile());
         }
     }
+
+    @Test
+    public void testDoNotCompileSelfSemanticErrors() throws Exception {
+        ClassLoader loader = this.getClass().getClassLoader();
+        URI samplesURI = loader.getResource("semantic_errors").toURI();
+        File samplesDir = new File(samplesURI);
+        assertNotNull(samplesDir);
+        for (File file : samplesDir.listFiles()) {
+            System.err.println(file.getName());
+            Compiler compiler = new Compiler();
+            compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
+            compiler.init(new FileReader(file));
+            assertFalse(file.getName() + " compiled without error!", compiler.compile());
+        }
+    }
 }
