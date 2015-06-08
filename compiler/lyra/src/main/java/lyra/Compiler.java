@@ -54,6 +54,8 @@ public class Compiler {
             ReferencesListener referencesListener = new ReferencesListener(this);
             walker.walk(referencesListener, parseTree);
 
+            walker.walk(new LocalVarUsageListener(this), parseTree);
+
             TypeListener typeListener = new TypeListener(this);
             walker.walk(typeListener, parseTree);
         } catch (SemanticErrorException e) {
@@ -80,7 +82,7 @@ public class Compiler {
         return true;
     }
 
-    private void rewriteSugar() {
+    public void rewriteSugar() {
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(new SyntacticSugarListener(), parseTree);
         walker.walk(new ArrayRewriterListener(), parseTree);

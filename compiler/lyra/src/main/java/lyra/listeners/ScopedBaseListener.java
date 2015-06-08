@@ -215,4 +215,9 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected SemanticErrorException expectedInstanceValue(Object offendingNode) {
         return new SemanticErrorException("Expected an an instance variable.", offendingNode);
     }
+
+    protected SemanticErrorException varUseBeforeDefinition(Object offendingSymbol) {
+        return new SemanticErrorException("Attempt to use method-local variable before it's " +
+                "declaration", offendingSymbol);
+    }
 }

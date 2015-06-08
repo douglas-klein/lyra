@@ -9,6 +9,6 @@ class Application {
         A a = new A();
         A b = new A();
         A c = new A();
-        A c = a op b + c; // ~= a op (b + c)
+        A d = a op b + c; // ~= a op (b + c)
     }
 }
