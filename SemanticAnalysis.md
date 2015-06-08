@@ -1,6 +1,25 @@
 ﻿## Análise Semântica
 
-### Reescritas de subárvores
+### Passos
+- Parsing (quase sem ação semântica)
+- Reescrita da árvore
+- Tabela de símbolos
+  - Declarações (`DeclarationsListener`)
+  - Resolução de Referências cruzadas (`ReferencesListener`)
+- Análise de regras semânticas
+  - Uso de variáveis locais antes da definição (`LocalVarUsageListener`)
+  - Construção da árvore de atributos `type` (`TypeListener`)
+    - Resolução de tipos e decoração da árvore
+    - Solicita resolução de overloads de métodos
+    - Algumas verificações oportunas de tipos (convertible, isA)
+      - `X.isA(Y)` sse Y é uma classe ou interface ancestral de X
+      - `X.convertible(Y)` sse `X.isA(Y)` ou `Y` possui um construtor cujo único 
+         argumento é um `T` tal que `X.isA(T)`.
+  - Atributos `assert_*` da especificação semântica (`AssertListener`)
+  - Todos os métodos abstratos foram implementados? (`AbstractMethodListener`)
+  
+
+#### Reescritas de subárvores
 
 Várias sub-árvores são reescritas usando outro não terminal da gramática:
 - `while` reescrito como `for`
@@ -27,9 +46,22 @@ class RomanNumerals {
     }
 }
 ```
+- TODO Descrever como reescrever
+```java 
+    /* colocar código aqui */
+```
 
-### Verificação atributo semântico type
+#### Verificação atributo semântico type
+> TODO: descrever TypeListener e mostrar resolução de overload
 
-- TODO: descrever TypeListener e mostrar resolução de overload
+#### LocalVarUsageListener
+> TODO mostrar pedaço do código
 
-### Verificação de outras regras semânticas
+#### TypeListener
+> TODO mostrar epdaço do código
+
+##### Resolução de Overloads
+> TODO mostrar pedaço do código
+
+#### AssertListener
+> TODO mostrar pedaço do código
