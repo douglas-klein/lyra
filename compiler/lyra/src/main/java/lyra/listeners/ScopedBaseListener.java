@@ -224,4 +224,14 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         return new SemanticErrorException("Attempt to use method-local variable before it's " +
                 "declaration", offendingSymbol);
     }
+
+    protected SemanticErrorException returnWithExpressionInVoidMethod(Object offendingSymbol) {
+        return new SemanticErrorException("Return with expression in void method",
+                offendingSymbol);
+    }
+
+    protected SemanticErrorException returnWithoutExpression(Object offendingSymbol) {
+        return new SemanticErrorException("Return without expression in non-void method",
+                offendingSymbol);
+    }
 }
