@@ -147,7 +147,29 @@ public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
 ```
 
 ##### Resolução de Overloads
-> TODO mostrar pedaço do código
+- Algoritmo em `OverloadResolver.resolve(overloads, argTypes, allowConvertible)`
+- Lista preliminar vem de `stream = ClassSymbol.getOverloads(name)`
+  - Para todo `MethodSymbol m` em `stream`, não existe `n` em `stream` *tal que* `n` possui o mesmo nome **e** mesmo conjunto de argumentos **e** `n.parentClass().isA(m.parentClass()`.
+- Simplificação de `OverloadResolver.resolve`:
+```scala
+resolveImpl(overloads, argIdx, argTypes, allowConvertible) {
+  if (argIdx == argTypes.length) {
+    //leaves only the overloads with the most specialized argument types
+    overloads = fixAmbiguity(overloads);
+    return overloads.length == 1 ? overloads[0] : null; 
+  }
+  m = resolveImpl(
+    {m in overloads | m.argTypes[argIdx].isA(argTypes[argIdx])},
+    argIdx + 1, argTypes, allowConvertible
+  );
+  if (!m && allowConvertible) {
+    m = resolveImpl(
+      {m in overloads | m.argTypes[argIdx].convertible(argTypes[argIdx])},
+      argIdx + 1, argTypes, allowConvertible
+    );
+  }
+}
+```
 
 #### AssertListener
 > TODO mostrar pedaço do código
