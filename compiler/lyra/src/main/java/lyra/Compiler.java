@@ -70,11 +70,9 @@ public class Compiler {
         try {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.walk(new LocalVarUsageListener(this), parseTree);
-
-            TypeListener typeListener = new TypeListener(this);
-            walker.walk(typeListener, parseTree);
-
+            walker.walk(new TypeListener(this), parseTree);
             walker.walk(new AssertListener(this), parseTree);
+            walker.walk(new AbstractMethodListener(this), parseTree);
         } catch (SemanticErrorException e) {
             getErrorListener().semanticError(parser, e);
         }

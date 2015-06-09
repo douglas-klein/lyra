@@ -30,7 +30,7 @@ public class DeclarationsListener extends ScopedBaseListener {
         }
 
         method.setInfix(ctx.INFIX() != null);
-        method.setAbstract(true);
+        method.setAbstract(false);
 
         table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current

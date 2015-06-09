@@ -2,11 +2,14 @@ package lyra.listeners;
 
 import java.lang.Object;
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lyra.Compiler;
 import lyra.LyraParser;
 import lyra.SemanticErrorException;
 import lyra.scopes.Scope;
+import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
@@ -233,5 +236,16 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected SemanticErrorException returnWithoutExpression(Object offendingSymbol) {
         return new SemanticErrorException("Return without expression in non-void method",
                 offendingSymbol);
+    }
+
+    protected SemanticErrorException abstractMethodException(Object offendingSymbol,
+                                                             Collection<MethodSymbol> methods) {
+        String msg = "Abstract methods in non-abstract class.";
+        if (methods != null && !methods.isEmpty()) {
+            Set<String> set = methods.stream().map(m -> m.getName()).collect(Collectors.toSet());
+            msg = "Abstract methods in non-abstract class: ";
+            msg += set.stream().reduce("", (a, b) -> a.isEmpty() ? b : a + ", " + b);
+        }
+        return new SemanticErrorException(msg, offendingSymbol);
     }
 }
