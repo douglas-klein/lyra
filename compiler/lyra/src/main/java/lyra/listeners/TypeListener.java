@@ -181,4 +181,14 @@ public class TypeListener extends ScopedBaseListener {
     		}
 		}
     }
+
+    @Override
+    public void exitCasedecl(LyraParser.CasedeclContext ctx) {
+        LyraParser.ExprContext switchExpr =
+                ((LyraParser.SwitchstatContext)ctx.getParent().getParent()).expr();
+        TypeSymbol switchType = table.getNodeType(switchExpr);
+        TypeSymbol caseType = table.getNodeType(ctx.expr());
+        if (!caseType.convertible(switchType))
+            throw notConvertibleException(ctx.expr(), switchType, caseType);
+    }
 }
