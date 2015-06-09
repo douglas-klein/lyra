@@ -7,6 +7,9 @@ import lyra.symbols.Symbol;
 import lyra.symbols.TypeSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  *
  */
@@ -66,5 +69,15 @@ public class AssertListener extends ScopedBaseListener {
             }
         }
 
+    }
+
+    @Override
+    public void exitClassdecl(LyraParser.ClassdeclContext ctx) {
+        ClassSymbol classSymbol = (ClassSymbol) table.getNodeSymbol(ctx);
+        List<MethodSymbol> abstractMethods = classSymbol.getMethods()
+                .filter(m -> m.isAbstract()).collect(Collectors.toList());
+        if(!classSymbol.isAbstract() && !abstractMethods.isEmpty() ){
+            reportSemanticException(abstractMethodException(ctx.IDENT(), abstractMethods));
+        }
     }
 }
