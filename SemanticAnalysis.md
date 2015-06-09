@@ -1,23 +1,21 @@
 ﻿## Análise Semântica
 
 ### Passos
-- Parsing (quase sem ação semântica)
-- Reescrita da árvore
-- Tabela de símbolos
+1. Reescrita da árvore
+2. Tabela de símbolos
   - Declarações (`DeclarationsListener`)
   - Resolução de Referências cruzadas (`ReferencesListener`)
-- Análise de regras semânticas
-  - Uso de variáveis locais antes da definição (`LocalVarUsageListener`)
-  - Construção da árvore de atributos `type` (`TypeListener`)
+3. Análise de regras semânticas
+  - Uso antes da definição de variáveis locais (`LocalVarUsageListener`)
+  - Síntese de atributos `type` (`TypeListener`)
     - Resolução de tipos e decoração da árvore
     - Solicita resolução de overloads de métodos
     - Algumas verificações oportunas de tipos (convertible, isA)
       - `X.isA(Y)` sse Y é uma classe ou interface ancestral de X
       - `X.convertible(Y)` sse `X.isA(Y)` ou `Y` possui um construtor cujo único 
          argumento é um `T` tal que `X.isA(T)`.
-  - Atributos `assert_*` da especificação semântica (`AssertListener`)
-  - Todos os métodos abstratos foram implementados? (`AbstractMethodListener`)
-  
+  - Outras regras (`assert_*`) da especificação semântica (`AssertListener`)
+
 
 #### Reescritas de subárvores
 
@@ -41,9 +39,6 @@ class RomanNumerals {
     Object __value = null;
     
     public def constructor(value : Int) : void {
-        this.__value = value;
-    }
-    public def constructor(value : String) : void {
         this.__value = value;
     }
     public def infix __equals(rhs : Object) : Bool {
@@ -99,16 +94,16 @@ protected static void replaceChild(ParseTree victim, ParserRuleContext parent,
 #### LocalVarUsageListener
 - Uma passada completa no programa
 - Estratégia: 
-  - Ao entrar em um método, crie um escopo raiz (não associado com a tabela de símbolos)
-  - Ao sair de um método, fique sem esse escopo, o que desativa verificações
-  - Ao encontrar uma referência à algum nome `nameFactor`:
-    - Encontre o método pai do nodo atual
+  - Ao entrar em um método, crie um escopo para esse método, com uma tabela de símbolos não associada a outras
+  - Ao encontrar uma referência a uma variável:
     - Reporte um erro se:
-      - O nome é local a esse método (consulta feita na tabela de símbolos), **E**;
-      - O nome não foi declarado na árvore de escopos privada desse listener, **OU**;
-      - Estamos dentro do statement onde o nome é declarado.
+      - A variável é local a esse método **E** ainda não foi vista por este listener, **OU**;
+      - Estamos dentro do statement onde o nome é declarado. Ex: `Int v1 = 0, v2 = v1;`
+  - Ao sair de um método, destrua o escopo atual
 
 #### TypeListener
+- Sintetiza o atributo `type` dos nós da árvore.
+- Aponta erro semântico caso não seja possível determinar o atributo `type` de algum nó.
 - Atributo computado em métodos `exit*` do listener.
 - Casos mais simples:
 ```java
@@ -149,7 +144,7 @@ public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
 ##### Resolução de Overloads
 - Algoritmo em `OverloadResolver.resolve(overloads, argTypes, allowConvertible)`
 - Lista preliminar vem de `stream = ClassSymbol.getOverloads(name)`
-  - Para todo `MethodSymbol m` em `stream`, não existe `n` em `stream` *tal que* `n` possui o mesmo nome **e** mesmo conjunto de argumentos **e** `n.parentClass().isA(m.parentClass()`.
+  - Para todo `MethodSymbol m` em `stream`, não existe `n` em `stream` *tal que* `n` possui o mesmo nome **e** mesmo conjunto de argumentos **e**  `classe(n) isA classe(m)`.
 - Simplificação de `OverloadResolver.resolve`:
 ```scala
 resolveImpl(overloads, argIdx, argTypes, allowConvertible) {
@@ -159,12 +154,12 @@ resolveImpl(overloads, argIdx, argTypes, allowConvertible) {
     return overloads.length == 1 ? overloads[0] : null; 
   }
   m = resolveImpl(
-    {m in overloads | m.argTypes[argIdx].isA(argTypes[argIdx])},
+    {m in overloads | argTypes[argIdx].isA(m.argTypes[argIdx])},
     argIdx + 1, argTypes, allowConvertible
   );
   if (!m && allowConvertible) {
     m = resolveImpl(
-      {m in overloads | m.argTypes[argIdx].convertible(argTypes[argIdx])},
+      {m in overloads | argTypes[argIdx].convertible(m.argTypes[argIdx])},
       argIdx + 1, argTypes, allowConvertible
     );
   }
@@ -193,14 +188,15 @@ public void exitReturnstat(LyraParser.ReturnstatContext ctx) {
 }
 ```
 
-#### AbstractMethodListener
 - Verifica se uma classe não abstrata implementou todos os métodos abstratos de 
   todas suas interfaces diretas ou indiretas.
 ```java
 public void exitClassdecl(ClassdeclContext ctx) {
 	ClassSymbol classSymbol = (ClassSymbol) table.getNodeSymbol(ctx);
-	List<MethodSymbol> abstractMethods = classSymbol.getOverloads()
-              .filter(m -> m.isAbstract()).collect(Collectors.toList());
+	List<MethodSymbol> abstractMethods = classSymbol.getMethods()
+              .filter(m -> m.isAbstract())
+              .collect(Collectors.toList());
+              
 	if(!classSymbol.isAbstract() && !abstractMethods.isEmpty() )
 		reportSemanticException(abstractMethodException(ctx.IDENT(), abstractMethods));
 }
