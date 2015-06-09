@@ -18,6 +18,7 @@ public class MethodSymbol extends ScopedSymbol {
     private LinkedHashMap<String, VariableSymbol> arguments = new LinkedHashMap<>();
     private ArrayList<TypeSymbol> cachedArgumentTypes;
     private boolean infix = false;
+    private boolean _abstract = false;
     private TypeSymbol returnType;
     private BaseScope scope;
 
@@ -52,6 +53,14 @@ public class MethodSymbol extends ScopedSymbol {
     public void setInfix(boolean infix) {
         this.infix = infix;
     }
+
+    public boolean isAbstract() {
+		return _abstract;
+	}
+
+	public void setAbstract(boolean _abstract) {
+		this._abstract = _abstract;
+	}
 
     /**
      * Upgrade any UnresolvedType anywhere in this method that has the same qualified names as

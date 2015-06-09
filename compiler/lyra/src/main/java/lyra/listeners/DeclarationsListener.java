@@ -28,6 +28,10 @@ public class DeclarationsListener extends ScopedBaseListener {
         } catch (SemanticErrorException e) {
             reportSemanticException(ctx.IDENT(), e);
         }
+
+        method.setInfix(ctx.INFIX() != null);
+        method.setAbstract(true);
+
         table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current
         Scope parentScope = currentScope;
@@ -57,6 +61,10 @@ public class DeclarationsListener extends ScopedBaseListener {
         } catch (SemanticErrorException e) {
             reportSemanticException(ctx.IDENT(), e);
         }
+
+        method.setInfix(ctx.INFIX() != null);
+        method.setAbstract(true);
+
         table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current
         currentScope = method; // Current scope is now function scope

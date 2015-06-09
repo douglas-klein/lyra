@@ -129,6 +129,29 @@ public class ClassSymbol extends TypeSymbol {
         return set;
     }
 
+
+    // Pega todos os overloads
+    public Stream<MethodSymbol> getOverloads() {
+        return getOverloadsImpl().stream().map(c -> c.getWrapped());
+    }
+
+    private HashSet<CandidateMethodSymbol> getOverloadsImpl() {
+
+        HashSet<CandidateMethodSymbol> set;
+        List<Symbol> list = new ArrayList<Symbol>();
+        members.values().forEach(l -> list.addAll(l));
+        set = list.stream()
+                .filter(s -> s instanceof MethodSymbol)
+                .map(s -> new CandidateMethodSymbol((MethodSymbol) s))
+                .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
+
+        if (superClass != null)
+            superClass.getOverloadsImpl().forEach(m -> set.add(m));
+
+        return set;
+    }
+
+
     @Override
     public MethodSymbol resolveOverload(String methodName, Collection<TypeSymbol> argTypes) {
         ArrayList<TypeSymbol> typesList = argTypes.stream()
