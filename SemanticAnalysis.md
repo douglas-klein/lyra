@@ -32,6 +32,11 @@ Várias sub-árvores são reescritas usando outro não terminal da gramática:
   - Pósfixados: ++ --
 - `enums` reescritos como classes
 ```scala
+enum RomanNumerals {
+    Zero, I, II, III
+}
+```
+```scala
 class RomanNumerals {
     Object __value = null;
     
@@ -46,16 +51,53 @@ class RomanNumerals {
     }
 }
 ```
-- TODO Descrever como reescrever
+##### Como reescrever
+- Crie objetos `LyraParser.*Context` fornecendo:
+  - Nodo pai do nodo falso
+  - `-1` como `invokingState`
+- Se usar um listener, use os métodos `exit*`
 ```java 
-    /* colocar código aqui */
+public void exitWhilestat(LyraParser.WhilestatContext ctx) {
+    ParserRuleContext parent = (ParserRuleContext)ctx.parent;
+    LyraParser.ForstatContext replacement = new LyraParser.ForstatContext(parent, -1);
+    //'for' varDecl?  ';'  expr ';' expr?  '{' statlist '}';
+
+    replacement.addChild(new CommonToken(LyraLexer.FOR, "for"));
+    replacement.addChild(new CommonToken(LyraLexer.SEMICOLON, ";"));
+
+    LyraParser.ExprContext expr = ctx.expr();
+    expr.parent = replacement;
+    replacement.addChild(expr);
+
+    replacement.addChild(new CommonToken(LyraLexer.SEMICOLON, ";"));
+    replacement.addChild(new CommonToken(LyraLexer.LEFTCURLYBRACE, "{"));
+
+    LyraParser.StatlistContext statlist = ctx.statlist();
+    statlist.parent = replacement;
+    replacement.addChild(statlist);
+
+    replacement.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
+
+    replaceChild(ctx, parent, replacement); //sets line on fake tokens and other stuff
+}
 ```
+- ANTLR4 não tem ferramentas para reescrita de árvores, criamos `replaceChild()` 
+  e outros métodos tentam compensar isso
 
 #### Verificação atributo semântico type
 > TODO: descrever TypeListener e mostrar resolução de overload
 
 #### LocalVarUsageListener
-> TODO mostrar pedaço do código
+- Uma passada completa no programa
+- Estratégia: 
+  - Ao entrar em um método, crie um escopo raiz (não associado com a tabela de símbolos)
+  - Ao sair de um método, fique sem esse escopo, o que desativa verificações
+  - Ao encontrar uma referência à algum nome `nameFactor`:
+    - Encontre o método pai do nodo atual
+    - Reporte um erro se:
+      - O nome é local a esse método (consulta feita na tabela de símbolos), **E**;
+      - O nome não foi declarado na árvore de escopos privada desse listener, **OU**;
+      - Estamos dentro do statement onde o nome é declarado.
 
 #### TypeListener
 > TODO mostrar epdaço do código
