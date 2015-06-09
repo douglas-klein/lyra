@@ -203,12 +203,25 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
         attrib.addChild(createSimpleVarDecl(attrib, "Object", "__value", null_));
         body.addChild(attrib);
 
-        addEnumConstructor(body, "Int");
-        addEnumConstructor(body, "String");
         addEnumEquals(body, ctx.IDENT().getText());
 
+        enumMembers = 0;
         enumRewritten.addChild(body);
+    }
 
+    @Override
+    public void enterUnnamedEnumBody(LyraParser.UnnamedEnumBodyContext ctx) {
+        addEnumConstructor(enumRewritten.classBody(), "Int");
+    }
+
+    @Override
+    public void enterIntEnumBody(LyraParser.IntEnumBodyContext ctx) {
+        addEnumConstructor(enumRewritten.classBody(), "Int");
+    }
+
+    @Override
+    public void enterStringEnumBody(LyraParser.StringEnumBodyContext ctx) {
+        addEnumConstructor(enumRewritten.classBody(), "String");
     }
 
     private void addEnumConstructor(LyraParser.ClassBodyContext body, String typeName) {
@@ -271,20 +284,18 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
     }
 
     @Override
-    public void exitNamedEnumItem(LyraParser.NamedEnumItemContext ctx) {
-        LyraParser.FactorContext factor = null;
-        String typeName = null;
-        if (ctx.STRING() != null) {
-            factor = new LyraParser.StringFactorContext(new LyraParser.FactorContext(ctx, -1));
-            factor.addChild(new CommonToken(LyraLexer.STRING, ctx.STRING().getText()));
-            typeName = "String";
-        } else if (ctx.NUMBER() != null)  {
-            factor = new LyraParser.NumberFactorContext(new LyraParser.FactorContext(ctx, -1));
-            factor.addChild(new NumberToken(LyraLexer.NUMBER, ctx.NUMBER().getText()));
-            typeName = "Int";
-        } else {
-            return; //WTF!?
-        }
+    public void exitStringEnumItem(LyraParser.StringEnumItemContext ctx) {
+        String typeName = "String";
+        LyraParser.FactorContext factor = new LyraParser.StringFactorContext(new LyraParser.FactorContext(ctx, -1));
+        factor.addChild(new CommonToken(LyraLexer.STRING, ctx.STRING().getText()));
+        addEnumItem(ctx.IDENT().getText(), typeName, factor);
+    }
+
+    @Override
+    public void exitIntEnumItem(LyraParser.IntEnumItemContext ctx) {
+        String typeName = "Int";
+        LyraParser.FactorContext factor = new LyraParser.NumberFactorContext(new LyraParser.FactorContext(ctx, -1));
+        factor.addChild(new NumberToken(LyraLexer.NUMBER, ctx.NUMBER().getText()));
         addEnumItem(ctx.IDENT().getText(), typeName, factor);
     }
 

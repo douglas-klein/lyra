@@ -220,7 +220,7 @@ public class SyntacticSugarListenerTests {
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(new SyntacticSugarListener(), compiler.getParseTree());
 
-        final boolean visited[] = {false, false, false, false};
+        final boolean visited[] = {false, false, false};
         walker.walk(new lyra.LyraParserBaseListener() {
             @Override
             public void exitClassdecl(LyraParser.ClassdeclContext ctx) {
@@ -238,8 +238,6 @@ public class SyntacticSugarListenerTests {
                 assertEquals(1, ctx.params().paramDecl().size());
                 if (ctx.params().paramDecl(0).type().getText().equals("Int")) {
                     visited[2] = true;
-                } else if (ctx.params().paramDecl(0).type().getText().equals("String")) {
-                    visited[3] = true;
                 }
 
                 assertTrue(Pattern.matches(".*__value\\s*=\\s*value.*",

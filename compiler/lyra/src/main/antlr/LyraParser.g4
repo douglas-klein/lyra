@@ -99,9 +99,11 @@ identList               : IDENT ( COMMA IDENT )* ;
 
 enumdecl                : ENUM IDENT LEFTCURLYBRACE enumBody RIGHTCURLYBRACE ;
 enumBody                : unamedEnumItem (COMMA unamedEnumItem)*    # unnamedEnumBody
-                        | namedEnumItem (COMMA namedEnumItem)*      # namedEnumBodys
+                        | stringEnumItem (COMMA stringEnumItem)*    # stringEnumBody
+                        | intEnumItem (COMMA intEnumItem)*          # intEnumBody
                         ;
 unamedEnumItem          : IDENT ;
-namedEnumItem           : IDENT EQUALOP ( STRING | NUMBER ) ;
+stringEnumItem          : IDENT EQUALOP STRING ;
+intEnumItem             : IDENT EQUALOP NUMBER ;
 
 
