@@ -78,14 +78,23 @@ public void exitWhilestat(LyraParser.WhilestatContext ctx) {
 
     replacement.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
 
-    replaceChild(ctx, parent, replacement); //sets line on fake tokens and other stuff
+    replaceChild(ctx, parent, replacement);
+}
+protected static void replaceChild(ParseTree victim, ParserRuleContext parent,
+                                   ParseTree replacement) {
+    int line = getNodeLine(victim);
+    if (line > 0)
+        updateNodeTokensLine(replacement, line);
+
+    final ListIterator<ParseTree> iterator = parent.children.listIterator();
+    while (iterator.hasNext()) {
+        if (iterator.next() == victim)
+            iterator.set(replacement);
+    }
 }
 ```
 - ANTLR4 não tem ferramentas para reescrita de árvores, criamos `replaceChild()` 
   e outros métodos tentam compensar isso
-
-#### Verificação atributo semântico type
-> TODO: descrever TypeListener e mostrar resolução de overload
 
 #### LocalVarUsageListener
 - Uma passada completa no programa
@@ -100,7 +109,42 @@ public void exitWhilestat(LyraParser.WhilestatContext ctx) {
       - Estamos dentro do statement onde o nome é declarado.
 
 #### TypeListener
-> TODO mostrar epdaço do código
+- Atributo computado em métodos `exit*` do listener.
+- Casos mais simples:
+```java
+public void exitBoolFactor(LyraParser.BoolFactorContext ctx) {
+    table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("Bool"));
+}
+public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
+    table.setNodeType(ctx, table.getNodeType(ctx.factor()));
+    table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.factor()));
+}
+```
+- Algumas verificações semânticas envolvendo `getNodeType()` são realizadas durante a construção:
+  - `throw` é usado pois a construção da árvore nem sempre pode continuar.
+```java
+public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
+    TypeSymbol factorType = table.getNodeType(ctx.factor());
+    List<TypeSymbol> types = getArgTypes(ctx.args());
+
+    if (types.isEmpty()) {
+        /* try field access before method call */
+        VariableSymbol field = factorType.resolveField(ctx.IDENT().getText());
+        if (field != null) {
+            if (!field.isClassField() && table.getExprIsClassInstance(ctx.factor()))
+                throw expectedInstanceValue(ctx.factor());
+            table.setNodeType(ctx, field.getType());
+            return;
+        }
+    }
+
+    /* method call */
+    MethodSymbol method = factorType.resolveOverload(ctx.IDENT().getText(), types);
+    if (method == null) 
+        throw overloadNotFoundException(ctx.IDENT(), types);
+    table.setNodeType(ctx, method.getReturnType());
+}
+```
 
 ##### Resolução de Overloads
 > TODO mostrar pedaço do código
