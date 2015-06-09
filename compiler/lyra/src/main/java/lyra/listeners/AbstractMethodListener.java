@@ -30,7 +30,7 @@ public class AbstractMethodListener extends ScopedBaseListener {
 	@Override
     public void exitClassdecl(ClassdeclContext ctx) {
 		ClassSymbol classSymbol = (ClassSymbol) table.getNodeSymbol(ctx);
-		List<MethodSymbol> abstractMethods = classSymbol.getOverloads()
+		List<MethodSymbol> abstractMethods = classSymbol.getMethods()
                 .filter(m -> m.isAbstract()).collect(Collectors.toList());
 		if(!classSymbol.isAbstract() && !abstractMethods.isEmpty() ){
 			reportSemanticException(abstractMethodException(ctx.IDENT(), abstractMethods));

@@ -36,22 +36,34 @@ public class InterfaceSymbol extends TypeSymbol {
         return null;
     }
 
-    private HashSet<CandidateMethodSymbol> getOverloadsImpl(String methodName) {
-        //See ClassSymbol.getOverloadsImpl().
+    private HashSet<CandidateMethodSymbol> getMethodsImpl(String methodName) {
+        //See ClassSymbol.getMethodsImpl().
 
         HashSet<CandidateMethodSymbol> set = members.get(methodName).stream()
                 .map(m -> new CandidateMethodSymbol(m))
                 .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
-        superInterfaces.forEach(i -> i.getOverloadsImpl(methodName).forEach(m -> set.add(m)));
+        superInterfaces.forEach(i -> i.getMethodsImpl(methodName).forEach(m -> set.add(m)));
         return set;
     }
-    private Stream<MethodSymbol> getOverloads(String methodName) {
-        return getOverloadsImpl(methodName).stream().map(c -> c.getWrapped());
+    public Stream<MethodSymbol> getMethods(String methodName) {
+        return getMethodsImpl(methodName).stream().map(c -> c.getWrapped());
+    }
+    private HashSet<CandidateMethodSymbol> getMethodsImpl() {
+        List<MethodSymbol> list = new LinkedList<>();
+        members.values().forEach(l -> list.addAll(l));
+        HashSet<CandidateMethodSymbol> set = list.stream()
+                .map(m -> new CandidateMethodSymbol(m))
+                .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
+        superInterfaces.forEach(i -> i.getMethodsImpl().forEach(m -> set.add(m)));
+        return set;
+    }
+    public Stream<MethodSymbol> getMethods() {
+        return getMethodsImpl().stream().map(c -> c.getWrapped());
     }
 
     @Override
     public MethodSymbol resolveOverload(String name, Collection<TypeSymbol> argTypes) {
-        return OverloadResolver.resolve(getOverloads(name), argTypes, true);
+        return OverloadResolver.resolve(getMethods(name), argTypes, true);
     }
 
     @Override

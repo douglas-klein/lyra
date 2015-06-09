@@ -131,11 +131,11 @@ public class ClassSymbol extends TypeSymbol {
 
 
     // Pega todos os overloads
-    public Stream<MethodSymbol> getOverloads() {
-        return getOverloadsImpl().stream().map(c -> c.getWrapped());
+    public Stream<MethodSymbol> getMethods() {
+        return getMethodsImpl().stream().map(c -> c.getWrapped());
     }
 
-    private HashSet<CandidateMethodSymbol> getOverloadsImpl() {
+    private HashSet<CandidateMethodSymbol> getMethodsImpl() {
 
         HashSet<CandidateMethodSymbol> set;
         List<Symbol> list = new ArrayList<Symbol>();
@@ -146,7 +146,10 @@ public class ClassSymbol extends TypeSymbol {
                 .collect(Collectors.toCollection(HashSet<CandidateMethodSymbol>::new));
 
         if (superClass != null)
-            superClass.getOverloadsImpl().forEach(m -> set.add(m));
+            superClass.getMethodsImpl().forEach(m -> set.add(m));
+        for (InterfaceSymbol iface : interfaceSymbols) {
+            iface.getMethods().forEach(m -> set.add(new CandidateMethodSymbol(m)));
+        }
 
         return set;
     }
