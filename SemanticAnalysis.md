@@ -172,4 +172,36 @@ resolveImpl(overloads, argIdx, argTypes, allowConvertible) {
 ```
 
 #### AssertListener
-> TODO mostrar pedaço do código
+- Checa todos os atributos semânticos `assert_*` da especificação semântica
+```java
+public void exitReturnstat(LyraParser.ReturnstatContext ctx) {
+    ParserRuleContext parent = ctx.getParent();
+    while (parent != null && !(parent instanceof LyraParser.MethodDeclContext)) 
+        parent = parent.getParent();
+    MethodSymbol method = (MethodSymbol) table.getNodeSymbol(parent);
+
+    if (method.getReturnType().isA(table.getPredefinedClass("void"))) {
+        if (ctx.expr() != null)
+            reportSemanticException(returnWithExpressionInVoidMethod(ctx));
+    } else {
+        if (ctx.expr() == null) {
+            reportSemanticException(returnWithoutExpression(ctx));
+        } else {
+            checkNodeIsConvertibleTo(ctx.expr(), method.getReturnType());
+        }
+    }
+}
+```
+
+#### AbstractMethodListener
+- Verifica se uma classe não abstrata implementou todos os métodos abstratos de 
+  todas suas interfaces diretas ou indiretas.
+```java
+public void exitClassdecl(ClassdeclContext ctx) {
+	ClassSymbol classSymbol = (ClassSymbol) table.getNodeSymbol(ctx);
+	List<MethodSymbol> abstractMethods = classSymbol.getOverloads()
+              .filter(m -> m.isAbstract()).collect(Collectors.toList());
+	if(!classSymbol.isAbstract() && !abstractMethods.isEmpty() )
+		reportSemanticException(abstractMethodException(ctx.IDENT(), abstractMethods));
+}
+```
