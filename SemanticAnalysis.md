@@ -78,14 +78,23 @@ public void exitWhilestat(LyraParser.WhilestatContext ctx) {
 
     replacement.addChild(new CommonToken(LyraLexer.RIGHTCURLYBRACE, "}"));
 
-    replaceChild(ctx, parent, replacement); //sets line on fake tokens and other stuff
+    replaceChild(ctx, parent, replacement);
+}
+protected static void replaceChild(ParseTree victim, ParserRuleContext parent,
+                                   ParseTree replacement) {
+    int line = getNodeLine(victim);
+    if (line > 0)
+        updateNodeTokensLine(replacement, line);
+
+    final ListIterator<ParseTree> iterator = parent.children.listIterator();
+    while (iterator.hasNext()) {
+        if (iterator.next() == victim)
+            iterator.set(replacement);
+    }
 }
 ```
 - ANTLR4 não tem ferramentas para reescrita de árvores, criamos `replaceChild()` 
   e outros métodos tentam compensar isso
-
-#### Verificação atributo semântico type
-> TODO: descrever TypeListener e mostrar resolução de overload
 
 #### LocalVarUsageListener
 - Uma passada completa no programa
@@ -100,10 +109,99 @@ public void exitWhilestat(LyraParser.WhilestatContext ctx) {
       - Estamos dentro do statement onde o nome é declarado.
 
 #### TypeListener
-> TODO mostrar epdaço do código
+- Atributo computado em métodos `exit*` do listener.
+- Casos mais simples:
+```java
+public void exitBoolFactor(LyraParser.BoolFactorContext ctx) {
+    table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("Bool"));
+}
+public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
+    table.setNodeType(ctx, table.getNodeType(ctx.factor()));
+    table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.factor()));
+}
+```
+- Algumas verificações semânticas envolvendo `getNodeType()` são realizadas durante a construção:
+  - `throw` é usado pois a construção da árvore nem sempre pode continuar.
+```java
+public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
+    TypeSymbol factorType = table.getNodeType(ctx.factor());
+    List<TypeSymbol> types = getArgTypes(ctx.args());
+
+    if (types.isEmpty()) {
+        /* try field access before method call */
+        VariableSymbol field = factorType.resolveField(ctx.IDENT().getText());
+        if (field != null) {
+            if (!field.isClassField() && table.getExprIsClassInstance(ctx.factor()))
+                throw expectedInstanceValue(ctx.factor());
+            table.setNodeType(ctx, field.getType());
+            return;
+        }
+    }
+
+    /* method call */
+    MethodSymbol method = factorType.resolveOverload(ctx.IDENT().getText(), types);
+    if (method == null) 
+        throw overloadNotFoundException(ctx.IDENT(), types);
+    table.setNodeType(ctx, method.getReturnType());
+}
+```
 
 ##### Resolução de Overloads
-> TODO mostrar pedaço do código
+- Algoritmo em `OverloadResolver.resolve(overloads, argTypes, allowConvertible)`
+- Lista preliminar vem de `stream = ClassSymbol.getOverloads(name)`
+  - Para todo `MethodSymbol m` em `stream`, não existe `n` em `stream` *tal que* `n` possui o mesmo nome **e** mesmo conjunto de argumentos **e** `n.parentClass().isA(m.parentClass()`.
+- Simplificação de `OverloadResolver.resolve`:
+```scala
+resolveImpl(overloads, argIdx, argTypes, allowConvertible) {
+  if (argIdx == argTypes.length) {
+    //leaves only the overloads with the most specialized argument types
+    overloads = fixAmbiguity(overloads);
+    return overloads.length == 1 ? overloads[0] : null; 
+  }
+  m = resolveImpl(
+    {m in overloads | m.argTypes[argIdx].isA(argTypes[argIdx])},
+    argIdx + 1, argTypes, allowConvertible
+  );
+  if (!m && allowConvertible) {
+    m = resolveImpl(
+      {m in overloads | m.argTypes[argIdx].convertible(argTypes[argIdx])},
+      argIdx + 1, argTypes, allowConvertible
+    );
+  }
+}
+```
 
 #### AssertListener
-> TODO mostrar pedaço do código
+- Checa todos os atributos semânticos `assert_*` da especificação semântica
+```java
+public void exitReturnstat(LyraParser.ReturnstatContext ctx) {
+    ParserRuleContext parent = ctx.getParent();
+    while (parent != null && !(parent instanceof LyraParser.MethodDeclContext)) 
+        parent = parent.getParent();
+    MethodSymbol method = (MethodSymbol) table.getNodeSymbol(parent);
+
+    if (method.getReturnType().isA(table.getPredefinedClass("void"))) {
+        if (ctx.expr() != null)
+            reportSemanticException(returnWithExpressionInVoidMethod(ctx));
+    } else {
+        if (ctx.expr() == null) {
+            reportSemanticException(returnWithoutExpression(ctx));
+        } else {
+            checkNodeIsConvertibleTo(ctx.expr(), method.getReturnType());
+        }
+    }
+}
+```
+
+#### AbstractMethodListener
+- Verifica se uma classe não abstrata implementou todos os métodos abstratos de 
+  todas suas interfaces diretas ou indiretas.
+```java
+public void exitClassdecl(ClassdeclContext ctx) {
+	ClassSymbol classSymbol = (ClassSymbol) table.getNodeSymbol(ctx);
+	List<MethodSymbol> abstractMethods = classSymbol.getOverloads()
+              .filter(m -> m.isAbstract()).collect(Collectors.toList());
+	if(!classSymbol.isAbstract() && !abstractMethods.isEmpty() )
+		reportSemanticException(abstractMethodException(ctx.IDENT(), abstractMethods));
+}
+```
