@@ -3,8 +3,6 @@ package lyra.listeners;
 import lyra.LyraParser;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
-import lyra.symbols.ClassSymbol;
-import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 import lyra.symbols.VariableSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -59,7 +57,7 @@ public class LocalVarUsageListener extends ScopedBaseListener {
      * Returns true iff name is a variable that is either undefined or defined inside the
      * current method.
      */
-    private boolean isMethodLocalVar(String name) {
+    private boolean isLocalVar(String name) {
         Symbol symbol = currentScope.resolve(name);
         if (symbol != null && symbol instanceof VariableSymbol) {
             return methodScope.getEnclosingScope().resolve(name) == null;
@@ -132,7 +130,7 @@ public class LocalVarUsageListener extends ScopedBaseListener {
             return;
 
         String name = ctx.IDENT().getText();
-        if (isMethodLocalVar(name) && !isDeclared(name) || isBeingDeclared(name)) {
+        if (isLocalVar(name) && !isDeclared(name) || isBeingDeclared(name)) {
             /* within method scope and sub-scopes, referencing a name before it's declarationi
              * (inside a varDecl non-terminal) is illegal.
              * Also accessing a variable from the varDecl where it was declared is illegal. */
