@@ -140,6 +140,16 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     }
 
     @Override
+    public void enterCasedecl(LyraParser.CasedeclContext ctx) {
+        beginScopeVisit(false, ctx);
+    }
+
+    @Override
+    public void exitCasedecl(LyraParser.CasedeclContext ctx) {
+        endScopeVisit(false, ctx);
+    }
+
+    @Override
     public void enterIfstat(LyraParser.IfstatContext ctx) {
         beginScopeVisit(false, ctx);
     }
