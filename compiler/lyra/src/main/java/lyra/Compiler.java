@@ -75,7 +75,7 @@ public class Compiler {
         } catch (SemanticErrorException e) {
             getErrorListener().semanticError(parser, e);
         }
-
+u
         return getErrorListener().getNumberOfErrors() == 0;
     }
 
