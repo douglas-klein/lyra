@@ -248,4 +248,10 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         }
         return new SemanticErrorException(msg, offendingSymbol);
     }
+    
+    protected SemanticErrorException inheritInFinalClassException(Object offendingSymbol) {
+    	return new SemanticErrorException("Attempt to inherit a final class", offendingSymbol);
+	}
+
+
 }

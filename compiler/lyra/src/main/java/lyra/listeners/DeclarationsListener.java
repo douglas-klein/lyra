@@ -4,11 +4,17 @@ import lyra.Compiler;
 import lyra.LyraParser;
 import lyra.SemanticErrorException;
 import lyra.scopes.BaseScope;
-import lyra.symbols.*;
 import lyra.scopes.Scope;
+import lyra.symbols.ClassSymbol;
+import lyra.symbols.InterfaceSymbol;
+import lyra.symbols.MethodSymbol;
+import lyra.symbols.Symbol;
+import lyra.symbols.TypeSymbol;
+import lyra.symbols.UnresolvedType;
+import lyra.symbols.VariableSymbol;
+import lyra.symbols.Visibility;
+
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class DeclarationsListener extends ScopedBaseListener {
@@ -83,11 +89,9 @@ public class DeclarationsListener extends ScopedBaseListener {
     @Override
     public void enterClassdecl(lyra.LyraParser.ClassdeclContext ctx) {
         String className = ctx.IDENT().getText();
-        Symbol superClass = null;
 
-        //start extending Object, soon we will enter extendsdecl and refine this
-        ClassSymbol clas = new ClassSymbol(className, currentScope,
-                table.getPredefinedClass("Object"));
+        //Starts extending Object, soon we will enter extendsdecl and refine this
+        ClassSymbol clas = new ClassSymbol(className, currentScope, table.getPredefinedClass("Object"));
         clas.setFinal(ctx.FINAL() != null);
         clas.setAbstract(ctx.ABSTRACT() != null);
 
@@ -119,6 +123,10 @@ public class DeclarationsListener extends ScopedBaseListener {
         if (superClass.isA(classSymbol)) {
             reportSemanticException(classInheritanceCycleException(ctx.IDENT()));
             return;
+        }
+        
+        if(superClass.isFinal()){
+        	reportSemanticException(inheritInFinalClassException(ctx.IDENT()));
         }
 
         classSymbol.setSuperClass(superClass);
