@@ -55,8 +55,12 @@ class OverloadResolver {
         TypeSymbol mostSpecialized = list.get(0).getArgumentTypes().get(argIdx);
         for (int i = 1; i < list.size(); ++i) {
             TypeSymbol candidate = list.get(i).getArgumentTypes().get(argIdx);
-            if (candidate.isA(mostSpecialized) && !mostSpecialized.isA(candidate))
+            boolean candidateIsA = candidate.isA(mostSpecialized);
+            boolean mostIsA = mostSpecialized.isA(candidate);
+            if (candidateIsA && !mostIsA)
                 mostSpecialized = candidate;
+            else if (!candidateIsA && !mostIsA)
+                return null; //ambiguity
         }
         final TypeSymbol finalMostSpecialized = mostSpecialized;
 
