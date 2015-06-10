@@ -43,8 +43,6 @@ public class SyntacticSugarListenerTests {
             }
         }, compiler.getParseTree());
 
-        compiler.getParseTree().inspect(compiler.getParser());
-
         assertTrue(listenerAsserts[0]);
     }
 
