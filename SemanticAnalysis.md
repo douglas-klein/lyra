@@ -1,11 +1,12 @@
 ﻿## Análise Semântica
 
 ### Passos
-1. Reescrita da árvore
-2. Tabela de símbolos
+1. Processamento de imports
+2. Reescrita de sub-árvores
+3. Tabela de símbolos
   - Declarações (`DeclarationsListener`)
   - Resolução de Referências cruzadas (`ReferencesListener`)
-3. Análise de regras semânticas
+4. Análise de regras semânticas
   - Uso antes da definição de variáveis locais (`LocalVarUsageListener`)
   - Síntese de atributos `type` (`TypeListener`)
     - Resolução de tipos e decoração da árvore
@@ -16,6 +17,11 @@
          argumento é um `T` tal que `X.isA(T)`.
   - Outras regras (`assert_*`) da especificação semântica (`AssertListener`)
 
+
+#### Imports
+- `importdecl -> import STRING ';'` `STRING` deve ser o caminho de um arquivo, relativo ao arquivo sendo compilado
+- Cada import cria um novo `Compiler` e realiza apenas o parsing do arquivo importado
+- Todos os filhos de `program` são importados como filhos de `importdecl`
 
 #### Reescritas de subárvores
 
