@@ -19,7 +19,8 @@
 
 
 #### Imports
-- `importdecl -> import STRING ';'` `STRING` deve ser o caminho de um arquivo, relativo ao arquivo sendo compilado
+- `importdecl -> import STRING ';'` 
+  - `STRING` deve ser o caminho de um arquivo, relativo ao arquivo sendo compilado
 - Cada import cria um novo `Compiler` e realiza apenas o parsing do arquivo importado
 - Todos os filhos de `program` são importados como filhos de `importdecl`
 
