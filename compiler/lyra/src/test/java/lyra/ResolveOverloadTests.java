@@ -9,6 +9,7 @@ import lyra.symbols.TypeSymbol;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ResolveOverloadTests {
     @Test
-    public void testSingleCandidateResolve() throws IOException {
+    public void testSingleCandidateResolve() throws Exception {
         Compiler compiler = analyse();
         Scope global = compiler.getSymbolTable().getGlobal();
         Symbol symbol = global.resolve("A");
@@ -39,7 +40,7 @@ public class ResolveOverloadTests {
     }
 
     @Test
-    public void testGetSingleCandidateSpecializedArgumentGeneralizedParameter() throws IOException {
+    public void testGetSingleCandidateSpecializedArgumentGeneralizedParameter() throws Exception {
         Compiler compiler = analyse();
         Scope global = compiler.getSymbolTable().getGlobal();
         ClassSymbol classSymbol = (ClassSymbol) global.resolve("A");
@@ -57,7 +58,7 @@ public class ResolveOverloadTests {
     }
 
     @Test
-    public void testGetMoreSpecializedOverload() throws IOException {
+    public void testGetMoreSpecializedOverload() throws Exception {
         Compiler compiler = analyse();
         Scope global = compiler.getSymbolTable().getGlobal();
         ClassSymbol classSymbol = (ClassSymbol) global.resolve("A");
@@ -71,7 +72,7 @@ public class ResolveOverloadTests {
     }
 
     @Test
-    public void testGetMoreSpecializedOverloadFromSuperclass() throws IOException {
+    public void testGetMoreSpecializedOverloadFromSuperclass() throws Exception {
         Compiler compiler = analyse();
         Scope global = compiler.getSymbolTable().getGlobal();
         ClassSymbol classSymbol = (ClassSymbol) global.resolve("A");
@@ -85,7 +86,7 @@ public class ResolveOverloadTests {
     }
 
     @Test
-    public void testResolveAmbiguityChoosingFromSecondArg() throws IOException {
+    public void testResolveAmbiguityChoosingFromSecondArg() throws Exception {
         Compiler compiler = analyse();
         Scope global = compiler.getSymbolTable().getGlobal();
         ClassSymbol classSymbol = (ClassSymbol)global.resolve("A");
@@ -100,7 +101,7 @@ public class ResolveOverloadTests {
     }
 
     @Test
-    public void testResolveByIsAThenConvertible() throws IOException {
+    public void testResolveByIsAThenConvertible() throws Exception {
         Compiler compiler = analyse();
         Scope global = compiler.getSymbolTable().getGlobal();
         ClassSymbol classSymbol = (ClassSymbol)global.resolve("A");
@@ -145,15 +146,14 @@ public class ResolveOverloadTests {
         assertNotNull(methodSymbol);
     }
 
-    private Compiler analyse() throws IOException {
+    private Compiler analyse() throws Exception {
         return analyse("samples/MethodOverloads.ly");
     }
 
-    private Compiler analyse(String path) throws IOException {
+    private Compiler analyse(String path) throws Exception {
         Compiler compiler = new Compiler();
         ClassLoader loader = getClass().getClassLoader();
-        InputStream stream = loader.getResourceAsStream(path);
-        compiler.init(new InputStreamReader(stream));
+        compiler.init(new File(loader.getResource(path).toURI()));
         compiler.analyse();
         return compiler;
     }

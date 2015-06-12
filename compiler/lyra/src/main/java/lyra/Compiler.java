@@ -9,8 +9,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Compiler {
 
@@ -21,8 +22,25 @@ public class Compiler {
     private lyra.LyraLexer lexer;
     private ParseTreeProperty<Scope> treeScopes;
     private SymbolTable symbolTable;
+    private List<File> includeDirs = new ArrayList<>();
+
+    public void init(File file) throws IOException {
+        init(new FileReader(file), file);
+    }
 
     public void init(Reader input) throws IOException {
+        init(input, null);
+    }
+
+    public void init(Reader input, File fileOrFileDir) throws IOException {
+        if (fileOrFileDir != null) {
+            if (!fileOrFileDir.isDirectory())
+                fileOrFileDir = fileOrFileDir.getParentFile();
+            if (fileOrFileDir == null)
+                fileOrFileDir = new File(".");
+            includeDirs.add(0, fileOrFileDir);
+        }
+
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
         lexer = new lyra.LyraLexer(antlrIn);
         lexer.removeErrorListeners();
@@ -63,6 +81,7 @@ public class Compiler {
 
     public boolean analyse() {
         if (!parse()) return false;
+        if (!processImports()) return false;
         rewriteSugar();
 
         if (!fillSymbolTable()) return false;
@@ -75,6 +94,13 @@ public class Compiler {
         } catch (SemanticErrorException e) {
             getErrorListener().semanticError(parser, e);
         }
+
+        return getErrorListener().getNumberOfErrors() == 0;
+    }
+
+    private boolean processImports() {
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new ImportRewriterListener(this), parseTree);
 
         return getErrorListener().getNumberOfErrors() == 0;
     }
@@ -111,5 +137,19 @@ public class Compiler {
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
+    }
+
+    public void setErrorListener(ErrorListener errorListener) {
+        this.errorListener = errorListener;
+    }
+
+    public File resolveInclude(String fileName) {
+        for (File dir : includeDirs) {
+            if (dir == null) System.err.println("null dir");
+            File[] files = dir.listFiles(f -> f.getName().equals(fileName));
+            if (files.length > 0)
+                return files[0];
+        }
+        return null;
     }
 }

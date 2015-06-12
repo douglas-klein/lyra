@@ -5,8 +5,8 @@ import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.Test;
 
-import javax.net.ssl.SSLContext;
 import java.io.*;
+import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
 import static junit.framework.TestCase.assertTrue;
@@ -21,12 +21,10 @@ import static org.junit.Assert.assertNull;
 public class SyntacticSugarListenerTests {
 
     @Test
-    public void testRewriteWhile() throws IOException {
+    public void testRewriteWhile() throws Exception {
         Compiler compiler = new Compiler();
 
-        InputStreamReader reader = getReader("samples/WhileAsFor.ly");
-        assertNotNull(reader);
-        compiler.init(reader);
+        compiler.init(getFile("samples/WhileAsFor.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -46,19 +44,15 @@ public class SyntacticSugarListenerTests {
         assertTrue(listenerAsserts[0]);
     }
 
-    private InputStreamReader getReader(String name) {
+    private File getFile(String name) throws URISyntaxException {
         ClassLoader loader = getClass().getClassLoader();
-        InputStream stream = loader.getResourceAsStream(name);
-        InputStreamReader reader = new InputStreamReader(stream);
-        return reader;
+        return new File(loader.getResource(name).toURI());
     }
 
     @Test
     public void testRewriteBinaryOperators() throws Exception {
         Compiler compiler = new Compiler();
-        InputStreamReader reader = getReader("samples/RewriteBinaryOperators.ly");
-        assertNotNull(reader);
-        compiler.init(reader);
+        compiler.init(getFile("samples/RewriteBinaryOperators.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -87,9 +81,7 @@ public class SyntacticSugarListenerTests {
     @Test
     public void testRewritePrefixNot() throws Exception {
         Compiler compiler = new Compiler();
-        InputStreamReader reader = getReader("samples/RewritePrefixNot.ly");
-        assertNotNull(reader);
-        compiler.init(reader);
+        compiler.init(getFile("samples/RewritePrefixNot.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -125,9 +117,7 @@ public class SyntacticSugarListenerTests {
     @Test
     public void testChainedPostFix() throws Exception {
         Compiler compiler = new Compiler();
-        InputStreamReader reader = getReader("samples/RewriteChainedIncrement.ly");
-        assertNotNull(reader);
-        compiler.init(reader);
+        compiler.init(getFile("samples/RewriteChainedIncrement.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -175,9 +165,7 @@ public class SyntacticSugarListenerTests {
     @Test
     public void testRewriteForever() throws Exception {
         Compiler compiler = new Compiler();
-        InputStreamReader reader = getReader("samples/RewriteForever.ly");
-        assertNotNull(reader);
-        compiler.init(reader);
+        compiler.init(getFile("samples/RewriteForever.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -212,7 +200,7 @@ public class SyntacticSugarListenerTests {
     @Test
     public void testUnamedEnumAsClass() throws Exception {
         Compiler compiler = new Compiler();
-        compiler.init(getReader("samples/Enums.ly"));
+        compiler.init(getFile("samples/Enums.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -268,7 +256,7 @@ public class SyntacticSugarListenerTests {
     @Test
     public void testStringEnumAsClass() throws Exception {
         Compiler compiler = new Compiler();
-        compiler.init(getReader("samples/StringEnums.ly"));
+        compiler.init(getFile("samples/StringEnums.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();

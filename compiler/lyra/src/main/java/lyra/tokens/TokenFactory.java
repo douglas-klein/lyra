@@ -24,6 +24,9 @@ public class TokenFactory extends CommonTokenFactory {
             case LyraLexer.NUMBER:
                 token = new NumberToken(source, type, channel, start, stop);
                 break;
+            case LyraLexer.STRING:
+                token = new StringToken(source, type, channel, start, stop);
+                break;
             default:
                 return super.create(source, type, text, channel, start, stop, line, charPositionInLine);
         }
@@ -44,6 +47,8 @@ public class TokenFactory extends CommonTokenFactory {
         switch (type) {
             case LyraLexer.NUMBER:
                 return new NumberToken(type, text);
+            case LyraLexer.STRING:
+                return new StringToken(type, text);
             default:
                 break;
         }

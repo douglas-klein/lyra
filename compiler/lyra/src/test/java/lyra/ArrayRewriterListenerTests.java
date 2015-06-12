@@ -1,13 +1,16 @@
 package lyra;
 
 import lyra.LyraParser;
+import lyra.LyraLexer;
 import lyra.listeners.ArrayRewriterListener;
 import lyra.listeners.SyntacticSugarListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
@@ -19,18 +22,20 @@ import static org.junit.Assert.assertTrue;
  */
 public class ArrayRewriterListenerTests {
 
-    private InputStreamReader getReader(String name) {
+    private File getFile(String name) {
         ClassLoader loader = getClass().getClassLoader();
-        InputStream stream = loader.getResourceAsStream(name);
-        InputStreamReader reader = new InputStreamReader(stream);
-        return reader;
+        try {
+            return new File(loader.getResource(name).toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Test
     public void testRewrite1DArrayType() throws Exception {
         Compiler compiler = new Compiler();
-        InputStreamReader reader = getReader("samples/Rewrite1DArrayAccess.ly");
-        compiler.init(reader);
+        compiler.init(getFile("samples/Rewrite1DArrayAccess.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -56,7 +61,7 @@ public class ArrayRewriterListenerTests {
     @Test
     public void testRewriteNAryArrayType() throws Exception {
         Compiler compiler = new Compiler();
-        compiler.init(getReader("samples/ArraysDeclaration.ly"));
+        compiler.init(getFile("samples/ArraysDeclaration.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -93,8 +98,7 @@ public class ArrayRewriterListenerTests {
     @Test
     public void testRewriteArrayAccess() throws Exception {
         Compiler compiler = new Compiler();
-        InputStreamReader reader = getReader("samples/Rewrite1DArrayAccess.ly");
-        compiler.init(reader);
+        compiler.init(getFile("samples/Rewrite1DArrayAccess.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -152,7 +156,7 @@ public class ArrayRewriterListenerTests {
     @Test
     public void testRewrite2DArrayAccess() throws Exception {
         Compiler compiler = new Compiler();
-        compiler.init(getReader("samples/Rewrite2DArrayAccess.ly"));
+        compiler.init(getFile("samples/Rewrite2DArrayAccess.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();
@@ -212,7 +216,7 @@ public class ArrayRewriterListenerTests {
     @Test
     public void testRewriteArrayConstructor() throws Exception {
         Compiler compiler = new Compiler();
-        compiler.init(getReader("samples/Rewrite2DArrayAccess.ly"));
+        compiler.init(getFile("samples/Rewrite2DArrayAccess.ly"));
         assertTrue(compiler.parse());
 
         ParseTreeWalker walker = new ParseTreeWalker();

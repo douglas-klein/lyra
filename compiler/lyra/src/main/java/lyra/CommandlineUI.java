@@ -15,10 +15,7 @@ import lyra.LyraParser;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -108,10 +105,11 @@ public class CommandlineUI {
     }
 
     public boolean compileFile(String path) throws IOException {
-        return compile(new BufferedReader(new FileReader(path)));
+        File file = new File(path);
+        return compile(new BufferedReader(new FileReader(file)), file);
     }
 
-    public boolean compile(Reader input) throws IOException {
+    public boolean compile(Reader input, File fileOrParentDir) throws IOException {
         Compiler compiler = new Compiler();
         if (verboseErrors)
             compiler.getErrorListener().setVerbosity(Verbosity.VERBOSE);
@@ -119,7 +117,7 @@ public class CommandlineUI {
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
 
         compiler.setLemonadeRecovery(lemonadeRecovery);
-        compiler.init(input);
+        compiler.init(input, fileOrParentDir);
 
         boolean ok = compiler.compile();
         notifyUserInterfaceOpen();

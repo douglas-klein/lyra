@@ -22,8 +22,7 @@ public class CompilerTests {
         Compiler compiler = new Compiler();
 
         ClassLoader loader = this.getClass().getClassLoader();
-        InputStream stream = loader.getResourceAsStream("samples/HelloWorld.ly");
-        compiler.init(new InputStreamReader(stream));
+        compiler.init(new File(loader.getResource("samples/HelloWorld.ly").toURI()));
         assertTrue(compiler.compile());
     }
 
@@ -35,7 +34,7 @@ public class CompilerTests {
         assertNotNull(samplesDir);
         for (File file : samplesDir.listFiles()) {
             Compiler compiler = new Compiler();
-            compiler.init(new FileReader(file));
+            compiler.init(file);
             assertTrue(file.getName() + " didn't compile properly!", compiler.compile());
         }
     }
@@ -49,7 +48,7 @@ public class CompilerTests {
         for (File file : samplesDir.listFiles()) {
             Compiler compiler = new Compiler();
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
-            compiler.init(new FileReader(file));
+            compiler.init(file);
             assertFalse(file.getName() + " compiled without error!", compiler.compile());
         }
     }
@@ -64,7 +63,7 @@ public class CompilerTests {
             System.err.println(file.getName());
             Compiler compiler = new Compiler();
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
-            compiler.init(new FileReader(file));
+            compiler.init(file);
             assertFalse(file.getName() + " compiled without error!", compiler.compile());
         }
     }
