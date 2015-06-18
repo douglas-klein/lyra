@@ -13,7 +13,7 @@ public class Input extends AbstractPredefinedSymbol {
             forwardMethod(c, "open", "Bool", false, new ArgumentStrings("String", "filename"));
             forwardMethod(c, "hasError", "Bool", false);
             forwardMethod(c, "peek", "String", false);
-            forwardMethod(c, "read", "String", false, new ArgumentStrings("Number", "count"));
+            forwardMethod(c, "read", "String", false, new ArgumentStrings("Int", "count"));
             forwardMethod(c, "readLine", "String", false);
             defineClass(scope, c);
 
