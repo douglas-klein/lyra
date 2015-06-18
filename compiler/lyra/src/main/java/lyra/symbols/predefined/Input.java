@@ -11,8 +11,10 @@ public class Input extends AbstractPredefinedSymbol {
         ClassSymbol c = new ClassSymbol("Input", scope, (ClassSymbol)scope.resolve("Object"));
         try {
             forwardMethod(c, "open", "Bool", false, new ArgumentStrings("String", "filename"));
+            forwardMethod(c, "close", "Void", false);
+            forwardMethod(c, "isOpen", "Bool", false);
             forwardMethod(c, "hasError", "Bool", false);
-            forwardMethod(c, "peek", "String", false);
+            forwardMethod(c, "atEnd", "Bool", false);
             forwardMethod(c, "read", "String", false, new ArgumentStrings("Int", "count"));
             forwardMethod(c, "readLine", "String", false);
             defineClass(scope, c);

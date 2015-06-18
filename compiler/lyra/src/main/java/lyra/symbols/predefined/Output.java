@@ -12,6 +12,8 @@ public class Output extends AbstractPredefinedSymbol {
         ClassSymbol c = new ClassSymbol("Output", scope, (ClassSymbol)scope.resolve("Object"));
         try {
             forwardMethod(c, "open", "Bool", false, new ArgumentStrings("String", "filename"));
+            forwardMethod(c, "close", "Void", false);
+            forwardMethod(c, "flush", "Void", false);uu
             forwardMethod(c, "hasError", "Bool", false);
             forwardMethod(c, "write",   "void", false, new ArgumentStrings("String", "text"));
             forwardMethod(c, "write",   "void", false, new ArgumentStrings("Object", "obj"));
