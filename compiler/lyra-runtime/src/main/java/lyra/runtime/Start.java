@@ -16,11 +16,11 @@ import java.nio.file.Path;
  */
 public class Start {
     private static int nextId = 1;
-    static Object lyra_null = new Null();
-    static Bool lyra_false = Bool._false;
-    static Bool lyra_true = Bool._true;
-    static Output lyra_out = new StandardOutput();
-    static Input lyra_in = new StandardInput();
+    public static Object lyra_null = new Null();
+    public static Bool lyra_false = Bool._false;
+    public static Bool lyra_true = Bool._true;
+    public static Output lyra_out = new StandardOutput();
+    public static Input lyra_in = new StandardInput();
 
     public static int makeId() {
         return nextId++;
