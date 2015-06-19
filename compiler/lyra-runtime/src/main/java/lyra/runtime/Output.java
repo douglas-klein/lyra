@@ -6,12 +6,12 @@ import java.io.*;
  *
  */
 public class Output extends Object {
-    BufferedWriter writer;
+    Writer writer;
     Bool errorFlag = Bool._false;
 
     protected Output(OutputStream stream) {
         if (stream != null) {
-            writer = new BufferedWriter(new OutputStreamWriter(stream));
+            writer = new OutputStreamWriter(stream);
         }
     }
     public Output() {
@@ -74,9 +74,13 @@ public class Output extends Object {
     }
 
     public Void lyra_writeln(String text) {
-        return lyra_write(new String(text.valueOf() + "\n"));
+        Void v = lyra_write(new String(text.valueOf() + "\n"));
+        lyra_flush();
+        return v;
     }
     public Void lyra_writeln(Object obj) {
-        return lyra_writeln(obj.lyra_toString());
+        Void v = lyra_writeln(obj.lyra_toString());
+        lyra_flush();
+        return v;
     }
 }
