@@ -15,6 +15,13 @@ group = 'lyra.runtime'
 version = '1.0'
 archivesBaseName = 'lyra-runtime'
 
+jar {
+    manifest {
+        attributes 'Main-Class' : 'lyra.runtime.Start'
+    }
+
+}
+
 // In this section you declare where to find the dependencies of your project
 repositories {
     // Use 'jcenter' for resolving your dependencies.

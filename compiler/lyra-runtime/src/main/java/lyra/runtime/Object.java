@@ -1,13 +1,21 @@
 package lyra.runtime;
 
 public class Object {
-    public Int lyra___id = new Int(0);
+    private int id;
 
+    protected Object(int id) {
+        this.id = id;
+    }
+    public Object() {
+        this(Start.makeId());
+    }
+
+    public Int lyra___id() { return new Int(id); }
     public String lyra_toString() {
-        return new String("Object(" + lyra___id + ")");
+        return new String("Object(" + lyra___id().lyra_toString().valueOf() + ")");
     }
     public Bool lyra___equals(Object rhs) {
-        if (lyra___id.lyra___equals(rhs.lyra___id).valueOf())
+        if (lyra___id().lyra___equals(rhs.lyra___id()).valueOf())
             return Bool._true;
         return Bool._false;
     }
@@ -15,6 +23,6 @@ public class Object {
         return lyra___equals(rhs).lyra___not();
     }
     public Bool lyra___is(Object rhs) {
-        return lyra___id.lyra___equals(rhs.lyra___id);
+        return lyra___id().lyra___equals(rhs.lyra___id());
     }
 }
