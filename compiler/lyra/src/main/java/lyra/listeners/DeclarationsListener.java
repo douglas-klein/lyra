@@ -37,6 +37,9 @@ public class DeclarationsListener extends ScopedBaseListener {
 
         method.setInfix(ctx.INFIX() != null);
         method.setAbstract(false);
+        method.setVisibility(Visibility.fromName(ctx.VISIBILITYMODIFIER() != null
+                ? ctx.VISIBILITYMODIFIER().getText()
+                : "public"));
 
         table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current
@@ -70,6 +73,9 @@ public class DeclarationsListener extends ScopedBaseListener {
 
         method.setInfix(ctx.INFIX() != null);
         method.setAbstract(true);
+        method.setVisibility(Visibility.fromName(ctx.VISIBILITYMODIFIER() != null
+                ? ctx.VISIBILITYMODIFIER().getText()
+                : "public"));
 
         table.setNodeSymbol(ctx, method);
         saveScope(ctx, method);// Push: set function's parent to current
