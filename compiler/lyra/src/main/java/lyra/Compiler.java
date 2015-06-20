@@ -10,6 +10,8 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +25,9 @@ public class Compiler {
     private ParseTreeProperty<Scope> treeScopes;
     private SymbolTable symbolTable;
     private List<File> includeDirs = new ArrayList<>();
+    private boolean onlyCheck;
+    private File intermediateDir = new File(".");
+    private File outputDir = new File(".");
 
     public void init(File file) throws IOException {
         init(new FileReader(file), file);
@@ -105,8 +110,16 @@ public class Compiler {
         return getErrorListener().getNumberOfErrors() == 0;
     }
 
+    private boolean generateCode() {
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new JasminListener(this, intermediateDir), parseTree);
+        return getErrorListener().getNumberOfErrors() == 0;
+    }
+
     public boolean compile() {
         if (!analyse()) return false;
+
+        if (!isOnlyCheck() && !generateCode()) return false;
 
         //Add code generation
         return true;
@@ -151,5 +164,41 @@ public class Compiler {
                 return files[0];
         }
         return null;
+    }
+    public void useTempDir() {
+        File dir;
+        try {
+            Path path = Files.createTempDirectory("lyra");
+            dir = path.toFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        setIntermediateDir(dir);
+        setOutputDir(dir);
+    }
+
+    public File getIntermediateDir() {
+        return intermediateDir;
+    }
+
+    public void setIntermediateDir(File intermediateDir) {
+        this.intermediateDir = intermediateDir;
+    }
+
+    public File getOutputDir() {
+        return outputDir;
+    }
+
+    public void setOutputDir(File outputDir) {
+        this.outputDir = outputDir;
+    }
+
+    public void setOnlyCheck(boolean onlyCheck) {
+        this.onlyCheck = onlyCheck;
+    }
+
+    public boolean isOnlyCheck() {
+        return onlyCheck;
     }
 }

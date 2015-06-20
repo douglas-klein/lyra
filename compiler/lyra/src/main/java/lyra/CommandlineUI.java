@@ -16,6 +16,9 @@ import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -58,6 +61,20 @@ public class CommandlineUI {
             usage = "Recover syntatic errors by ignoring the predicted symbol and resuming " +
                     "parsing from the offeding token")
     private  boolean lemonadeRecovery = false;
+
+    @Option(name = "--int-dir", aliases = {"-i"}, required = false,
+            usage = "Puts all intermediate files (.j and .class) into the given directory. The " +
+                    "directory is created if needed.")
+    private String intermediaryDirPath = null;
+
+    @Option(name = "--out-dir", aliases = {"-o"}, required = false,
+            usage = "Puts the generated jar file on the given directory. The directory is " +
+                    "created if needed.")
+    private String outputDirPath = null;
+
+    @Option(name = "--only-check", aliases = {"-C"}, required = false,
+            usage = "Do not generate code, only checks the semantic validity of the input")
+    private boolean onlyCheck = false;
 
     @Argument
     private List<String> files = new ArrayList<>();
@@ -115,6 +132,15 @@ public class CommandlineUI {
             compiler.getErrorListener().setVerbosity(Verbosity.VERBOSE);
         if (quiet)
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
+        if (onlyCheck) {
+            compiler.setOnlyCheck(true);
+        } else {
+            if (intermediaryDirPath != null)
+                compiler.setIntermediateDir(createDir(intermediaryDirPath));
+            if (outputDirPath != null)
+                compiler.setOutputDir(createDir(intermediaryDirPath));
+        }
+
 
         compiler.setLemonadeRecovery(lemonadeRecovery);
         compiler.init(input, fileOrParentDir);
@@ -136,6 +162,16 @@ public class CommandlineUI {
 
         notifyUserInterfaceClosed();
         return ok;
+    }
+
+    private File createDir(String path) {
+        Path pathObj = FileSystems.getDefault().getPath(path);
+        try {
+            pathObj = Files.createDirectories(pathObj);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return pathObj.toFile();
     }
 
     private void showTreeInspection(LyraParser parser, LyraParser.ProgramContext tree) {

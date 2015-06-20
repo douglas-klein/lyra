@@ -105,4 +105,8 @@ public class MethodSymbol extends ScopedSymbol {
     public Symbol shallowResolve(String name) {
         return scope.shallowResolve(name);
     }
+
+    public String getBinaryName() {
+        return "lyra_" + getName();
+    }
 }

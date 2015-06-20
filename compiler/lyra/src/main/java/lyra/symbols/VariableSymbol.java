@@ -41,4 +41,8 @@ public class VariableSymbol extends Symbol {
     public void setClassField(boolean classField) {
         this.classField = classField;
     }
+
+    public String getBinaryName() {
+        return "lyra_" + getName();
+    }
 }

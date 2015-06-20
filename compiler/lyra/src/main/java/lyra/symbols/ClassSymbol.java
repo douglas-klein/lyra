@@ -25,6 +25,7 @@ public class ClassSymbol extends TypeSymbol {
     public Map<String,List<Symbol>> members = new LinkedHashMap<>();
     private boolean aFinal;
     private boolean aAbstract;
+    private String binaryNamePrefix = "lyra/user";
 
     public ClassSymbol(String name, Scope enclosingScope, ClassSymbol superClass) {
         super(name, SymbolType.CLASS, enclosingScope);
@@ -163,6 +164,11 @@ public class ClassSymbol extends TypeSymbol {
     }
 
     @Override
+    public String getBinaryNamePrefix() {
+        return binaryNamePrefix;
+    }
+
+    @Override
     public void define(Symbol sym) throws SemanticErrorException {
         if (sym instanceof VariableSymbol) {
             if (members.containsKey(sym.getName())) {
@@ -223,5 +229,13 @@ public class ClassSymbol extends TypeSymbol {
                     ((VariableSymbol) symbol).upgradeType(type);
             }
         }
+    }
+
+    public ClassSymbol getSuperClass() {
+        return superClass;
+    }
+
+    public void setBinaryNamePrefix(String binaryNamePrefix) {
+        this.binaryNamePrefix = binaryNamePrefix;
     }
 }

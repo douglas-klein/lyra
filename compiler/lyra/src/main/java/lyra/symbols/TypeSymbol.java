@@ -67,6 +67,23 @@ public abstract class TypeSymbol extends ScopedSymbol {
         return qualifiedName;
     }
 
+    public String getBinaryName() {
+        String binName = getName();
+        Scope parent = getEnclosingScope();
+        while (parent != null) {
+            if (!parent.getScopeName().matches("^\\(.*\\)$"))
+                binName = parent.getScopeName() + "/" + binName;
+            parent = parent.getEnclosingScope();
+        }
+
+        String prefix = getBinaryNamePrefix();
+        if (prefix.length() > 0)
+            binName = prefix + "/" + binName;
+        return binName;
+    }
+
+    public abstract String getBinaryNamePrefix();
+
     public abstract boolean isA(TypeSymbol type);
 
     public boolean convertible(TypeSymbol type) {

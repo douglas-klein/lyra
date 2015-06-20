@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.file.Files;
 
 import static org.junit.Assert.*;
 
@@ -20,6 +21,8 @@ public class CompilerTests {
     @Test
     public void testCompileHelloWorld() throws Exception {
         Compiler compiler = new Compiler();
+        compiler.setOnlyCheck(true);
+        compiler.useTempDir();
 
         ClassLoader loader = this.getClass().getClassLoader();
         compiler.init(new File(loader.getResource("samples/HelloWorld.ly").toURI()));
@@ -34,6 +37,8 @@ public class CompilerTests {
         assertNotNull(samplesDir);
         for (File file : samplesDir.listFiles()) {
             Compiler compiler = new Compiler();
+            compiler.setOnlyCheck(true);
+            compiler.useTempDir();
             compiler.init(file);
             assertTrue(file.getName() + " didn't compile properly!", compiler.compile());
         }
@@ -47,6 +52,8 @@ public class CompilerTests {
         assertNotNull(samplesDir);
         for (File file : samplesDir.listFiles()) {
             Compiler compiler = new Compiler();
+            compiler.setOnlyCheck(true);
+            compiler.useTempDir();
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
             compiler.init(file);
             assertFalse(file.getName() + " compiled without error!", compiler.compile());
@@ -62,6 +69,8 @@ public class CompilerTests {
         for (File file : samplesDir.listFiles()) {
             System.err.println(file.getName());
             Compiler compiler = new Compiler();
+            compiler.setOnlyCheck(true);
+            compiler.useTempDir();
             compiler.getErrorListener().setVerbosity(Verbosity.QUIET);
             compiler.init(file);
             assertFalse(file.getName() + " compiled without error!", compiler.compile());

@@ -25,6 +25,11 @@ public class UnresolvedType  extends TypeSymbol {
     }
 
     @Override
+    public String getBinaryNamePrefix() {
+        throw new UnresolvedTypeException("Tried to getBinaryNamePrefix() on UnresolvedType");
+    }
+
+    @Override
     public boolean isA(TypeSymbol type) {
         throw new UnresolvedTypeException("Tried isA() on unresolved type");
     }

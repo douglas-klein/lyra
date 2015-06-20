@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 public class InterfaceSymbol extends TypeSymbol {
     private LinkedHashMap<String, List<MethodSymbol>> members = new LinkedHashMap<>();
     List<InterfaceSymbol> superInterfaces = new LinkedList<>();
+    private String binaryNamePrefix = "lyra/user";
 
     public InterfaceSymbol(String name, Scope enclosingScope) {
         super(name, SymbolType.INTERFACE, enclosingScope);
@@ -64,6 +65,14 @@ public class InterfaceSymbol extends TypeSymbol {
     @Override
     public MethodSymbol resolveOverload(String name, Collection<TypeSymbol> argTypes) {
         return OverloadResolver.resolve(getMethods(name), argTypes, true);
+    }
+
+    @Override
+    public String getBinaryNamePrefix() {
+        return binaryNamePrefix;
+    }
+    public void getBinaryNamePrefix(String binaryNamePrefix) {
+        this.binaryNamePrefix = binaryNamePrefix;
     }
 
     @Override
