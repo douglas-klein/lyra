@@ -9,6 +9,7 @@ import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,6 +22,8 @@ public class JasminListener extends ScopedBaseListener {
     private List<File> classFiles = new LinkedList<>();
 
     private ClassSymbol classSymbol;
+    private MethodSymbol methodSymbol;
+
     private File file;
     private ByteArrayOutputStream methodOutputStream;
     private PrintWriter writer;
@@ -31,6 +34,8 @@ public class JasminListener extends ScopedBaseListener {
     /** Tracks stack usage as the method childs are visited, when this grows larger than
      *  methodLocalsUsage, methodLocalsUsage is updated. */
     private int methodCurrentStackUsage;
+
+    private HashMap<VariableSymbol, Integer> methodVars = new HashMap<>();
 
     public JasminListener(Compiler compiler, File outputDir) {
         super(compiler);
@@ -72,6 +77,24 @@ public class JasminListener extends ScopedBaseListener {
     }
     private void decStackUsage(int count) {
         methodCurrentStackUsage -= count;
+    }
+
+    private void declareVar(VariableSymbol var) {
+        if (methodVars.get(var) != null)
+            return;
+        int idx = methodVars.size();
+        methodVars.put(var, new Integer(idx));
+        writer.printf(".var %1$d is %2$s %3$s\n", idx, var.getName(), typeSpec(var.getType()));
+    }
+    private void loadVar(VariableSymbol var) {
+        Integer idx = methodVars.get(var);
+        incStackUsage(1);
+        writer.printf("aload %1$d\n", idx.intValue());
+    }
+    private void storeVar(VariableSymbol var) {
+        Integer idx = methodVars.get(var);
+        writer.printf("astore %1$d\n", idx.intValue());
+        decStackUsage(1);
     }
 
     private void createJasminFile(String className) {
@@ -123,17 +146,18 @@ public class JasminListener extends ScopedBaseListener {
     public void enterMethodDecl(LyraParser.MethodDeclContext ctx) {
         super.enterMethodDecl(ctx);
 
-        MethodSymbol methodSymbol = (MethodSymbol) table.getNodeSymbol(ctx);
+        methodSymbol = (MethodSymbol) table.getNodeSymbol(ctx);
         List<TypeSymbol> args = methodSymbol.getArgumentTypes();
 
         methodLocalsUsage = 1 + args.size(); //"this" always present
         methodStackUsage = 0;
         methodCurrentStackUsage = 0;
+        methodVars.clear();
 
         writer.printf(".method %1$s %2$s(", mapVisibility(methodSymbol.getVisibility()),
-                methodSymbol.getBinaryName());
+                "lyra_" + methodSymbol.getName());
 
-        for (TypeSymbol type : args) {
+        for (TypeSymbol type : args) {t
             writer.print(typeSpec(type));
         }
         writer.printf(")%1$s\n", typeSpec(methodSymbol.getReturnType()));
@@ -141,7 +165,11 @@ public class JasminListener extends ScopedBaseListener {
         methodOutputStream = new ByteArrayOutputStream();
         classWriter = writer;
         writer = new PrintWriter(methodOutputStream);
-        writer.printf(".var 0 is this %1$s\n", typeSpec(classSymbol));
+
+        declareVar((VariableSymbol) currentScope.resolve("this"));
+        for (VariableSymbol arg : methodSymbol.getArguments())
+            declareVar(arg);
+
     }
 
     @Override
@@ -158,9 +186,11 @@ public class JasminListener extends ScopedBaseListener {
                 incStackUsage(1); //we will push the field value but we have nothing stacked for us
                 writer.printf("getstatic %1$s %2$s\n", field.getBinaryName(),
                                                        typeSpec(field.getType()));
-            } else {
+            } else if (!isLeftOfAssignment(ctx)) {
                 /* get the field of the stacked object, this will replace the currently
-                 * stacked reference. */
+                 * stacked reference. If we are the left side of an assignment, we leave the object
+                 * reference stacked. enterExpression only alows visiting this node for when our
+                 * expression produces a named reference to an object field. */
                 writer.printf("getfield %1$s %2$s\n", field.getBinaryName(),
                                                       typeSpec(field.getType()));
             }
@@ -180,7 +210,7 @@ public class JasminListener extends ScopedBaseListener {
         }
     }
 
-    private boolean isLeftOfAssignment(LyraParser.NameFactorContext ctx) {
+    private boolean isLeftOfAssignment(LyraParser.FactorContext ctx) {
         if (ctx.getParent() instanceof LyraParser.UnaryexprContext) {
             if (ctx.getParent().getParent() instanceof LyraParser.ExprContext) {
                 LyraParser.ExprContext maybeLeft =
@@ -199,40 +229,89 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitNameFactor(LyraParser.NameFactorContext ctx) {
-        if (isLeftOfAssignment(ctx)) return;
-
         Symbol symbol = table.getNodeSymbol(ctx); //courtesy of TypeListener
         if (symbol instanceof MethodSymbol) {
             /* a method call to this without arguments */
             MethodSymbol method = (MethodSymbol) symbol;
-            incStackUsage(1); //this will be pushed
-            writer.printf("aload_0\n" + /* this is always var 0 */
-                          "invokevirtual %1$s()%3$s\n",
+            loadVar((VariableSymbol)methodSymbol.resolve("this"));
+            writer.printf("invokevirtual %1$s()%3$s\n",
                     method.getBinaryName(), typeSpec(method.getReturnType()));
             //this is replaced with the method return
         } else if (symbol instanceof VariableSymbol) {
-            /* (class) field access, get the field value and stack it */
-            VariableSymbol field = (VariableSymbol)symbol;
-            if (field.isClassField() || field.getScope() == table.getGlobal()) {
+            /* (class) var access, get the var value and stack it */
+            VariableSymbol var = (VariableSymbol)symbol;
+            if (var.isClassField() || var.getScope() == table.getGlobal()) {
                 /* globals are static fields of lyra/runtime/Start */
-                writer.printf("getstatic %1$s %2$s\n", field.getBinaryName(),
-                        typeSpec(field.getType()));
+                writer.printf("getstatic %1$s %2$s\n", var.getBinaryName(),
+                        typeSpec(var.getType()));
+            } else if (var.getScope().isChildOf(methodSymbol)) {
+                /* local var access */
+                loadVar(var);
             } else {
-                incStackUsage(1); //this pushed
-                writer.printf("aload_0\n" +
-                              "getfield %1$s %2$s\n", field.getBinaryName(),
-                                                      typeSpec(field.getType()));
-                decStackUsage(1); //this popped
+                /* acessing a var with implicit this */
+                if (isLeftOfAssignment(ctx)) {
+                    /* we are the outermost expression on the left side of an assignment, leave
+                     * only a reference to this stacked, do not access the var. */
+                    loadVar((VariableSymbol) methodSymbol.resolve("this"));
+                } else {
+                    incStackUsage(1); //this pushed
+                    loadVar((VariableSymbol) methodSymbol.resolve("this"));
+                    writer.printf("getfield %1$s %2$s\n",
+                            var.getBinaryName(), typeSpec(var.getType()));
+                    decStackUsage(1); //this popped
+                }
             }
-            incStackUsage(1); //field value is pushed
+            incStackUsage(1); //var value is pushed
         }
         /* symbol may also be a ClassSymbol, this is only valid as the child factor of an
          * memberFactor, and exitMemberFactor will output the code. */
     }
 
     @Override
+    public void enterExpr(LyraParser.ExprContext ctx) {
+        if (ctx.binOp != null && ctx.binOp.getType() == LyraLexer.EQUALOP) {
+            VariableSymbol var = (VariableSymbol) table.getNodeSymbol(ctx.expr(0));
+            if (var.isClassField() || var.getScope().isChildOf(methodSymbol)) {
+                /* class field or local var, fully handled on exitExpr() */
+                muteSubtree(ctx.expr(0));
+            }
+            /* for member variable accesses we allow child visiting, but the child will
+             * generate code that gives us the object of which the var field is being
+             * accessed. */
+        }
+    }
+
+    @Override
     public void exitExpr(LyraParser.ExprContext ctx) {
-        //TODO !!! handle assignment
+        if (ctx.binOp != null && ctx.binOp.getType() == LyraLexer.EQUALOP) {
+            /* assignment expression
+             * The left expr() should be an memberFactor or a nameFactor refering
+             * to a VariableSymbol. In both cases the code for the left expression
+             * was not generated, onyl code for the right expression was generated and it's result
+             * is at the top of the operand stack. */
+
+            VariableSymbol var = (VariableSymbol) table.getNodeSymbol(ctx.expr(0));
+            if (var.getScope().isChildOf(methodSymbol)) {
+                /* local variable. The result of the right expression is the stack top */
+                storeVar(var);
+            } else if (var.isClassField()) {
+                /* setting a static field, consumes the stack top */
+                writer.printf("putstatic %1$s %2$s\n", var.getBinaryName(),
+                                                       typeSpec(var.getType()));
+                decStackUsage(1);
+            } else {
+                /* must be an field, by elimination */
+                /* some magic took place: enterExpr() allowed visiting the left subtree, but the
+                 * factor of the outermost expression of the left subtree knew it was the left
+                 * side of an assignment, and instead of generated only code to put the object
+                 * of which it access a field on the stack. By the listerner walking, we will have
+                 * [..., objectref, rhsvalue] on the stack, which is exactly what putfield
+                 * expects. */
+                writer.printf("putfield %1$s %2$s\n", var.getBinaryName(), typeSpec(var.getType()));
+                decStackUsage(2 /*putfield*/);
+            }
+        }
+
         //TODO !!! check if child of memberFactorContext and generate conversion of method argument
     }
 
@@ -300,6 +379,9 @@ public class JasminListener extends ScopedBaseListener {
                 "%3$s\n" +
                 "return\n" +
                 ".end method\n", methodStackUsage, methodLocalsUsage, body);
+
+        methodSymbol = null;
+        methodVars.clear();
         super.exitMethodDecl(ctx);
     }
 
