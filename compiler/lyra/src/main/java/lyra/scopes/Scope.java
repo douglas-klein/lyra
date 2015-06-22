@@ -1,6 +1,7 @@
 package lyra.scopes;
 
 import lyra.SemanticErrorException;
+import lyra.symbols.MethodSymbol;
 import lyra.symbols.Symbol;
 
 public interface Scope {
@@ -17,4 +18,7 @@ public interface Scope {
 
     /** Look up names in this scope, but not on enclosing. */
     Symbol shallowResolve(String name);
+
+    /** Returns true iff maybeParent is not this scope and encloses directly or indirectly it. */
+    boolean isChildOf(Scope maybeParent);
 }

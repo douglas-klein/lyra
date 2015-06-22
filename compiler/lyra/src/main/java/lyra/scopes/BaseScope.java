@@ -19,6 +19,17 @@ public class BaseScope implements Scope {
         return symbols.get(name);
     }
 
+    @Override
+    public boolean isChildOf(Scope maybeParent) {
+        Scope parent = getEnclosingScope();
+        while (parent != null) {
+            if (parent == maybeParent)
+                return true;
+            parent = parent.getEnclosingScope();
+        }
+        return false;
+    }
+
     public Symbol resolve(String name) {
         Symbol s = shallowResolve(name);
         if (s != null )

@@ -14,4 +14,15 @@ public abstract class ScopedSymbol extends Symbol implements Scope {
     public Scope getEnclosingScope() { return enclosingScope; }
 
     public String getScopeName() { return getName(); }
+
+    @Override
+    public boolean isChildOf(Scope maybeParent) {
+        Scope parent = getEnclosingScope();
+        while (parent != null) {
+            if (parent == maybeParent)
+                return true;
+            parent = parent.getEnclosingScope();
+        }
+        return false;
+    }
 }
