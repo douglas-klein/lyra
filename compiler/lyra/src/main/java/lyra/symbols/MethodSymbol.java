@@ -107,6 +107,6 @@ public class MethodSymbol extends ScopedSymbol {
     }
 
     public String getBinaryName() {
-        return "lyra_" + getName();
+        return ((TypeSymbol)getEnclosingScope()).getBinaryName() + "/lyra_" + getName();
     }
 }

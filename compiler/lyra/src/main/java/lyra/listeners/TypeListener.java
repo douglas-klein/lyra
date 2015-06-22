@@ -125,6 +125,7 @@ public class TypeListener extends ScopedBaseListener {
             if (field != null) {
                 if (!field.isClassField() && table.getExprIsClassInstance(ctx.factor()))
                     throw expectedInstanceValue(ctx.factor());
+                table.setNodeSymbol(ctx.IDENT(), field);
                 table.setNodeType(ctx, field.getType());
                 return;
             }
@@ -135,6 +136,7 @@ public class TypeListener extends ScopedBaseListener {
         if (method == null) {
             throw overloadNotFoundException(ctx.IDENT(), types);
         }
+        table.setNodeSymbol(ctx.IDENT(), method);
         table.setNodeType(ctx, method.getReturnType());
     }
 
