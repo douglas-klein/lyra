@@ -4,6 +4,7 @@ import lyra.LyraLexer;
 import lyra.LyraParser;
 
 import lyra.tokens.NumberToken;
+import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -287,7 +288,7 @@ public class SyntacticSugarListener extends TreeRewriterBaseListener {
     public void exitStringEnumItem(LyraParser.StringEnumItemContext ctx) {
         String typeName = "String";
         LyraParser.FactorContext factor = new LyraParser.StringFactorContext(new LyraParser.FactorContext(ctx, -1));
-        factor.addChild(new CommonToken(LyraLexer.STRING, ctx.STRING().getText()));
+        factor.addChild(new StringToken(LyraLexer.STRING, ctx.STRING().getText()));
         addEnumItem(ctx.IDENT().getText(), typeName, factor);
     }
 
