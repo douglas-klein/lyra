@@ -127,6 +127,7 @@ public class TypeListener extends ScopedBaseListener {
             if (field != null) {
                 if (!field.isClassField() && table.getExprIsClassInstance(ctx.factor()))
                     throw expectedInstanceValue(ctx.factor());
+                table.setNodeSymbol(ctx, field);
                 table.setNodeSymbol(ctx.IDENT(), field);
                 table.setNodeType(ctx, field.getType());
                 return;
@@ -150,6 +151,10 @@ public class TypeListener extends ScopedBaseListener {
 
     @Override
     public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
+        Symbol symbol = table.getNodeSymbol(ctx.factor());
+        if (symbol != null)
+            table.setNodeSymbol(ctx, symbol);
+
         table.setNodeType(ctx, table.getNodeType(ctx.factor()));
         table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.factor()));
     }
@@ -157,6 +162,9 @@ public class TypeListener extends ScopedBaseListener {
     @Override
     public void exitExpr(LyraParser.ExprContext ctx) {
         if (ctx.unaryexpr() != null) {
+            Symbol symbol = table.getNodeSymbol(ctx.unaryexpr());
+            if (symbol != null)
+                table.setNodeSymbol(ctx, symbol);
             table.setNodeType(ctx, table.getNodeType(ctx.unaryexpr()));
             table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.unaryexpr()));
         } else if (ctx.binOp.getType() == LyraLexer.EQUALOP) {
@@ -166,6 +174,16 @@ public class TypeListener extends ScopedBaseListener {
                 throw notConvertibleException(ctx.expr(1), left, right);
             }
             table.setNodeType(ctx, left);
+
+            /* left expression must be a named reference, that is, an assignment expression, or
+             * a memberFactor or nameFactor  which refer to an VariableSymbol. In all cases the
+             * this listener sets the VariableSymbol as the nodeSymbol of all the expression and
+             * intermediate-non-terminals. */
+            Symbol nodeSymbol = table.getNodeSymbol(ctx.expr(0));
+            if (nodeSymbol == null || !(nodeSymbol instanceof VariableSymbol)) {
+                throw expectedNamedReferenceException(ctx.expr(0));
+            }
+            table.setNodeSymbol(ctx, nodeSymbol); //bubble up the symbol
         }
     }
 

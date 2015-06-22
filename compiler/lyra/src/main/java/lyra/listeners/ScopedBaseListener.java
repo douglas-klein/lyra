@@ -229,6 +229,10 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         );
     }
 
+    protected SemanticErrorException expectedNamedReferenceException(Object offendingSymbol) {
+        return new SemanticErrorException("Expected a named reference.", offendingSymbol);
+    }
+
     protected SemanticErrorException expectedInstanceValue(Object offendingNode) {
         return new SemanticErrorException("Expected an an instance variable.", offendingNode);
     }
