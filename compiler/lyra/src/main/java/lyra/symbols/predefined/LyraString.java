@@ -9,6 +9,7 @@ public class LyraString extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("String", scope, (ClassSymbol)scope.resolve("Object"));
+        c.setBinaryNamePrefix("lyra/runtime");
         try {
             forwardMethod(c, "length", "Int",    false);
 

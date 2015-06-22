@@ -9,6 +9,7 @@ public class Number extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("Number", scope, (ClassSymbol)scope.resolve("Object"));
+        c.setBinaryNamePrefix("lyra/runtime");
         try {
             forwardMethod(c, "toString",         "String", false);
             forwardMethod(c, "__inc",            "Number", true);

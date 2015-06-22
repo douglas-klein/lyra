@@ -10,6 +10,7 @@ public class Output extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("Output", scope, (ClassSymbol)scope.resolve("Object"));
+        c.setBinaryNamePrefix("lyra/runtime");
         try {
             forwardMethod(c, "open", "Bool", false, new ArgumentStrings("String", "filename"));
             forwardMethod(c, "close", "void", false);

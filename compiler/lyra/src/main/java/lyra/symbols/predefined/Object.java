@@ -11,6 +11,7 @@ public class Object extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("Object", scope, null);
+        c.setBinaryNamePrefix("lyra/runtime");
         c.setAbstract(true);
         try {
             c.define(new VariableSymbol("__id", new UnresolvedType("Number")));

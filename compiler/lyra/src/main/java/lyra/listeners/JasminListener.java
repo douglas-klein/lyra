@@ -124,23 +124,21 @@ public class JasminListener extends ScopedBaseListener {
         methodStackUsage = 0;
         methodCurrentStackUsage = 0;
 
-        writer.print(".method ");
-        writer.print(mapVisibility(methodSymbol.getVisibility()));
-        writer.print(" " + methodSymbol.getBinaryName() + "(");
+        writer.printf(".method %1$s %2$s(", mapVisibility(methodSymbol.getVisibility()),
+                methodSymbol.getBinaryName());
 
         for (TypeSymbol type : args) {
             writer.print(typeSpec(type) + ";");
         }
-        writer.println(")" + typeSpec(methodSymbol.getReturnType()) + ";");
+        writer.printf(")%1$s;\n", typeSpec(methodSymbol.getReturnType()));
     }
 
     @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
-        writer.println(".limit stack " + methodStackUsage);
-        writer.println(".limit locals " + methodLocalsUsage);
-        writer.println(methodJasminBody);
-        writer.println(".end method");
-
+        writer.printf(".limit stack %1$d\n" +
+                      ".limit locals %2$d\n" +
+                      "%3$s\n" +
+                      ".end method\n", methodStackUsage, methodLocalsUsage, methodJasminBody);
         super.exitMethodDecl(ctx);
     }
 

@@ -10,6 +10,7 @@ public class Bool extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("Bool", scope, (ClassSymbol)scope.resolve("Object"));
+        c.setBinaryNamePrefix("lyra/runtime");
         try {
             forwardMethod(c, "toString", "String", false);
             forwardMethod(c, "__not",       "Bool", true);

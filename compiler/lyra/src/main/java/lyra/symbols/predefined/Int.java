@@ -9,6 +9,7 @@ public class Int extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("Int", scope, (ClassSymbol)scope.resolve("Number"));
+        c.setBinaryNamePrefix("lyra/runtime");
         try {
             forwardMethod(c, "toString",     "String", false);
             forwardMethod(c, "__inc",        "Int", true);

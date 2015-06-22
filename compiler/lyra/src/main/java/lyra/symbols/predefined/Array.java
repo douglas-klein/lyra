@@ -9,6 +9,7 @@ public class Array extends AbstractPredefinedSymbol {
     @Override
     public void forward(Scope scope) {
         ClassSymbol c = new ClassSymbol("Array", scope, (ClassSymbol)scope.resolve("Object"));
+        c.setBinaryNamePrefix("lyra/runtime");
         try {
             forwardMethod(c, "__at", "Object", false, new ArgumentStrings("Int", "idx"));
             forwardMethod(c, "at", "Object", false, new ArgumentStrings("Int", "idx"));
