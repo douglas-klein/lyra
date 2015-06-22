@@ -157,7 +157,7 @@ public class JasminListener extends ScopedBaseListener {
         writer.printf(".method %1$s %2$s(", mapVisibility(methodSymbol.getVisibility()),
                 "lyra_" + methodSymbol.getName());
 
-        for (TypeSymbol type : args) {t
+        for (TypeSymbol type : args) {
             writer.print(typeSpec(type));
         }
         writer.printf(")%1$s\n", typeSpec(methodSymbol.getReturnType()));
