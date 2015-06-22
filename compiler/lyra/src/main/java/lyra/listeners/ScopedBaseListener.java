@@ -30,6 +30,7 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected Compiler compiler;
     protected Scope currentScope; // define symbols in this scope
     protected SymbolTable table;
+    private ParserRuleContext mutedSubtree;
 
     protected ScopedBaseListener(lyra.Compiler compiler){
         this.compiler = compiler;
@@ -52,6 +53,26 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     }
     protected void reportSemanticException(SemanticErrorException e) {
         compiler.getErrorListener().semanticError(compiler.getParser(), e);
+    }
+
+    protected void muteSubtree(ParserRuleContext subtreeRoot) {
+        if (mutedSubtree != null)
+            throw new RuntimeException("Recursively muting a subtree.");
+        mutedSubtree = subtreeRoot;
+    }
+
+    @Override
+    public void enterEveryRule(ParserRuleContext ctx) {
+        if (mutedSubtree == null)
+            super.enterEveryRule(ctx);
+    }
+
+    @Override
+    public void exitEveryRule(ParserRuleContext ctx) {
+        if (mutedSubtree == null)
+            super.exitEveryRule(ctx);
+        if (mutedSubtree == ctx)
+            mutedSubtree = null;
     }
 
     @Override
