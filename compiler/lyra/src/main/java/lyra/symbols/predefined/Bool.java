@@ -20,8 +20,18 @@ public class Bool extends AbstractPredefinedSymbol {
             forwardMethod(c, "__or",        "Bool", true, new ArgumentStrings("Bool", "rhs"));
             defineClass(scope, c);
 
-            defineGlobal(scope, new VariableSymbol("false", c));
-            defineGlobal(scope, new VariableSymbol("true",  c));
+            defineGlobal(scope, new VariableSymbol("false", c) {
+                @Override
+                public String getBinaryName() {
+                    return "lyra/runtime/Start/lyra_false";
+                }
+            });
+            defineGlobal(scope, new VariableSymbol("true",  c) {
+                @Override
+                public String getBinaryName() {
+                    return "lyra/runtime/Start/lyra_true";
+                }
+            });
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);
         }

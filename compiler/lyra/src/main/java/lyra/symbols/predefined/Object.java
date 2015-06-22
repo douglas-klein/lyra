@@ -21,7 +21,12 @@ public class Object extends AbstractPredefinedSymbol {
             forwardMethod(c, "__is", "Bool", true);
             defineClass(scope, c);
 
-            defineGlobal(scope, new VariableSymbol("null", c));
+            defineGlobal(scope, new VariableSymbol("null", c) {
+                @Override
+                public String getBinaryName() {
+                    return "lyra/runtime/Start/lyra_null";
+                }
+            });
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);
         }

@@ -64,6 +64,7 @@ public class TypeListener extends ScopedBaseListener {
     public void exitNameFactor(LyraParser.NameFactorContext ctx) {
         Symbol symbol = currentScope.resolve(ctx.IDENT().getText());
         if (symbol != null) {
+            table.setNodeSymbol(ctx, symbol);
             if (symbol instanceof VariableSymbol) {
                 table.setNodeType(ctx, ((VariableSymbol)symbol).getType());
             } else if (symbol instanceof ClassSymbol) {
@@ -86,6 +87,7 @@ public class TypeListener extends ScopedBaseListener {
                 throw noOverloadException(ctx.IDENT(), me.getType().getName(), ctx.IDENT().getText(),
                         Collections.<TypeSymbol>emptyList());
             }
+            table.setNodeSymbol(ctx, method);
             table.setNodeType(ctx, method.getReturnType());
         }
     }

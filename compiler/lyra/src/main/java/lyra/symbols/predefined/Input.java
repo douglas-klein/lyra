@@ -20,7 +20,12 @@ public class Input extends AbstractPredefinedSymbol {
             forwardMethod(c, "readLine", "String", false);
             defineClass(scope, c);
 
-            defineGlobal(scope, new VariableSymbol("in", c));
+            defineGlobal(scope, new VariableSymbol("in", c) {
+                @Override
+                public String getBinaryName() {
+                    return "lyra/runtime/Start/lyra_in";
+                }
+            });
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);
         }

@@ -22,7 +22,12 @@ public class Output extends AbstractPredefinedSymbol {
             forwardMethod(c, "writeln", "void", false, new ArgumentStrings("Object", "obj"));
             defineClass(scope, c);
 
-            defineGlobal(scope, new VariableSymbol("out", c));
+            defineGlobal(scope, new VariableSymbol("out", c) {
+                @Override
+                public String getBinaryName() {
+                    return "lyra/runtime/Start/lyra_out";
+                }
+            });
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);
         }
