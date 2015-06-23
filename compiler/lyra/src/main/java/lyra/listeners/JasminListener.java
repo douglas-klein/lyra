@@ -69,6 +69,10 @@ public class JasminListener extends ScopedBaseListener {
         spec += type.getBinaryName() + ";";
         return spec;
     }
+    private String methodSpec(MethodSymbol method) {
+        TypeSymbol type = (TypeSymbol)method.getEnclosingScope();
+        return type.getBinaryName() + "/" + method.getBinaryName();
+    }
 
     private void incStackUsage(int count) {
         methodCurrentStackUsage += count;
@@ -155,7 +159,7 @@ public class JasminListener extends ScopedBaseListener {
         methodVars.clear();
 
         writer.printf(".method %1$s %2$s(", mapVisibility(methodSymbol.getVisibility()),
-                "lyra_" + methodSymbol.getName());
+                methodSymbol.getBinaryName());
 
         for (TypeSymbol type : args) {
             writer.print(typeSpec(type));
@@ -201,7 +205,7 @@ public class JasminListener extends ScopedBaseListener {
              * child of a memberFactor, and in that case, already emits the code to perform any
              * necessary implicit conversion, so we have the stack with the right types as well.
              */
-            writer.printf("invokevirtual %1$s(%2$s)%3$s\n", method.getBinaryName(),
+            writer.printf("invokevirtual %1$s(%2$s)%3$s\n", methodSpec(method),
                     method.getArgumentTypes().stream().map(t -> typeSpec(t))
                             .reduce((a, b) -> a + b).orElse(""),
                     typeSpec(method.getReturnType()));
@@ -233,9 +237,9 @@ public class JasminListener extends ScopedBaseListener {
         if (symbol instanceof MethodSymbol) {
             /* a method call to this without arguments */
             MethodSymbol method = (MethodSymbol) symbol;
-            loadVar((VariableSymbol)methodSymbol.resolve("this"));
+            loadVar((VariableSymbol) methodSymbol.resolve("this"));
             writer.printf("invokevirtual %1$s()%3$s\n",
-                    method.getBinaryName(), typeSpec(method.getReturnType()));
+                    methodSpec(method), typeSpec(method.getReturnType()));
             //this is replaced with the method return
         } else if (symbol instanceof VariableSymbol) {
             /* (class) var access, get the var value and stack it */
