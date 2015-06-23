@@ -405,6 +405,22 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitClassBody(LyraParser.ClassBodyContext ctx) {
+        boolean hasGeneratedConstructor = classSymbol.getOverloads("constructor")
+                .anyMatch(m -> m.getEnclosingScope() == classSymbol
+                        && m.getArguments().size() == 0
+                        && table.getSymbolNode(m) == null);
+        if (hasGeneratedConstructor) {
+            MethodSymbol parent = classSymbol.getSuperClass().resolveOverload("constructor",
+                    Collections.emptyList());
+            writer.printf(".method public <init>()V\n" +
+                          ".limit stack 1\n" +
+                          ".limit locals 1\n" +
+                          ".var 0 is this %1$s\n" +
+                          "aload_0\n" +
+                          "invokespecial %2$s\n" +
+                          "return\n" +
+                          ".end method\n", typeSpec(classSymbol), methodSpec(parent));
+        }
         classSymbol = null;
         endJasminFile();
     }
