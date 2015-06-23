@@ -15,6 +15,7 @@ public class Object extends AbstractPredefinedSymbol {
         c.setAbstract(true);
         try {
             c.define(new VariableSymbol("__id", new UnresolvedType("Number")));
+            forwardMethod(c, "constructor", "void", false);
             forwardMethod(c, "toString", "String", false);
             forwardMethod(c, "__equals", "Bool", true);
             forwardMethod(c, "__notequals", "Bool", true);

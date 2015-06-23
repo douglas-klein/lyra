@@ -98,7 +98,7 @@ public class ClassSymbol extends TypeSymbol {
      * Gets the set of all methods in the inheritance hierarchy that have the given \p name
      * and the given \p arity number of arguments.
      */
-    private Stream<MethodSymbol> getOverloads(String methodName) {
+    public Stream<MethodSymbol> getOverloads(String methodName) {
         return getOverloadsImpl(methodName).stream().map(c -> c.getWrapped());
     }
 

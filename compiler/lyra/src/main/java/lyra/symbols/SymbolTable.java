@@ -14,6 +14,7 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Holds together the global scope with predefined symbols the ParseTreeProperty that
@@ -24,6 +25,7 @@ public class SymbolTable {
     private ParseTreeProperty<Scope> nodeScope = new ParseTreeProperty<>();
     private ParseTreeProperty<TypeSymbol> nodeType = new ParseTreeProperty<>();
     private ParseTreeProperty<Symbol> nodeSymbol = new ParseTreeProperty<>();
+    private HashMap<Symbol, ParseTree> symbolNode = new HashMap<>();
     private ParseTreeProperty<Boolean> exprIsClassInstance = new ParseTreeProperty<>();
     private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
 
@@ -75,7 +77,10 @@ public class SymbolTable {
     }
     public TypeSymbol getNodeType(ParseTree node) {return nodeType.get(node);}
 
-    public void setNodeSymbol(ParseTree node, Symbol symbol) { nodeSymbol.put(node, symbol); }
+    public void setNodeSymbol(ParseTree node, Symbol symbol) {
+        nodeSymbol.put(node, symbol);
+        symbolNode.put(symbol, node);
+    }
     public Symbol getNodeSymbol(ParseTree node) { return nodeSymbol.get(node);}
 
     public ArrayClassFactory getArrayClassFactory() {
@@ -89,4 +94,10 @@ public class SymbolTable {
     public void setExprIsClassInstance(ParseTree node, boolean value) {
         exprIsClassInstance.put(node, value);
     }
+
+    public void setSymbolNode(Symbol symbol, ParseTree node) {
+        nodeSymbol.put(node, symbol);
+        symbolNode.put(symbol, node);
+    }
+    public ParseTree getSymbolNode(Symbol symbol) { return symbolNode.get(symbol); }
 }
