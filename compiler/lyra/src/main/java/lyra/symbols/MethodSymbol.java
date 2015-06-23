@@ -107,6 +107,13 @@ public class MethodSymbol extends ScopedSymbol {
     }
 
     public String getBinaryName() {
+        if (isConstructor()) {
+            return "<init>";
+        }
         return "lyra_" + getName();
+    }
+
+    public boolean isConstructor() {
+        return getName().equals("constructor");
     }
 }

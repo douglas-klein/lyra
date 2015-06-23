@@ -21,7 +21,8 @@ public class Void extends AbstractPredefinedSymbol {
         };
         c.setBinaryNamePrefix("lyra/runtime");
         c.setFinal(true);
-        c.setAbstract(true);
+        c.setAbstract(true); //the code generator is not bound by petty rules
+        forwardMethod(c, "constructor", "void", false);
         try {
             defineClass(scope, c);
         } catch (SemanticErrorException e) {

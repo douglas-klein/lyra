@@ -9,6 +9,7 @@ import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.io.*;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,8 +71,14 @@ public class JasminListener extends ScopedBaseListener {
         return spec;
     }
     private String methodSpec(MethodSymbol method) {
-        TypeSymbol type = (TypeSymbol)method.getEnclosingScope();
-        return type.getBinaryName() + "/" + method.getBinaryName();
+        String returnSpec = (method.isConstructor()) ? "V" : typeSpec(method.getReturnType());
+
+        return String.format("%1$s/%2$s(%3$s)%4$s",
+                ((TypeSymbol)method.getEnclosingScope()).getBinaryName(),
+                method.getBinaryName(),
+                method.getArgumentTypes().stream().map(t -> typeSpec(t))
+                    .reduce((a, b) -> a + b).orElse(""),
+                returnSpec);
     }
 
     private void incStackUsage(int count) {
@@ -205,10 +212,7 @@ public class JasminListener extends ScopedBaseListener {
              * child of a memberFactor, and in that case, already emits the code to perform any
              * necessary implicit conversion, so we have the stack with the right types as well.
              */
-            writer.printf("invokevirtual %1$s(%2$s)%3$s\n", methodSpec(method),
-                    method.getArgumentTypes().stream().map(t -> typeSpec(t))
-                            .reduce((a, b) -> a + b).orElse(""),
-                    typeSpec(method.getReturnType()));
+            writer.printf("invokevirtual %1$s\n", methodSpec(method));
             /* pop object and arguments, leave a result */
             decStackUsage(1 + method.getArgumentTypes().size() - 1);
         }
@@ -238,8 +242,7 @@ public class JasminListener extends ScopedBaseListener {
             /* a method call to this without arguments */
             MethodSymbol method = (MethodSymbol) symbol;
             loadVar((VariableSymbol) methodSymbol.resolve("this"));
-            writer.printf("invokevirtual %1$s()%3$s\n",
-                    methodSpec(method), typeSpec(method.getReturnType()));
+            writer.printf("invokevirtual %1$s\n", methodSpec(method));
             //this is replaced with the method return
         } else if (symbol instanceof VariableSymbol) {
             /* (class) var access, get the var value and stack it */
@@ -380,9 +383,20 @@ public class JasminListener extends ScopedBaseListener {
 
         writer.printf(".limit stack %1$d\n" +
                 ".limit locals %2$d\n" +
-                "%3$s\n" +
-                "return\n" +
-                ".end method\n", methodStackUsage, methodLocalsUsage, body);
+                "%3$s\n", methodStackUsage, methodLocalsUsage, body);
+
+        /* inject lyra/runtime/Void return */
+        ClassSymbol voidClass = table.getPredefinedClass("void");
+        if (methodSymbol.getReturnType() == voidClass) {
+            MethodSymbol constructor = voidClass.resolveOverload("constructor",
+                    Collections.emptyList());
+            writer.printf("new %1$s\n" +
+                    "dup\n" +
+                    "invokespecial %2$s\n" +
+                    "areturn\n", voidClass.getBinaryName(), methodSpec(constructor));
+        }
+
+        writer.printf(".end method\n");
 
         methodSymbol = null;
         methodVars.clear();
