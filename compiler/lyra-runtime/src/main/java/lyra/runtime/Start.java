@@ -68,7 +68,7 @@ public class Start {
         java.lang.Object app = constructor.newInstance();
         Method main;
         try {
-            main = appClass.getMethod("main");
+            main = appClass.getMethod("lyra_main");
         } catch (NoSuchMethodException e) {
             System.err.println("User-defined Application class has no main method " +
                                "without arguments!");
