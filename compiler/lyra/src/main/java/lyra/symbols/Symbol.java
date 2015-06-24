@@ -28,4 +28,8 @@ public class Symbol { // A generic programming language symbol
     public Visibility getVisibility() {
         return visibility;
     }
+
+    public boolean isChildOf(Scope scope) {
+        return getScope() == scope || getScope().isChildOf(scope);
+    }
 }

@@ -192,6 +192,7 @@ public class ClassSymbol extends TypeSymbol {
         } else {
             throw new SemanticErrorException("A class may only contain methods and fields. \"" + sym.getName() + "\" is neither.");
         }
+        sym.setScope(this);
     }
 
     public boolean isFinal() {
@@ -237,5 +238,11 @@ public class ClassSymbol extends TypeSymbol {
 
     public void setBinaryNamePrefix(String binaryNamePrefix) {
         this.binaryNamePrefix = binaryNamePrefix;
+    }
+
+    public MethodSymbol conversionConstructor(TypeSymbol convertibleType) {
+        ArrayList<TypeSymbol> args = new ArrayList<>();
+        args.add(convertibleType);
+        return resolveOverload("constructor", args);
     }
 }

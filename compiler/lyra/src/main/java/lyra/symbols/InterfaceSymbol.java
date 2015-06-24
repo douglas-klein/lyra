@@ -100,6 +100,7 @@ public class InterfaceSymbol extends TypeSymbol {
             members.put(sym.getName(), list);
         }
         list.add((MethodSymbol)sym);
+        sym.setScope(this);
     }
 
     public void upgradeType(TypeSymbol typeSymbol) {

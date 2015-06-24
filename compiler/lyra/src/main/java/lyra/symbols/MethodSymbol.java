@@ -32,6 +32,7 @@ public class MethodSymbol extends ScopedSymbol {
         this.arguments.put(argument.getName(), argument);
         cachedArgumentTypes = null;
         scope.define(argument);
+        argument.setScope(this);
     }
 
     public VariableSymbol resolveArgument(String name) {
@@ -94,6 +95,7 @@ public class MethodSymbol extends ScopedSymbol {
     @Override
     public void define(Symbol sym) throws SemanticErrorException {
         scope.define(sym);
+        sym.setScope(this); //I am the scope
     }
 
     @Override
