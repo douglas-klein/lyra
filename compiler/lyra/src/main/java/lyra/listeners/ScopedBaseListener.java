@@ -2,6 +2,7 @@ package lyra.listeners;
 
 import java.lang.Object;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,7 +15,6 @@ import lyra.symbols.Symbol;
 import lyra.symbols.SymbolTable;
 import lyra.symbols.TypeSymbol;
 
-import lyra.symbols.predefined.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -31,6 +31,7 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected Scope currentScope; // define symbols in this scope
     protected SymbolTable table;
     private ParserRuleContext mutedSubtree;
+    private HashMap<ParserRuleContext, Runnable> doOnceAfterTargets = new HashMap<>();
 
     protected ScopedBaseListener(lyra.Compiler compiler){
         this.compiler = compiler;
@@ -61,6 +62,12 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         mutedSubtree = subtreeRoot;
     }
 
+    protected void doOnceAfter(ParserRuleContext node, Runnable runnable) {
+        if (doOnceAfterTargets.get(node) != null)
+            throw new RuntimeException("This node already has a doOnceAfter Runnable.");
+        doOnceAfterTargets.put(node, runnable);
+    }
+
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
         if (mutedSubtree == null)
@@ -73,6 +80,12 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
             super.exitEveryRule(ctx);
         if (mutedSubtree == ctx)
             mutedSubtree = null;
+
+        Runnable runnable = doOnceAfterTargets.get(ctx);
+        if (runnable != null) {
+            runnable.run();
+            doOnceAfterTargets.remove(ctx);
+        }
     }
 
     @Override
