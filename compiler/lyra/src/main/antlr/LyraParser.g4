@@ -69,7 +69,7 @@ paramDecl               : IDENT COLON type
 params                  : paramDecl (COMMA paramDecl)* ;
 args                    : ( expr (COMMA expr)* )? ;
 argsWs                  : expr+ ;
-statement               : varDecl SEMICOLON
+statement               : varDeclStat
                         | returnstat SEMICOLON
                         | superstat  SEMICOLON
                         | ifstat
@@ -82,6 +82,7 @@ statement               : varDecl SEMICOLON
                         | BREAK SEMICOLON
                         | CONTINUE SEMICOLON
                         | SEMICOLON ;
+varDeclStat             : varDecl SEMICOLON ;
 scopestat               : LEFTCURLYBRACE statlist RIGHTCURLYBRACE ;
 returnstat              : RETURN (expr)?;
 superstat               : SUPER LEFTPARENTHESES args RIGHTPARENTHESES;

@@ -31,12 +31,13 @@ public class JasminListener extends ScopedBaseListener {
     private PrintWriter classWriter;
 
     private int methodStackUsage;
-    private int methodLocalsUsage;
     /** Tracks stack usage as the method childs are visited, when this grows larger than
      *  methodLocalsUsage, methodLocalsUsage is updated. */
     private int methodCurrentStackUsage;
 
     private HashMap<VariableSymbol, Integer> methodVars = new HashMap<>();
+    private HashMap<ParserRuleContext, Integer> methodLabels = new HashMap<>();
+    private HashMap<ParserRuleContext, Integer> methodLabelsAfter = new HashMap<>();
 
     public JasminListener(Compiler compiler, File outputDir) {
         super(compiler);
@@ -97,6 +98,13 @@ public class JasminListener extends ScopedBaseListener {
         methodVars.put(var, new Integer(idx));
         writer.printf(".var %1$d is %2$s %3$s\n", idx, var.getName(), typeSpec(var.getType()));
     }
+
+    private VariableSymbol createTempVar(TypeSymbol type) {
+        VariableSymbol var = new VariableSymbol("lyra_jasmin_temp_" + methodVars.size(), type);
+        declareVar(var);
+        return var;
+    }
+
     private void loadVar(VariableSymbol var) {
         Integer idx = methodVars.get(var);
         incStackUsage(1);
@@ -106,6 +114,26 @@ public class JasminListener extends ScopedBaseListener {
         Integer idx = methodVars.get(var);
         writer.printf("astore %1$d\n", idx.intValue());
         decStackUsage(1);
+    }
+    private String generateLabel(ParserRuleContext node) {
+        methodLabels.put(node, methodLabels.size());
+        return getLabel(node);
+    }
+    private String getLabel(ParserRuleContext node) {
+        Integer integer = methodLabels.get(node);
+        if (integer == null)
+            return null;
+        return "LyraLabel" + integer.intValue();
+    }
+    private String generateLabelAfter(ParserRuleContext node) {
+        methodLabelsAfter.put(node, methodLabelsAfter.size());
+        return getLabelAfter(node);
+    }
+    private String getLabelAfter(ParserRuleContext node) {
+        Integer integer = methodLabelsAfter.get(node);
+        if (integer == null)
+            return null;
+        return "LyraLabelAfter" + integer.intValue();
     }
 
     private void createJasminFile(String className) {
@@ -141,12 +169,29 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void enterEveryRule(ParserRuleContext ctx) {
+        String label = getLabel(ctx);
+        if (label != null)
+            writer.printf("%1$s:\n", label);
+        super.enterEveryRule(ctx);
+    }
+
+    @Override
+    public void exitEveryRule(ParserRuleContext ctx) {
+        super.exitEveryRule(ctx);
+
+        String label = getLabelAfter(ctx);
+        if (label != null)
+            writer.printf("%1$s:\n", label);
+    }
+
+    @Override
     public void enterClassBody(LyraParser.ClassBodyContext ctx) {
         LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
         classSymbol = (ClassSymbol) table.getNodeSymbol(parent);
         createJasminFile(classSymbol.getName());
 
-        writer.println(".source " + file.getName() + ".j");
+        writer.println(".source " + file.getName());
         writer.println(".class public " + classSymbol.getBinaryName());
         writer.println(".super " + classSymbol.getSuperClass().getBinaryName());
         writer.println();
@@ -160,10 +205,10 @@ public class JasminListener extends ScopedBaseListener {
         methodSymbol = (MethodSymbol) table.getNodeSymbol(ctx);
         List<TypeSymbol> args = methodSymbol.getArgumentTypes();
 
-        methodLocalsUsage = 1 + args.size(); //"this" always present
         methodStackUsage = 0;
         methodCurrentStackUsage = 0;
         methodVars.clear();
+        methodLabels.clear();
 
         writer.printf(".method %1$s %2$s(", mapVisibility(methodSymbol.getVisibility()),
                 methodSymbol.getBinaryName());
@@ -219,20 +264,28 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     private boolean isLeftOfAssignment(LyraParser.FactorContext ctx) {
-        if (ctx.getParent() instanceof LyraParser.UnaryexprContext) {
-            if (ctx.getParent().getParent() instanceof LyraParser.ExprContext) {
-                LyraParser.ExprContext maybeLeft =
-                        (LyraParser.ExprContext) ctx.getParent().getParent();
-                LyraParser.ExprContext maybeAssign =
-                        (LyraParser.ExprContext) maybeLeft.getParent();
-                if (maybeAssign.binOp != null
-                        && maybeAssign.binOp.getType() == LyraLexer.EQUALOP
-                        && maybeAssign.expr(0) == maybeLeft) {
+        ParserRuleContext child = ctx;
+        ParserRuleContext parent = ctx.getParent();
+        while (parent != null) {
+            if (parent instanceof LyraParser.FactorContext) {
+                if (!(parent instanceof LyraParser.WrappedFactorContext))
+                    return false;
+            } else if (parent instanceof LyraParser.UnaryexprContext) {
+                if (((LyraParser.UnaryexprContext)parent).factor() == null)
+                    return false;
+            } else if (parent instanceof LyraParser.ExprContext) {
+                LyraParser.ExprContext expr = (LyraParser.ExprContext) parent;
+                if (expr.binOp != null
+                        && expr.binOp.getType() == LyraLexer.EQUALOP
+                        && expr.expr(0) == child) {
                     return true;
                 }
             }
+
+            child = parent;
+            parent = parent.getParent();
         }
-        return false;
+        return  false;
     }
 
     @Override
@@ -251,7 +304,7 @@ public class JasminListener extends ScopedBaseListener {
                 /* globals are static fields of lyra/runtime/Start */
                 writer.printf("getstatic %1$s %2$s\n", var.getBinaryName(),
                         typeSpec(var.getType()));
-            } else if (var.getScope().isChildOf(methodSymbol)) {
+            } else if (var.isChildOf(methodSymbol)) {
                 /* local var access */
                 loadVar(var);
             } else {
@@ -278,7 +331,7 @@ public class JasminListener extends ScopedBaseListener {
     public void enterExpr(LyraParser.ExprContext ctx) {
         if (ctx.binOp != null && ctx.binOp.getType() == LyraLexer.EQUALOP) {
             VariableSymbol var = (VariableSymbol) table.getNodeSymbol(ctx.expr(0));
-            if (var.isClassField() || var.getScope().isChildOf(methodSymbol)) {
+            if (var.isClassField() || var.isChildOf(methodSymbol)) {
                 /* class field or local var, fully handled on exitExpr() */
                 muteSubtree(ctx.expr(0));
             }
@@ -298,7 +351,7 @@ public class JasminListener extends ScopedBaseListener {
              * is at the top of the operand stack. */
 
             VariableSymbol var = (VariableSymbol) table.getNodeSymbol(ctx.expr(0));
-            if (var.getScope().isChildOf(methodSymbol)) {
+            if (var.isChildOf(methodSymbol)) {
                 /* local variable. The result of the right expression is the stack top */
                 storeVar(var);
             } else if (var.isClassField()) {
@@ -342,7 +395,7 @@ public class JasminListener extends ScopedBaseListener {
         incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
         writer.printf("new %1$s\n" +
                       "dup\n" +
-                      "ldc %2$s" +
+                      "ldc %2$s\n" +
                       "invokespecial %1$s/<init>(%3$s)V\n"
                 , type.getBinaryName(), tok.getText(), primitive);
         decStackUsage(2 /*dup, ldc*/);
@@ -371,6 +424,67 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void exitVarDeclUnit(LyraParser.VarDeclUnitContext ctx) {
+        if ((ctx.getParent().getParent() instanceof LyraParser.VarDeclStatContext)) {
+            /* method-local variable */
+            VariableSymbol varSymbol = (VariableSymbol) table.getNodeSymbol(ctx);
+            declareVar(varSymbol);
+            ClassSymbol classSymbol = (ClassSymbol) varSymbol.getType();
+
+            if (ctx.expr() != null) {
+                /* result of expr is on stack top */
+                checkAndDoConversion(table.getNodeType(ctx.expr()), classSymbol);
+                storeVar(varSymbol);
+            }
+        }
+
+    }
+
+    private void checkAndDoConversion(TypeSymbol actual, ClassSymbol target) {
+        if (actual.isA(target))
+            return;
+        MethodSymbol constructor = target.conversionConstructor(actual);
+        /* dup below makes us store the original stack top into a temporary variable */
+        VariableSymbol tempVar = createTempVar(actual);
+        storeVar(tempVar);
+        decStackUsage(1);
+
+        /* construct a target instance with the conversion constructor */
+        incStackUsage(3 /*new + dup + loadVar()*/);
+        writer.printf("new %1$s\n" +
+                      "dup\n", target.getBinaryName());
+        loadVar(tempVar);
+        writer.printf("invokespecial %1$s", methodSpec(constructor));
+
+        decStackUsage(2); /*invokespecial*/
+
+        /* stack top is an instance of target converted from the previous stack top */
+    }
+
+    @Override
+    public void enterIfstat(LyraParser.IfstatContext ctx) {
+        String endIfLabel = generateLabelAfter(ctx);
+        String elseLabel = (ctx.elsestat() != null) ? generateLabel(ctx.elsestat())
+                                                    : endIfLabel;
+
+        doOnceAfter(ctx.expr(), () -> {
+            /* The resulting Object from expr is stacked, but it may not be a Bool */
+            checkAndDoConversion(table.getNodeType(ctx.expr()), table.getPredefinedClass("Bool"));
+            /* We have a Bool on the stack top. Get it's boolean primitive and do the if */
+            writer.printf("invokevirtual lyra/runtime/Bool/valueOf()Z\n" +
+                    "ifeq %1$s\n", elseLabel);
+            decStackUsage(1); /* ifne pops the boolean */
+        });
+        /* jump from the end of the true statlist to after the ifstat. */
+        if (ctx.elsestat() != null) {
+            doOnceAfter(ctx.statlist(), () -> {
+                writer.printf("goto %1$s\n", endIfLabel);
+            });
+        }
+        /* else needs no handling other than label generation */
+    }
+
+    @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
         writer.flush();
         String body = "";
@@ -383,7 +497,7 @@ public class JasminListener extends ScopedBaseListener {
 
         writer.printf(".limit stack %1$d\n" +
                 ".limit locals %2$d\n" +
-                "%3$s\n", methodStackUsage, methodLocalsUsage, body);
+                "%3$s\n", methodStackUsage, methodVars.size(), body);
 
         /* inject lyra/runtime/Void return */
         ClassSymbol voidClass = table.getPredefinedClass("void");
@@ -396,10 +510,11 @@ public class JasminListener extends ScopedBaseListener {
                     "areturn\n", voidClass.getBinaryName(), methodSpec(constructor));
         }
 
-        writer.printf(".end method\n");
+        writer.printf(".end method\n\n\n");
 
         methodSymbol = null;
         methodVars.clear();
+        methodLabels.clear();
         super.exitMethodDecl(ctx);
     }
 
