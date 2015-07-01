@@ -3,3 +3,4 @@
 .gradle
 build/
 src/parser
+src/main/resources/lyra-runtime-1.0.jar

@@ -1,6 +1,7 @@
 package lyra.listeners;
 
 import lyra.Compiler;
+import lyra.JasminLauncher;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.symbols.*;
@@ -9,6 +10,7 @@ import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,6 +21,7 @@ import java.util.List;
  */
 public class JasminListener extends ScopedBaseListener {
     private File outputDir;
+    private JasminLauncher jasminLauncher = new JasminLauncher();
     private List<File> jasminFiles = new LinkedList<>();
     private List<File> classFiles = new LinkedList<>();
 
@@ -41,6 +44,7 @@ public class JasminListener extends ScopedBaseListener {
 
     public JasminListener(Compiler compiler, File outputDir) {
         super(compiler);
+        jasminLauncher.setOutputDir(outputDir.toPath());
         this.outputDir = outputDir;
     }
 
@@ -137,18 +141,18 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     private void createJasminFile(String className) {
-        file = new File(className + ".j");
-        if (file.exists())
-            file.delete();
+        this.file = new File(outputDir, className + ".j");
+        if (this.file.exists())
+            this.file.delete();
         try {
-            writer = new PrintWriter(file, "UTF-8");
+            writer = new PrintWriter(this.file, "UTF-8");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
 
-        jasminFiles.add(file);
+        jasminFiles.add(this.file);
     }
 
     private void endJasminFile() {
@@ -159,8 +163,10 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     private void compileJasmin() {
-        /* TODO !!! implementar, acho que vamos ter spawnar um java -jar jasmine.jar
-         * e embarcar esse jar no muque dentro do nosso. */
+        if (!jasminLauncher.assemble(file.toPath())) {
+            compiler.getErrorListener().semanticError(compiler.getParser(),
+                    table.getSymbolNode(classSymbol), "Could not compile jasmin file.");
+        }
     }
 
     private void closeJasminFile() {

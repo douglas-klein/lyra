@@ -8,12 +8,22 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.zip.*;
 
 public class Compiler {
 
@@ -111,10 +121,87 @@ public class Compiler {
     }
 
     private boolean generateCode() {
+        /* clean old files */
+        File lyraDir = new File(intermediateDir, "lyra");
+        try {
+            if (lyraDir.exists()) {
+                if (lyraDir.isDirectory())
+                    FileUtils.deleteDirectory(lyraDir);
+                else
+                    lyraDir.delete();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Could not remove old intermediary files.");
+            return false;
+        }
+
+
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(new JasminListener(this, intermediateDir), parseTree);
-        return getErrorListener().getNumberOfErrors() == 0;
+        if (getErrorListener().getNumberOfErrors() != 0)
+            return false;
+
+        try {
+            System.out.println("Output written to " + createJar() + ".");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error creating runnable jar.");
+            return false;
+        }
+
+        return true;
     }
+
+    private Path createJar() throws URISyntaxException, IOException {
+        ClassLoader cl = getClass().getClassLoader();
+        InputStream resourceStream = cl.getResourceAsStream("lyra-runtime-1.0.jar");
+        ZipInputStream runtime = new ZipInputStream(resourceStream);
+        File outputFile = new File(outputDir, "lyra-program.jar");
+        ZipOutputStream output = new ZipOutputStream(new FileOutputStream(outputFile));
+
+        /* copy everything on the lyra-runtime jar. Special case for the lyra directory */
+        boolean gotLyra = false;
+        for (ZipEntry entry; (entry = runtime.getNextEntry()) != null; ) {
+            output.putNextEntry(entry);
+            if (!entry.isDirectory()) IOUtils.copy(runtime, output);
+            output.closeEntry();
+
+            if (entry.getName().equals("lyra/") && !gotLyra) {
+                gotLyra = true;
+                File lyraDir = new File(intermediateDir, "lyra");
+                IOFileFilter filter = TrueFileFilter.INSTANCE;
+                for (File file : FileUtils.listFilesAndDirs(lyraDir, filter, filter)) {
+                    String entryPath = zipEntryPath(lyraDir.toPath(), file);
+                    if (entryPath == null) continue;
+                    entry = new ZipEntry(entryPath);
+                    output.putNextEntry(entry);
+                    if (!entry.isDirectory()) {
+                        FileInputStream inputStream = new FileInputStream(file);
+                        IOUtils.copy(inputStream, output);
+                        inputStream.close();
+                    }
+                }
+            }
+        }
+        output.close();
+        runtime.close();
+
+        return outputFile.toPath();
+    }
+
+    private String zipEntryPath(Path parent, File file) {
+        if (file.toPath().equals(parent)) return null;
+
+        String str = file.getName() + (file.isDirectory() ? "/" : "");
+        Path path = file.toPath().getParent();
+        while (!path.equals(parent)) {
+            str = path.getName(path.getNameCount()-1) + "/" + str;
+            path = path.getParent();
+        }
+        return parent.getName(parent.getNameCount()-1) + "/" + str;
+    }
+
 
     public boolean compile() {
         if (!analyse()) return false;
