@@ -252,7 +252,8 @@ public class Compiler {
         }
         return null;
     }
-    public void useTempDir() {
+
+    private File createTempDir() {
         File dir;
         try {
             Path path = Files.createTempDirectory("lyra");
@@ -260,7 +261,12 @@ public class Compiler {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        dir.deleteOnExit();
+        return dir;
+    }
 
+    public void useTempDirs() {
+        File dir = createTempDir();
         setIntermediateDir(dir);
         setOutputDir(dir);
     }
