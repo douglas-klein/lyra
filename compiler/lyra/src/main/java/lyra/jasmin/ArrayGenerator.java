@@ -108,7 +108,10 @@ public class ArrayGenerator implements CodeGenerator {
 
             /* for initialization */
             VariableSymbol i = methodHelper.createTempVar(intClass);
-            out.printf("bipush 0\n");
+            methodHelper.incStackUsage(3);
+            out.printf("new %1$s\ndup\nbipush 0\n" +
+                       "invokespecial lyra/runtime/Int/<init>(I)V\n", intClass.getBinaryName());
+            methodHelper.decStackUsage(2);
             methodHelper.storeVar(i);
 
             /* for condition */
@@ -117,7 +120,7 @@ public class ArrayGenerator implements CodeGenerator {
             out.printf("invokevirtual %1$s\n", intValueOf);
             methodHelper.loadVar(dim0);
             out.printf("invokevirtual %1$s\n", intValueOf);
-            out.printf("if_icmpeq ForEnd\n");
+            out.printf("if_icmpeq ForDone\n");
             methodHelper.decStackUsage(2);
 
             /* for body */
@@ -129,13 +132,15 @@ public class ArrayGenerator implements CodeGenerator {
             out.printf("invokespecial %1$s\n", Utils.methodSpec(innerCtor));
             methodHelper.decStackUsage(innerDims.size() + 1 /*dup*/);
             out.printf("invokevirtual %1$s\n", Utils.methodSpec(set));
-            methodHelper.decStackUsage(3); /* this, i, new */
+            methodHelper.decStackUsage(3/*this, i, new*/ - 1/*set return */);
+            out.printf("pop\n");
+            methodHelper.decStackUsage(1 /*set return*/);
 
             /* for post-loop */
             methodHelper.loadVar(i);
             out.printf("invokevirtual %1$s\n", Utils.methodSpec(intInc));
             methodHelper.storeVar(i);
-            out.printf("goto ForStart:\n");
+            out.printf("goto ForStart\n");
 
             /* for end */
             out.printf("ForDone:\n");
