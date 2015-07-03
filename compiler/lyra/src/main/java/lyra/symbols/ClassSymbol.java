@@ -47,6 +47,7 @@ public class ClassSymbol extends TypeSymbol {
         if (members.get("constructor") == null) {
             MethodSymbol ctor = new MethodSymbol("constructor",
                     (ClassSymbol) global.resolve("void"), this);
+            ctor.setGenerator(new lyra.jasmin.DefaultConstructor(ctor));
             define(ctor);
         }
     }

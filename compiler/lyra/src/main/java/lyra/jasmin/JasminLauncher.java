@@ -1,4 +1,4 @@
-package lyra;
+package lyra.jasmin;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

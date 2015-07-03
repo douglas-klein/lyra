@@ -1,5 +1,6 @@
 package lyra;
 
+import lyra.jasmin.JasminListener;
 import lyra.listeners.*;
 import lyra.scopes.Scope;
 import lyra.symbols.SymbolTable;
@@ -14,15 +15,11 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.IntStream;
 import java.util.zip.*;
 
 public class Compiler {

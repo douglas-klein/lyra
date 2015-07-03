@@ -1,5 +1,6 @@
 package lyra.symbols;
 
+import lyra.CodeGenerator;
 import lyra.LyraParser;
 import lyra.SemanticErrorException;
 import lyra.scopes.BaseScope;
@@ -15,6 +16,8 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Holds together the global scope with predefined symbols the ParseTreeProperty that
@@ -30,6 +33,7 @@ public class SymbolTable {
     private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
 
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
+    private LinkedList<CodeGenerator> generatedClassesGenerators = new LinkedList<>();
 
 
     public SymbolTable() {
@@ -100,4 +104,8 @@ public class SymbolTable {
         symbolNode.put(symbol, node);
     }
     public ParseTree getSymbolNode(Symbol symbol) { return symbolNode.get(symbol); }
+
+    public List<CodeGenerator> getGeneratedClassesGenerators() {
+        return generatedClassesGenerators;
+    }
 }

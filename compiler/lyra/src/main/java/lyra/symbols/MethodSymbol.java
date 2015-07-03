@@ -1,6 +1,7 @@
 package lyra.symbols;
 
 
+import lyra.CodeGenerator;
 import lyra.SemanticErrorException;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
@@ -21,6 +22,7 @@ public class MethodSymbol extends ScopedSymbol {
     private boolean _abstract = false;
     private TypeSymbol returnType;
     private BaseScope scope;
+    private CodeGenerator generator = null;
 
     public MethodSymbol(String name, TypeSymbol returnType, Scope enclosingScope) {
         super(name, SymbolType.METHOD, enclosingScope);
@@ -117,5 +119,15 @@ public class MethodSymbol extends ScopedSymbol {
 
     public boolean isConstructor() {
         return getName().equals("constructor");
+    }
+
+    public boolean isGenerated() {
+        return generator != null;
+    }
+    public CodeGenerator getGenerator() {
+        return generator;
+    }
+    public void setGenerator(CodeGenerator generator) {
+        this.generator = generator;
     }
 }

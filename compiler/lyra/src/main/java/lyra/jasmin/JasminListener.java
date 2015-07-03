@@ -1,18 +1,17 @@
-package lyra.listeners;
+package lyra.jasmin;
 
+import lyra.CodeGenerator;
 import lyra.Compiler;
-import lyra.JasminLauncher;
 import lyra.LyraLexer;
 import lyra.LyraParser;
+import lyra.listeners.ScopedBaseListener;
 import lyra.symbols.*;
 import lyra.tokens.NumberToken;
 import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,21 +25,12 @@ public class JasminListener extends ScopedBaseListener {
     private List<File> classFiles = new LinkedList<>();
 
     private ClassSymbol classSymbol;
-    private MethodSymbol methodSymbol;
-
     private File file;
-    private ByteArrayOutputStream methodOutputStream;
+
     private PrintWriter writer;
-    private PrintWriter classWriter;
 
-    private int methodStackUsage;
-    /** Tracks stack usage as the method childs are visited, when this grows larger than
-     *  methodLocalsUsage, methodLocalsUsage is updated. */
-    private int methodCurrentStackUsage;
-
-    private HashMap<VariableSymbol, Integer> methodVars = new HashMap<>();
-    private HashMap<ParserRuleContext, Integer> methodLabels = new HashMap<>();
-    private HashMap<ParserRuleContext, Integer> methodLabelsAfter = new HashMap<>();
+    private MethodSymbol methodSymbol;
+    private MethodHelper methodHelper;
 
     public JasminListener(Compiler compiler, File outputDir) {
         super(compiler);
@@ -59,85 +49,13 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     private String mapVisibility(Visibility visibility) {
-        switch (visibility) {
-            case PRIVATE: return "private";
-            case PUBLIC: return "public";
-            case PROTECTED: return "protected";
-            default: break;
-        }
-        return null;
+        return Utils.mapVisibility(visibility);
     }
-
     private String typeSpec(TypeSymbol type) {
-        String spec = "L";
-        if (type instanceof InterfaceSymbol)
-            spec = "I";
-        spec += type.getBinaryName() + ";";
-        return spec;
+        return Utils.typeSpec(type);
     }
     private String methodSpec(MethodSymbol method) {
-        String returnSpec = (method.isConstructor()) ? "V" : typeSpec(method.getReturnType());
-
-        return String.format("%1$s/%2$s(%3$s)%4$s",
-                ((TypeSymbol)method.getEnclosingScope()).getBinaryName(),
-                method.getBinaryName(),
-                method.getArgumentTypes().stream().map(t -> typeSpec(t))
-                    .reduce((a, b) -> a + b).orElse(""),
-                returnSpec);
-    }
-
-    private void incStackUsage(int count) {
-        methodCurrentStackUsage += count;
-        if (methodCurrentStackUsage > methodStackUsage)
-            methodStackUsage = methodCurrentStackUsage;
-    }
-    private void decStackUsage(int count) {
-        methodCurrentStackUsage -= count;
-    }
-
-    private void declareVar(VariableSymbol var) {
-        if (methodVars.get(var) != null)
-            return;
-        int idx = methodVars.size();
-        methodVars.put(var, new Integer(idx));
-        writer.printf(".var %1$d is %2$s %3$s\n", idx, var.getName(), typeSpec(var.getType()));
-    }
-
-    private VariableSymbol createTempVar(TypeSymbol type) {
-        VariableSymbol var = new VariableSymbol("lyra_jasmin_temp_" + methodVars.size(), type);
-        declareVar(var);
-        return var;
-    }
-
-    private void loadVar(VariableSymbol var) {
-        Integer idx = methodVars.get(var);
-        incStackUsage(1);
-        writer.printf("aload %1$d\n", idx.intValue());
-    }
-    private void storeVar(VariableSymbol var) {
-        Integer idx = methodVars.get(var);
-        writer.printf("astore %1$d\n", idx.intValue());
-        decStackUsage(1);
-    }
-    private String generateLabel(ParserRuleContext node) {
-        methodLabels.put(node, methodLabels.size());
-        return getLabel(node);
-    }
-    private String getLabel(ParserRuleContext node) {
-        Integer integer = methodLabels.get(node);
-        if (integer == null)
-            return null;
-        return "LyraLabel" + integer.intValue();
-    }
-    private String generateLabelAfter(ParserRuleContext node) {
-        methodLabelsAfter.put(node, methodLabelsAfter.size());
-        return getLabelAfter(node);
-    }
-    private String getLabelAfter(ParserRuleContext node) {
-        Integer integer = methodLabelsAfter.get(node);
-        if (integer == null)
-            return null;
-        return "LyraLabelAfter" + integer.intValue();
+        return Utils.methodSpec(method);
     }
 
     private void createJasminFile(String className) {
@@ -176,9 +94,11 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
-        String label = getLabel(ctx);
-        if (label != null)
-            writer.printf("%1$s:\n", label);
+        if (methodHelper != null) {
+            String label = methodHelper.getLabel(ctx);
+            if (label != null)
+                writer.printf("%1$s:\n", label);
+        }
         super.enterEveryRule(ctx);
     }
 
@@ -186,9 +106,11 @@ public class JasminListener extends ScopedBaseListener {
     public void exitEveryRule(ParserRuleContext ctx) {
         super.exitEveryRule(ctx);
 
-        String label = getLabelAfter(ctx);
-        if (label != null)
-            writer.printf("%1$s:\n", label);
+        if (methodHelper != null) {
+            String label = methodHelper.getLabelAfter(ctx);
+            if (label != null)
+                writer.printf("%1$s:\n", label);
+        }
     }
 
     @Override
@@ -196,12 +118,7 @@ public class JasminListener extends ScopedBaseListener {
         LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
         classSymbol = (ClassSymbol) table.getNodeSymbol(parent);
         createJasminFile(classSymbol.getName());
-
-        writer.println(".source " + file.getName());
-        writer.println(".class public " + classSymbol.getBinaryName());
-        writer.println(".super " + classSymbol.getSuperClass().getBinaryName());
-        writer.println();
-        writer.println();
+        Utils.writeClassPrelude(writer, classSymbol);
     }
 
     @Override
@@ -209,29 +126,10 @@ public class JasminListener extends ScopedBaseListener {
         super.enterMethodDecl(ctx);
 
         methodSymbol = (MethodSymbol) table.getNodeSymbol(ctx);
-        List<TypeSymbol> args = methodSymbol.getArgumentTypes();
-
-        methodStackUsage = 0;
-        methodCurrentStackUsage = 0;
-        methodVars.clear();
-        methodLabels.clear();
-
-        writer.printf(".method %1$s %2$s(", mapVisibility(methodSymbol.getVisibility()),
-                methodSymbol.getBinaryName());
-
-        for (TypeSymbol type : args) {
-            writer.print(typeSpec(type));
-        }
-        writer.printf(")%1$s\n", typeSpec(methodSymbol.getReturnType()));
-
-        methodOutputStream = new ByteArrayOutputStream();
-        classWriter = writer;
-        writer = new PrintWriter(methodOutputStream);
-
-        declareVar((VariableSymbol) currentScope.resolve("this"));
-        for (VariableSymbol arg : methodSymbol.getArguments())
-            declareVar(arg);
-
+        methodHelper = new MethodHelper(writer, methodSymbol, table);
+        methodHelper.writeHeader();
+        writer = methodHelper.createBodyWriter();
+        methodHelper.writeVars();
     }
 
     @Override
@@ -245,7 +143,7 @@ public class JasminListener extends ScopedBaseListener {
         if (memberSymbol instanceof VariableSymbol) {
             VariableSymbol field = (VariableSymbol) memberSymbol;
             if (field.isClassField()) {
-                incStackUsage(1); //we will push the field value but we have nothing stacked for us
+                methodHelper.incStackUsage(1); //we will push the field value but we have nothing stacked for us
                 writer.printf("getstatic %1$s %2$s\n", field.getBinaryName(),
                                                        typeSpec(field.getType()));
             } else if (!isLeftOfAssignment(ctx)) {
@@ -265,7 +163,7 @@ public class JasminListener extends ScopedBaseListener {
              */
             writer.printf("invokevirtual %1$s\n", methodSpec(method));
             /* pop object and arguments, leave a result */
-            decStackUsage(1 + method.getArgumentTypes().size() - 1);
+            methodHelper.decStackUsage(1 + method.getArgumentTypes().size() - 1);
         }
     }
 
@@ -300,7 +198,7 @@ public class JasminListener extends ScopedBaseListener {
         if (symbol instanceof MethodSymbol) {
             /* a method call to this without arguments */
             MethodSymbol method = (MethodSymbol) symbol;
-            loadVar((VariableSymbol) methodSymbol.resolve("this"));
+            methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
             writer.printf("invokevirtual %1$s\n", methodSpec(method));
             //this is replaced with the method return
         } else if (symbol instanceof VariableSymbol) {
@@ -312,22 +210,22 @@ public class JasminListener extends ScopedBaseListener {
                         typeSpec(var.getType()));
             } else if (var.isChildOf(methodSymbol)) {
                 /* local var access */
-                loadVar(var);
+                methodHelper.loadVar(var);
             } else {
                 /* acessing a var with implicit this */
                 if (isLeftOfAssignment(ctx)) {
                     /* we are the outermost expression on the left side of an assignment, leave
                      * only a reference to this stacked, do not access the var. */
-                    loadVar((VariableSymbol) methodSymbol.resolve("this"));
+                    methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
                 } else {
-                    incStackUsage(1); //this pushed
-                    loadVar((VariableSymbol) methodSymbol.resolve("this"));
+                    methodHelper.incStackUsage(1); //this pushed
+                    methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
                     writer.printf("getfield %1$s %2$s\n",
                             var.getBinaryName(), typeSpec(var.getType()));
-                    decStackUsage(1); //this popped
+                    methodHelper.decStackUsage(1); //this popped
                 }
             }
-            incStackUsage(1); //var value is pushed
+            methodHelper.incStackUsage(1); //var value is pushed
         }
         /* symbol may also be a ClassSymbol, this is only valid as the child factor of an
          * memberFactor, and exitMemberFactor will output the code. */
@@ -359,12 +257,12 @@ public class JasminListener extends ScopedBaseListener {
             VariableSymbol var = (VariableSymbol) table.getNodeSymbol(ctx.expr(0));
             if (var.isChildOf(methodSymbol)) {
                 /* local variable. The result of the right expression is the stack top */
-                storeVar(var);
+                methodHelper.storeVar(var);
             } else if (var.isClassField()) {
                 /* setting a static field, consumes the stack top */
                 writer.printf("putstatic %1$s %2$s\n", var.getBinaryName(),
                                                        typeSpec(var.getType()));
-                decStackUsage(1);
+                methodHelper.decStackUsage(1);
             } else {
                 /* must be an field, by elimination */
                 /* some magic took place: enterExpr() allowed visiting the left subtree, but the
@@ -374,7 +272,7 @@ public class JasminListener extends ScopedBaseListener {
                  * [..., objectref, rhsvalue] on the stack, which is exactly what putfield
                  * expects. */
                 writer.printf("putfield %1$s %2$s\n", var.getBinaryName(), typeSpec(var.getType()));
-                decStackUsage(2 /*putfield*/);
+                methodHelper.decStackUsage(2 /*putfield*/);
             }
         }
 
@@ -383,14 +281,14 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitStringFactor(LyraParser.StringFactorContext ctx) {
-        incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
+        methodHelper.incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
         writer.printf("new %1$s\n" +
                         "dup\n" + /* invokespecial will consume the duplicate */
                         "ldc \"%2$s\"\n" +
                         "invokespecial %1$s/<init>(Ljava/lang/String;)V\n",
                 table.getPredefinedClass("String").getBinaryName(),
                 ((StringToken) ctx.STRING().getSymbol()).getContent());
-        decStackUsage(2); /* only the lyra/runtime/String remains */
+        methodHelper.decStackUsage(2); /* only the lyra/runtime/String remains */
     }
 
     @Override
@@ -398,20 +296,20 @@ public class JasminListener extends ScopedBaseListener {
         NumberToken tok = (NumberToken) ctx.NUMBER();
         ClassSymbol type = table.getPredefinedClass(tok.getLyraTypeName());
         String primitive = type.getName().equals("Int") ? "I" : "D";
-        incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
+        methodHelper.incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
         writer.printf("new %1$s\n" +
                       "dup\n" +
                       "ldc %2$s\n" +
                       "invokespecial %1$s/<init>(%3$s)V\n"
                 , type.getBinaryName(), tok.getText(), primitive);
-        decStackUsage(2 /*dup, ldc*/);
+        methodHelper.decStackUsage(2 /*dup, ldc*/);
     }
 
     @Override
     public void exitBoolFactor(LyraParser.BoolFactorContext ctx) {
         String tail = ctx.FALSE() != null ? "false" : "true";
         VariableSymbol var = (VariableSymbol)table.getGlobal().resolve(tail);
-        incStackUsage(1);
+        methodHelper.incStackUsage(1);
         writer.printf("getstatic %1$s %2$s\n",
                 var.getBinaryName(), var.getType().getBinaryName());
     }
@@ -423,7 +321,7 @@ public class JasminListener extends ScopedBaseListener {
              * assignment, but that code also leaves the newly written reference on the operand
              * stack. */
             writer.println("pop");
-            decStackUsage(1);
+            methodHelper.decStackUsage(1);
         }
 
         //TODO !!! handle other cases?
@@ -434,13 +332,13 @@ public class JasminListener extends ScopedBaseListener {
         if ((ctx.getParent().getParent() instanceof LyraParser.VarDeclStatContext)) {
             /* method-local variable */
             VariableSymbol varSymbol = (VariableSymbol) table.getNodeSymbol(ctx);
-            declareVar(varSymbol);
+            methodHelper.declareVar(varSymbol);
             ClassSymbol classSymbol = (ClassSymbol) varSymbol.getType();
 
             if (ctx.expr() != null) {
                 /* result of expr is on stack top */
                 checkAndDoConversion(table.getNodeType(ctx.expr()), classSymbol);
-                storeVar(varSymbol);
+                methodHelper.storeVar(varSymbol);
             }
         }
 
@@ -451,26 +349,26 @@ public class JasminListener extends ScopedBaseListener {
             return;
         MethodSymbol constructor = target.conversionConstructor(actual);
         /* dup below makes us store the original stack top into a temporary variable */
-        VariableSymbol tempVar = createTempVar(actual);
-        storeVar(tempVar);
-        decStackUsage(1);
+        VariableSymbol tempVar = methodHelper.createTempVar(actual);
+        methodHelper.storeVar(tempVar);
+        methodHelper.decStackUsage(1);
 
         /* construct a target instance with the conversion constructor */
-        incStackUsage(3 /*new + dup + loadVar()*/);
+        methodHelper.incStackUsage(3 /*new + dup + loadVar()*/);
         writer.printf("new %1$s\n" +
                       "dup\n", target.getBinaryName());
-        loadVar(tempVar);
+        methodHelper.loadVar(tempVar);
         writer.printf("invokespecial %1$s", methodSpec(constructor));
 
-        decStackUsage(2); /*invokespecial*/
+        methodHelper.decStackUsage(2); /*invokespecial*/
 
         /* stack top is an instance of target converted from the previous stack top */
     }
 
     @Override
     public void enterIfstat(LyraParser.IfstatContext ctx) {
-        String endIfLabel = generateLabelAfter(ctx);
-        String elseLabel = (ctx.elsestat() != null) ? generateLabel(ctx.elsestat())
+        String endIfLabel = methodHelper.generateLabelAfter(ctx);
+        String elseLabel = (ctx.elsestat() != null) ? methodHelper.generateLabel(ctx.elsestat())
                                                     : endIfLabel;
 
         doOnceAfter(ctx.expr(), () -> {
@@ -479,7 +377,7 @@ public class JasminListener extends ScopedBaseListener {
             /* We have a Bool on the stack top. Get it's boolean primitive and do the if */
             writer.printf("invokevirtual lyra/runtime/Bool/valueOf()Z\n" +
                     "ifeq %1$s\n", elseLabel);
-            decStackUsage(1); /* ifne pops the boolean */
+            methodHelper.decStackUsage(1); /* ifne pops the boolean */
         });
         /* jump from the end of the true statlist to after the ifstat. */
         if (ctx.elsestat() != null) {
@@ -492,57 +390,33 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
-        writer.flush();
-        String body = "";
-        try {
-            body = new String(methodOutputStream.toByteArray(), "UTF-8");
-        } catch (UnsupportedEncodingException e) { }
-        writer.close();
-        methodOutputStream = null;
-        writer = classWriter;
-
-        writer.printf(".limit stack %1$d\n" +
-                ".limit locals %2$d\n" +
-                "%3$s\n", methodStackUsage, methodVars.size(), body);
-
-        /* inject lyra/runtime/Void return */
-        ClassSymbol voidClass = table.getPredefinedClass("void");
-        if (methodSymbol.getReturnType() == voidClass) {
-            MethodSymbol constructor = voidClass.resolveOverload("constructor",
-                    Collections.emptyList());
-            writer.printf("new %1$s\n" +
-                    "dup\n" +
-                    "invokespecial %2$s\n" +
-                    "areturn\n", voidClass.getBinaryName(), methodSpec(constructor));
-        }
-
-        writer.printf(".end method\n\n\n");
-
+        writer = methodHelper.writePreludeAndBody();
+        methodHelper.writePrologue();
         methodSymbol = null;
-        methodVars.clear();
-        methodLabels.clear();
+        methodHelper = null;
         super.exitMethodDecl(ctx);
     }
 
     @Override
     public void exitClassBody(LyraParser.ClassBodyContext ctx) {
-        boolean hasGeneratedConstructor = classSymbol.getOverloads("constructor")
-                .anyMatch(m -> m.getEnclosingScope() == classSymbol
-                        && m.getArguments().size() == 0
-                        && table.getSymbolNode(m) == null);
-        if (hasGeneratedConstructor) {
-            MethodSymbol parent = classSymbol.getSuperClass().resolveOverload("constructor",
-                    Collections.emptyList());
-            writer.printf(".method public <init>()V\n" +
-                          ".limit stack 1\n" +
-                          ".limit locals 1\n" +
-                          ".var 0 is this %1$s\n" +
-                          "aload_0\n" +
-                          "invokespecial %2$s\n" +
-                          "return\n" +
-                          ".end method\n", typeSpec(classSymbol), methodSpec(parent));
-        }
+        classSymbol.getMethods().filter(m -> m.isGenerated())
+                .forEach(m -> m.getGenerator().generate(writer, table));
         classSymbol = null;
         endJasminFile();
+    }
+
+    @Override
+    public void exitProgram(LyraParser.ProgramContext ctx) {
+        for (CodeGenerator gen : table.getGeneratedClassesGenerators()) {
+            Symbol symbol = gen.getSymbol();
+            if (symbol == null) continue;
+            if (!(symbol instanceof ClassSymbol)) continue;
+
+            ClassSymbol classSymbol = (ClassSymbol)symbol;
+            createJasminFile(classSymbol.getName());
+            Utils.writeClassPrelude(writer, classSymbol);
+            gen.generate(writer, table);
+            endJasminFile();
+        };
     }
 }
