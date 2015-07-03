@@ -4,7 +4,7 @@ package lyra.runtime;
 /**
  *
  */
-public class String {
+public class String extends Object {
     private java.lang.String value;
     static java.lang.String trueValues[] = {
             "true", "1", "True", "TRUE", "on"
