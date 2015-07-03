@@ -4,6 +4,8 @@ import jdk.nashorn.internal.ir.Terminal;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.LyraParserBaseListener;
+import lyra.tokens.NumberToken;
+import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -148,13 +150,16 @@ public class TreeRewriterBaseListener extends LyraParserBaseListener {
             if (literalInitializerTokenType == LyraLexer.NUMBER) {
                 factor = new  LyraParser.NumberFactorContext(
                         new LyraParser.FactorContext(null, -1));
+                factor.addChild(new NumberToken(literalInitializerTokenType, literalInitializer));
             } else if (literalInitializerTokenType == LyraLexer.STRING) {
                 factor = new LyraParser.StringFactorContext(
                         new LyraParser.FactorContext(null, -1));
+                factor.addChild(new StringToken(literalInitializerTokenType, literalInitializer));
             } else {
                 throw new RuntimeException("Bad literalInitializerTokenType ("
                         + literalInitializerTokenType + ").");
             }
+
         }
         return createSimpleVarDecl(parent, typeName, varName, factor);
     }
