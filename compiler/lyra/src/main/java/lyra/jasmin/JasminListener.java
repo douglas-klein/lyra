@@ -293,7 +293,7 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitNumberFactor(LyraParser.NumberFactorContext ctx) {
-        NumberToken tok = (NumberToken) ctx.NUMBER();
+        NumberToken tok = (NumberToken) ctx.NUMBER().getSymbol();
         ClassSymbol type = table.getPredefinedClass(tok.getLyraTypeName());
         String primitive = type.getName().equals("Int") ? "I" : "D";
         methodHelper.incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
@@ -303,6 +303,24 @@ public class JasminListener extends ScopedBaseListener {
                       "invokespecial %1$s/<init>(%3$s)V\n"
                 , type.getBinaryName(), tok.getText(), primitive);
         methodHelper.decStackUsage(2 /*dup, ldc*/);
+    }
+
+    @Override
+    public void enterObjectAlocExpr(LyraParser.ObjectAlocExprContext ctx) {
+        MethodSymbol ctor = (MethodSymbol) table.getNodeSymbol(ctx);
+        methodHelper.incStackUsage(2);
+        writer.printf("new %1$s\ndup\n", ((ClassSymbol) ctor.getEnclosingScope()).getBinaryName());
+        /* we will now visit all expr nodes that are arguments to this constructor */
+    }
+
+    @Override
+    public void exitObjectAlocExpr(LyraParser.ObjectAlocExprContext ctx) {
+        MethodSymbol ctor = (MethodSymbol) table.getNodeSymbol(ctx);
+        /* our stack has two references to an unconstructed object followed by all arguments
+         * to the constructor in left-to-right order. */
+        writer.printf("invokespecial %1$s\n", Utils.methodSpec(ctor));
+        methodHelper.decStackUsage(ctor.getArguments().size() + 1 /*dup*/);
+        /* only a reference to the constructed object remains stacked */
     }
 
     @Override
