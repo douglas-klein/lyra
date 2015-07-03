@@ -6,7 +6,7 @@ package lyra.runtime;
 public class Int extends Number {
     private int value;
 
-    protected Int(int value) {
+    public Int(int value) {
         super(value);
         this.value = value;
     }

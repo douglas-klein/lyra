@@ -6,7 +6,7 @@ package lyra.runtime;
 public class Number extends Object {
     private double value;
 
-    protected Number(double value) {
+    public Number(double value) {
         this.value = value;
     }
 
