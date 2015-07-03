@@ -3,6 +3,7 @@ package lyra.symbols;
 import lyra.CodeGenerator;
 import lyra.LyraParser;
 import lyra.SemanticErrorException;
+import lyra.jasmin.ArrayGenerator;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 import lyra.symbols.predefined.*;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Holds together the global scope with predefined symbols the ParseTreeProperty that
@@ -33,8 +35,6 @@ public class SymbolTable {
     private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
 
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
-    private LinkedList<CodeGenerator> generatedClassesGenerators = new LinkedList<>();
-
 
     public SymbolTable() {
         global.setScopeName("(global)");
@@ -106,6 +106,7 @@ public class SymbolTable {
     public ParseTree getSymbolNode(Symbol symbol) { return symbolNode.get(symbol); }
 
     public List<CodeGenerator> getGeneratedClassesGenerators() {
-        return generatedClassesGenerators;
+        return arrayClassFactory.getAllGeneratedArrays().stream()
+                .map(a -> new ArrayGenerator(a)).collect(Collectors.toList());
     }
 }

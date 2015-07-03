@@ -11,6 +11,7 @@ public class Array extends AbstractPredefinedSymbol {
         ClassSymbol c = new ClassSymbol("Array", scope, (ClassSymbol)scope.resolve("Object"));
         c.setBinaryNamePrefix("lyra/runtime");
         try {
+            forwardMethod(c, "constructor", "void", false, new ArgumentStrings("Int", "size"));
             forwardMethod(c, "__at", "Object", false, new ArgumentStrings("Int", "idx"));
             forwardMethod(c, "at", "Object", false, new ArgumentStrings("Int", "idx"));
             forwardMethod(c, "__set", "Object", false, new ArgumentStrings("Int", "idx"),

@@ -81,8 +81,7 @@ public class TypeListener extends ScopedBaseListener {
                 throw  undefinedNameException(ctx.IDENT());
             }
             VariableSymbol me = (VariableSymbol) thisSym;
-            MethodSymbol method = me.getType().resolveOverload(ctx.IDENT().getText(),
-                    Collections.<TypeSymbol>emptyList());
+            MethodSymbol method = me.getType().resolveOverload(ctx.IDENT().getText());
             if (method == null) {
                 throw noOverloadException(ctx.IDENT(), me.getType().getName(), ctx.IDENT().getText(),
                         Collections.<TypeSymbol>emptyList());
@@ -106,7 +105,7 @@ public class TypeListener extends ScopedBaseListener {
         if(constructor == null) {
             throw overloadNotFoundException(ctx.IDENT(), types);
         }
-
+        table.setNodeSymbol(ctx, constructor);
         table.setNodeType(ctx, typeSymbol);
     }
 

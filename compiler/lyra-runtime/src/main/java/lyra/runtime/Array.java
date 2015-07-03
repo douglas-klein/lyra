@@ -21,13 +21,13 @@ public class Array extends Object {
     public Object lyra___at(Int idx) {
         return data.get(idx.valueOf());
     }
-    public Void lyra___set(Int idx, Object value) {
+    public Object lyra___set(Int idx, Object value) {
         data.set(idx.valueOf(), value);
-        return Void._void;
+        return value;
     }
 
     public Object lyra_at(Int idx) { return lyra___at(idx); }
-    public Void lyra_set(Int idx, Object value) {
+    public Object lyra_set(Int idx, Object value) {
         return lyra___set(idx, value);
     }
 }

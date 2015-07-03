@@ -2,9 +2,13 @@ package lyra.symbols;
 
 import lyra.SemanticErrorException;
 import lyra.scopes.Scope;
+import lyra.symbols.predefined.Array;
 import org.stringtemplate.v4.misc.STRuntimeMessage;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.stream.Stream;
 
 /**
  * Generates, keeps and reuses ClassSymbol instances which represent Arrays of things.
@@ -43,6 +47,12 @@ public class ArrayClassFactory {
             map.put(new Integer(dimensions), classSymbol);
         }
         return classSymbol;
+    }
+
+    public Collection<ClassSymbol> getAllGeneratedArrays() {
+        ArrayList<ClassSymbol> arr = new ArrayList<>();
+        arrays.forEach((e, m) -> m.forEach((i, a) -> arr.add(a)));
+        return arr;
     }
 
     private ClassSymbol makeArray(TypeSymbol elementType, int dimensions) {

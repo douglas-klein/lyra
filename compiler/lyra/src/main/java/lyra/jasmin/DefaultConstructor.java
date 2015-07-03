@@ -28,8 +28,7 @@ public class DefaultConstructor implements CodeGenerator {
 
     @Override
     public void generate(PrintWriter writer, SymbolTable table) {
-        MethodSymbol parent = classSymbol.getSuperClass().resolveOverload("constructor",
-                Collections.emptyList());
+        MethodSymbol parent = classSymbol.getSuperClass().resolveOverload("constructor");
         writer.printf(".method public <init>()V\n" +
                 ".limit stack 1\n" +
                 ".limit locals 1\n" +

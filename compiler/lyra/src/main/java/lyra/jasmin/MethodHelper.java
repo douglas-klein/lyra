@@ -109,7 +109,8 @@ public class MethodHelper {
                 methodSymbol.getBinaryName());
         for (TypeSymbol type : methodSymbol.getArgumentTypes())
             writer.print(Utils.typeSpec(type));
-        writer.printf(")%1$s\n", Utils.typeSpec(methodSymbol.getReturnType()));
+        writer.printf(")%1$s\n", methodSymbol.isConstructor() ? "V"
+                : Utils.typeSpec(methodSymbol.getReturnType()));
     }
 
     public PrintWriter writePreludeAndBody() {
@@ -131,13 +132,14 @@ public class MethodHelper {
     public void writePrologue() {
         /* inject lyra/runtime/Void return */
         ClassSymbol voidClass = table.getPredefinedClass("void");
-        if (methodSymbol.getReturnType() == voidClass) {
-            MethodSymbol constructor = voidClass.resolveOverload("constructor",
-                    Collections.emptyList());
+        if (methodSymbol.getReturnType() == voidClass && !methodSymbol.isConstructor()) {
+            MethodSymbol constructor = voidClass.resolveOverload("constructor");
             writer.printf("new %1$s\n" +
                     "dup\n" +
                     "invokespecial %2$s\n" +
                     "areturn\n", voidClass.getBinaryName(), Utils.methodSpec(constructor));
+        } else if (methodSymbol.isConstructor()) {
+            writer.printf("return\n");
         }
 
         writer.printf(".end method\n\n\n");
@@ -147,5 +149,16 @@ public class MethodHelper {
         declareVar((VariableSymbol) methodSymbol.resolve("this"));
         for (VariableSymbol arg : methodSymbol.getArguments())
             declareVar(arg);
+    }
+
+    public void newLyraInt(int value) {
+        ClassSymbol intClass = table.getPredefinedClass("Int");
+        incStackUsage(3);
+        writer.printf("new %1$s\n" +
+                "dup\n" +
+                "bipush %2$d\n" +
+                "invokespecial %1$s/<init>(I)V\n" +
+                "", intClass.getBinaryName(), value);
+        decStackUsage(2);
     }
 }

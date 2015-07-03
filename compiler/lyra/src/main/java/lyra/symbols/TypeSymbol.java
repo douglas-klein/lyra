@@ -3,6 +3,7 @@ package lyra.symbols;
 import lyra.scopes.Scope;
 
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -48,6 +49,12 @@ public abstract class TypeSymbol extends ScopedSymbol {
      *         found.
      */
     public abstract MethodSymbol resolveOverload(String name, Collection<TypeSymbol> argTypes);
+
+    public MethodSymbol resolveOverload(String name, TypeSymbol... argTypes) {
+        ArrayList<TypeSymbol> arr = new ArrayList<>();
+        for (TypeSymbol type : argTypes) arr.add(type);
+        return resolveOverload(name, arr);
+    }
 
 
     @Override
