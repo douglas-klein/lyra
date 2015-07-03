@@ -37,6 +37,14 @@ public class MethodSymbol extends ScopedSymbol {
         argument.setScope(this);
     }
 
+    @Override
+    public void setScope(Scope s) {
+        super.setScope(s);
+        if (!(s instanceof TypeSymbol))
+            throw new RuntimeException("Methods may only be placed in class or interface scope");
+        define(new VariableSymbol("this", (TypeSymbol)s));
+    }
+
     public VariableSymbol resolveArgument(String name) {
         return arguments.get(name);
     }

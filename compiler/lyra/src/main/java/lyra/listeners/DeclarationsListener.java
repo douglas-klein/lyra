@@ -45,17 +45,6 @@ public class DeclarationsListener extends ScopedBaseListener {
         saveScope(ctx, method);// Push: set function's parent to current
         Scope parentScope = currentScope;
         currentScope = method; // Current scope is now function scope
-
-        /* Add "this" to method scope */
-        TypeSymbol typeSymbol;
-        if ((parentScope instanceof ClassSymbol) || (parentScope instanceof InterfaceSymbol)) {
-            typeSymbol = (TypeSymbol) parentScope;
-        } else {
-            compiler.getErrorListener().semanticError(compiler.getParser(), ctx.IDENT(),
-                    "Methods may only be declared inside a class or interface");
-            return;
-        }
-        currentScope.define(new VariableSymbol("this", typeSymbol));
     }
 
     @Override
