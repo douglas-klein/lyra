@@ -31,11 +31,18 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected Scope currentScope; // define symbols in this scope
     protected SymbolTable table;
     private ParserRuleContext mutedSubtree;
+    private boolean onMutedSubtree = false;
     private HashMap<ParserRuleContext, Runnable> doOnceAfterTargets = new HashMap<>();
 
     protected ScopedBaseListener(lyra.Compiler compiler){
         this.compiler = compiler;
         this.table = compiler.getSymbolTable();
+    }
+
+    protected boolean getOnMutedSubtree() {
+        /* FUCKING #-named context alternatives are dispatched by the
+         * ParserRuleContext.{enter,exit}Rule methods, which can't be overriden from here.*/
+        return onMutedSubtree;
     }
 
     @Override
@@ -60,6 +67,7 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
         if (mutedSubtree != null)
             throw new RuntimeException("Recursively muting a subtree.");
         mutedSubtree = subtreeRoot;
+        onMutedSubtree = false;
     }
 
     protected void doOnceAfter(ParserRuleContext node, Runnable runnable) {
@@ -70,16 +78,20 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
 
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
-        if (mutedSubtree == null)
+        if (ctx == mutedSubtree)
+            onMutedSubtree = true;
+        if (!onMutedSubtree)
             super.enterEveryRule(ctx);
     }
 
     @Override
     public void exitEveryRule(ParserRuleContext ctx) {
-        if (mutedSubtree == null)
+        if (!onMutedSubtree)
             super.exitEveryRule(ctx);
-        if (mutedSubtree == ctx)
+        if (mutedSubtree == ctx) {
             mutedSubtree = null;
+            onMutedSubtree = false;
+        }
 
         Runnable runnable = doOnceAfterTargets.get(ctx);
         if (runnable != null) {
@@ -251,6 +263,10 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
                 .reduce("", (a, b) -> a + (a.isEmpty() ? "" : ", ") + b);
         return new SemanticErrorException(
                 String.format("Overload not found for arguments: (%1$s)", typeNames),
+                offendingSymbol);
+    }
+    protected SemanticErrorException superOutsideConstructorException(Object offendingSymbol) {
+        return new SemanticErrorException("super can only be used inside a constructor.",
                 offendingSymbol);
     }
 

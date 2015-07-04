@@ -43,10 +43,14 @@ public class VariableSymbol extends Symbol {
     }
 
     public String getBinaryName() {
-        String name = "lyra_" + getName();
+        String name = getOwnBinaryName();
         if (getScope() instanceof TypeSymbol) {
             name = ((TypeSymbol)getScope()).getBinaryName() + "/" + name;
         }
         return name;
+    }
+
+    public String getOwnBinaryName() {
+        return "lyra_" + getName();
     }
 }

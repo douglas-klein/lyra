@@ -161,4 +161,9 @@ public class MethodHelper {
                 "", intClass.getBinaryName(), value);
         decStackUsage(2);
     }
+
+    public void dup() {
+        incStackUsage(1);
+        writer.printf("dup\n");
+    }
 }

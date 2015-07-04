@@ -134,6 +134,7 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
+        if (getOnMutedSubtree()) return;
         /* code for ctx.factor() and all expr() child of ctx.args() have already been visited
          * and their results are already stacked in the same left-to-right order they were
          * visited. The stack is magically ready for us, we just need to check if we are visiting
@@ -146,13 +147,20 @@ public class JasminListener extends ScopedBaseListener {
                 methodHelper.incStackUsage(1); //we will push the field value but we have nothing stacked for us
                 writer.printf("getstatic %1$s %2$s\n", field.getBinaryName(),
                                                        typeSpec(field.getType()));
-            } else if (!isLeftOfAssignment(ctx)) {
+            } else {
+                if (!isLeftOfAssignment(ctx)) {
                 /* get the field of the stacked object, this will replace the currently
                  * stacked reference. If we are the left side of an assignment, we leave the object
                  * reference stacked. enterExpression only alows visiting this node for when our
                  * expression produces a named reference to an object field. */
-                writer.printf("getfield %1$s %2$s\n", field.getBinaryName(),
-                                                      typeSpec(field.getType()));
+                    writer.printf("getfield %1$s %2$s\n", field.getBinaryName(),
+                            typeSpec(field.getType()));
+                } else {
+                    /* exitExpr() will generate a putfield which will use the already stacked
+                     * objectref. Thing is it will issue a getfield after that and we must
+                     * duplicate the objectref */
+                    methodHelper.dup();
+                }
             }
         } else if (memberSymbol instanceof MethodSymbol) {
             MethodSymbol method = (MethodSymbol)memberSymbol;
@@ -194,6 +202,8 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitNameFactor(LyraParser.NameFactorContext ctx) {
+        if (getOnMutedSubtree()) return;
+
         Symbol symbol = table.getNodeSymbol(ctx); //courtesy of TypeListener
         if (symbol instanceof MethodSymbol) {
             /* a method call to this without arguments */
@@ -212,11 +222,14 @@ public class JasminListener extends ScopedBaseListener {
                 /* local var access */
                 methodHelper.loadVar(var);
             } else {
-                /* acessing a var with implicit this */
+                /* accessing a var with implicit this */
                 if (isLeftOfAssignment(ctx)) {
                     /* we are the outermost expression on the left side of an assignment, leave
                      * only a reference to this stacked, do not access the var. */
                     methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
+                    /* exitExpr() will consume "this" once with a putfield and later with a
+                     * getfield. */
+                    methodHelper.dup();
                 } else {
                     methodHelper.incStackUsage(1); //this pushed
                     methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
@@ -256,23 +269,30 @@ public class JasminListener extends ScopedBaseListener {
 
             VariableSymbol var = (VariableSymbol) table.getNodeSymbol(ctx.expr(0));
             if (var.isChildOf(methodSymbol)) {
-                /* local variable. The result of the right expression is the stack top */
+                /* local variable. The result of the right expression is the stack top, we need to
+                 * leave that same value as our own result, so we duplicate it */
+                methodHelper.dup();
                 methodHelper.storeVar(var);
             } else if (var.isClassField()) {
                 /* setting a static field, consumes the stack top */
                 writer.printf("putstatic %1$s %2$s\n", var.getBinaryName(),
                                                        typeSpec(var.getType()));
                 methodHelper.decStackUsage(1);
+                /* result of assignment is assigned value */
+                writer.printf("getstatic %1$s %2$s\n", var.getBinaryName(),
+                        typeSpec(var.getType()));
             } else {
                 /* must be an field, by elimination */
                 /* some magic took place: enterExpr() allowed visiting the left subtree, but the
                  * factor of the outermost expression of the left subtree knew it was the left
                  * side of an assignment, and instead of generated only code to put the object
                  * of which it access a field on the stack. By the listerner walking, we will have
-                 * [..., objectref, rhsvalue] on the stack, which is exactly what putfield
-                 * expects. */
+                 * [..., objectref, objectref, rhsvalue] on the stack, which is exactly what
+                 * putfield expects.  The lower objectref will be used later by the getfield. */
                 writer.printf("putfield %1$s %2$s\n", var.getBinaryName(), typeSpec(var.getType()));
-                methodHelper.decStackUsage(2 /*putfield*/);
+                methodHelper.decStackUsage(2/*putfield*/ - 1/*getfield*/);
+                /* result of assignment is the assigned value */
+                writer.printf("getfield %1$s %2$s\n", var.getBinaryName(), typeSpec(var.getType()));
             }
         }
 
@@ -281,6 +301,7 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitStringFactor(LyraParser.StringFactorContext ctx) {
+        if (getOnMutedSubtree()) return;
         methodHelper.incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
         writer.printf("new %1$s\n" +
                         "dup\n" + /* invokespecial will consume the duplicate */
@@ -293,6 +314,7 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitNumberFactor(LyraParser.NumberFactorContext ctx) {
+        if (getOnMutedSubtree()) return;
         NumberToken tok = (NumberToken) ctx.NUMBER().getSymbol();
         ClassSymbol type = table.getPredefinedClass(tok.getLyraTypeName());
         String primitive = type.getName().equals("Int") ? "I" : "D";
@@ -325,6 +347,7 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitBoolFactor(LyraParser.BoolFactorContext ctx) {
+        if (getOnMutedSubtree()) return;
         String tail = ctx.FALSE() != null ? "false" : "true";
         VariableSymbol var = (VariableSymbol)table.getGlobal().resolve(tail);
         methodHelper.incStackUsage(1);
@@ -346,10 +369,24 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void enterSuperstat(LyraParser.SuperstatContext ctx) {
+        methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
+    }
+
+    @Override
+    public void exitSuperstat(LyraParser.SuperstatContext ctx) {
+        /* as usual, per visiting order, we have [this, arg1, ..., argn] stacked */
+        MethodSymbol parent = (MethodSymbol)table.getNodeSymbol(ctx);
+        writer.printf("invokespecial %1$s\n", methodSpec(parent));
+        methodHelper.decStackUsage(methodSymbol.getArguments().size() + 1);
+        /* constructors always return native voids */
+    }
+
+    @Override
     public void exitVarDeclUnit(LyraParser.VarDeclUnitContext ctx) {
+        VariableSymbol varSymbol = (VariableSymbol) table.getNodeSymbol(ctx);
         if ((ctx.getParent().getParent() instanceof LyraParser.VarDeclStatContext)) {
             /* method-local variable */
-            VariableSymbol varSymbol = (VariableSymbol) table.getNodeSymbol(ctx);
             methodHelper.declareVar(varSymbol);
             ClassSymbol classSymbol = (ClassSymbol) varSymbol.getType();
 
@@ -358,8 +395,17 @@ public class JasminListener extends ScopedBaseListener {
                 checkAndDoConversion(table.getNodeType(ctx.expr()), classSymbol);
                 methodHelper.storeVar(varSymbol);
             }
+        } else if (ctx.getParent().getParent() instanceof LyraParser.AttributeDeclContext) {
+            /* field declaration */
+            writer.printf(".field %1$s %2$s %3$s\n", mapVisibility(varSymbol.getVisibility()),
+                    varSymbol.getOwnBinaryName(), typeSpec(varSymbol.getType()));
         }
+    }
 
+    @Override
+    public void enterAttributeDecl(LyraParser.AttributeDeclContext ctx) {
+        /* do not generate code for initializers (now) */
+        ctx.varDecl().varDeclUnit().forEach(n -> {if(n.expr() != null) muteSubtree(n.expr());});
     }
 
     private void checkAndDoConversion(TypeSymbol actual, ClassSymbol target) {
