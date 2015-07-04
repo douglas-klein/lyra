@@ -453,6 +453,16 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void exitReturnstat(LyraParser.ReturnstatContext ctx) {
+        if (ctx.expr() != null) {
+            writer.printf("areturn\n");
+            methodHelper.decStackUsage(1);
+        } else {
+            writer.printf("return\n");
+        }
+    }
+
+    @Override
     public void exitVarDeclUnit(LyraParser.VarDeclUnitContext ctx) {
         VariableSymbol varSymbol = (VariableSymbol) table.getNodeSymbol(ctx);
         if ((ctx.getParent().getParent() instanceof LyraParser.VarDeclStatContext)) {
