@@ -3,12 +3,14 @@ package lyra.listeners;
 import lyra.LyraLexer;
 import lyra.LyraParser;
 import lyra.LyraParser.VarDeclUnitContext;
+import lyra.scopes.Scope;
 import lyra.symbols.*;
 
 import lyra.tokens.NumberToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,7 +48,7 @@ public class TypeListener extends ScopedBaseListener {
 
     @Override
     public void exitStringFactor(LyraParser.StringFactorContext ctx) {
-        table.setNodeType(ctx, (TypeSymbol)currentScope.resolve("String"));
+        table.setNodeType(ctx, (TypeSymbol) currentScope.resolve("String"));
     }
 
     @Override
@@ -140,6 +142,31 @@ public class TypeListener extends ScopedBaseListener {
         }
         table.setNodeSymbol(ctx.IDENT(), method);
         table.setNodeType(ctx, method.getReturnType());
+    }
+
+    private MethodSymbol currentMethod() {
+        Scope scope = currentScope;
+        while (scope != null && !(scope instanceof MethodSymbol))
+            scope = scope.getEnclosingScope();
+        return (MethodSymbol)scope;
+    }
+    private TypeSymbol currentTypeSymbol() {
+        return (TypeSymbol)currentMethod().getEnclosingScope();
+    }
+    private ClassSymbol currentClass() {
+        return (ClassSymbol)currentTypeSymbol();
+    }
+
+    @Override
+    public void exitSuperstat(LyraParser.SuperstatContext ctx) {
+        if (!currentMethod().isConstructor())
+            throw superOutsideConstructorException(ctx.SUPER());
+
+        List<TypeSymbol> types = getArgTypes(ctx.args());
+        MethodSymbol ctor = currentClass().getSuperClass().resolveOverload("constructor", types);
+        if (ctor == null)
+            throw overloadNotFoundException(ctx.SUPER(), types);
+        table.setNodeSymbol(ctx, ctor);
     }
 
     @Override
