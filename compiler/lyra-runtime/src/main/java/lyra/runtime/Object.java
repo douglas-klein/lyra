@@ -12,7 +12,7 @@ public class Object {
 
     public Int lyra___id() { return new Int(id); }
     public String lyra_toString() {
-        return new String("Object(" + lyra___id().lyra_toString().valueOf() + ")");
+        return new String("Object(" + lyra___id().valueOf() + ")");
     }
     public Bool lyra___equals(Object rhs) {
         if (lyra___id().lyra___equals(rhs.lyra___id()).valueOf())
