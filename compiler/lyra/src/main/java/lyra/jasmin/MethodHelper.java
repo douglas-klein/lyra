@@ -13,9 +13,9 @@ import java.util.HashMap;
  * Helper with common code used throughout the code generation for a method.
  */
 public class MethodHelper {
-    PrintWriter classWriter;
-    PrintWriter writer;
-    ByteArrayOutputStream bodyOutputStream;
+    private PrintWriter classWriter;
+    private PrintWriter writer;
+    private ByteArrayOutputStream bodyOutputStream;
 
     private int stackUsage = 0;
     /** Tracks stack usage as the method children are visited, when this grows larger than
@@ -33,6 +33,10 @@ public class MethodHelper {
         this.writer = writer;
         this.methodSymbol = methodSymbol;
         this.table = table;
+    }
+
+    public PrintWriter getWriter() {
+        return writer;
     }
 
     public PrintWriter createBodyWriter() {

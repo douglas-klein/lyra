@@ -1,17 +1,16 @@
 package lyra.jasmin;
 
-import lyra.CodeGenerator;
+import lyra.*;
 import lyra.Compiler;
-import lyra.LyraLexer;
-import lyra.LyraParser;
 import lyra.listeners.ScopedBaseListener;
 import lyra.symbols.*;
 import lyra.tokens.NumberToken;
 import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.*;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,6 +30,8 @@ public class JasminListener extends ScopedBaseListener {
 
     private MethodSymbol methodSymbol;
     private MethodHelper methodHelper;
+
+    IntraMethodCodeGenerator attributeInitializers;
 
     public JasminListener(Compiler compiler, File outputDir) {
         super(compiler);
@@ -113,12 +114,70 @@ public class JasminListener extends ScopedBaseListener {
         }
     }
 
+
+
     @Override
     public void enterClassBody(LyraParser.ClassBodyContext ctx) {
         LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
         classSymbol = (ClassSymbol) table.getNodeSymbol(parent);
         createJasminFile(classSymbol.getName());
         Utils.writeClassPrelude(writer, classSymbol);
+
+        ArrayList<LyraParser.AttributeDeclContext> attributeNodes = getAttributeDeclContexts(ctx);
+        JasminListener me = this;
+        attributeInitializers = new IntraMethodCodeGenerator() {
+            @Override
+            public Symbol getSymbol() {
+                return null;
+            }
+
+            @Override
+            public void generate(PrintWriter out, SymbolTable table) {
+                for (LyraParser.AttributeDeclContext node : attributeNodes) {
+                    for (LyraParser.VarDeclUnitContext unitContext : node.varDecl().varDeclUnit()) {
+                        if (unitContext.expr() == null) continue;
+                        VariableSymbol var = (VariableSymbol) table.getNodeSymbol(unitContext);
+
+                        /* will be used by putfield */
+                        this.methodHelper.loadVar(
+                                (VariableSymbol)this.methodHelper.methodSymbol.resolve("this"));
+
+                        /* gambiarra detected */
+                        PrintWriter oldWriter = me.writer;
+                        MethodHelper oldHelper = this.methodHelper;
+                        me.writer = out;
+                        me.methodHelper = this.methodHelper;
+
+                        /* generate code only for the initializer expression */
+                        ParseTreeWalker walker = new ParseTreeWalker();
+                        walker.walk(me, unitContext.expr());
+                        checkAndDoConversion(table.getNodeType(unitContext.expr()), var.getType());
+
+                        /* you saw nothing */
+                        me.writer = oldWriter;
+                        me.methodHelper = oldHelper;
+
+                        /* set the field. Stack is [..., this, result] */
+                        out.printf("putfield %1$s %2$s\n", var.getBinaryName(),
+                                Utils.typeSpec(var.getType()));
+                        this.methodHelper.decStackUsage(2);
+                    }
+                }
+            }
+        };
+
+    }
+
+    private ArrayList<LyraParser.AttributeDeclContext> getAttributeDeclContexts(LyraParser.ClassBodyContext ctx) {
+        ArrayList<LyraParser.AttributeDeclContext> attributeNodes = new ArrayList<>();
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new LyraParserBaseListener() {
+            @Override
+            public void enterAttributeDecl(LyraParser.AttributeDeclContext ctx) {
+                attributeNodes.add(ctx);
+            }
+        }, ctx);
+        return attributeNodes;
     }
 
     @Override
@@ -131,10 +190,15 @@ public class JasminListener extends ScopedBaseListener {
         writer = methodHelper.createBodyWriter();
         methodHelper.writeVars();
 
-        if (methodSymbol.isConstructor() && !table.getMethodHasExplicitSuper(ctx)) {
-            MethodSymbol superCtor = classSymbol.getSuperClass().resolveOverload("constructor");
-            methodHelper.loadVar((VariableSymbol)methodSymbol.resolve("this"));
-            writer.printf("invokespecial %1$s\n", Utils.methodSpec(superCtor));
+        if (methodSymbol.isConstructor()) {
+            if (!table.getMethodHasExplicitSuper(ctx)) {
+                MethodSymbol superCtor = classSymbol.getSuperClass().resolveOverload("constructor");
+                methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
+                writer.printf("invokespecial %1$s\n", Utils.methodSpec(superCtor));
+            }
+            attributeInitializers.setMethodHelper(methodHelper);
+            attributeInitializers.generate(writer, table);
+            attributeInitializers.setMethodHelper(null);
         }
     }
 
@@ -411,12 +475,17 @@ public class JasminListener extends ScopedBaseListener {
     @Override
     public void enterAttributeDecl(LyraParser.AttributeDeclContext ctx) {
         /* do not generate code for initializers (now) */
-        ctx.varDecl().varDeclUnit().forEach(n -> {if(n.expr() != null) muteSubtree(n.expr());});
+        ctx.varDecl().varDeclUnit().forEach(n -> {
+            if (n.expr() != null) muteSubtree(n.expr());
+        });
     }
 
-    private void checkAndDoConversion(TypeSymbol actual, ClassSymbol target) {
-        if (actual.isA(target))
+    private void checkAndDoConversion(TypeSymbol actual, TypeSymbol targetType) {
+        if (actual.isA(targetType))
             return;
+        if (!(targetType instanceof ClassSymbol))
+            return;
+        ClassSymbol target =(ClassSymbol)targetType;
         MethodSymbol constructor = target.conversionConstructor(actual);
         /* dup below makes us store the original stack top into a temporary variable */
         VariableSymbol tempVar = methodHelper.createTempVar(actual);
@@ -470,7 +539,12 @@ public class JasminListener extends ScopedBaseListener {
     @Override
     public void exitClassBody(LyraParser.ClassBodyContext ctx) {
         classSymbol.getMethods().filter(m -> m.isGenerated())
-                .forEach(m -> m.getGenerator().generate(writer, table));
+                .forEach(m -> {
+                    CodeGenerator gen = m.getGenerator();
+                    if (gen instanceof DefaultConstructor)
+                        ((DefaultConstructor) gen).setInitializers(attributeInitializers);
+                    gen.generate(writer, table);
+                });
         classSymbol = null;
         endJasminFile();
     }
