@@ -50,4 +50,8 @@ public class Number extends Object {
     public Bool lyra___greater(Number rhs) {
         return Bool.getInstance(value > rhs.value);
     }
+
+    public String lyra_toString() {
+        return new String("" + value);
+    }
 }

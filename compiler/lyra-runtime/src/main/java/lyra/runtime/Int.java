@@ -53,4 +53,8 @@ public class Int extends Number {
     public Bool lyra___greater(Int rhs) {
         return Bool.getInstance(value > rhs.value);
     }
+
+    public String lyra_toString() {
+        return new String("" + valueOf());
+    }
 }

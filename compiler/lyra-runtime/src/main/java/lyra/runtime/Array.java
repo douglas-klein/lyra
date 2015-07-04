@@ -30,4 +30,11 @@ public class Array extends Object {
     public Object lyra_set(Int idx, Object value) {
         return lyra___set(idx, value);
     }
+
+    @Override
+    public String lyra_toString() {
+        java.lang.String fill = data.stream().map(o -> o.toString())
+                .reduce((a, b) -> a + ", " + b).orElse("");
+        return new String("{" + fill + "}");
+    }
 }

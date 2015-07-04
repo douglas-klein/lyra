@@ -25,7 +25,7 @@ public class String extends Object {
         return new Int(value.length());
     }
     public String lyra___at(Int idx) {
-        return new String(value.substring(idx.valueOf(), idx.valueOf()+1));
+        return new String(value.substring(idx.valueOf(), idx.valueOf() + 1));
     }
     public Void lyra___set(Int idx, String singleChar) {
         int idxVal = idx.valueOf();
@@ -90,4 +90,7 @@ public class String extends Object {
         return null;
     }
 
+    public String lyra_toString() {
+        return new String(valueOf());
+    }
 }
