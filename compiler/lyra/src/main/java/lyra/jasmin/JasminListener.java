@@ -130,6 +130,12 @@ public class JasminListener extends ScopedBaseListener {
         methodHelper.writeHeader();
         writer = methodHelper.createBodyWriter();
         methodHelper.writeVars();
+
+        if (methodSymbol.isConstructor() && !table.getMethodHasExplicitSuper(ctx)) {
+            MethodSymbol superCtor = classSymbol.getSuperClass().resolveOverload("constructor");
+            methodHelper.loadVar((VariableSymbol)methodSymbol.resolve("this"));
+            writer.printf("invokespecial %1$s\n", Utils.methodSpec(superCtor));
+        }
     }
 
     @Override

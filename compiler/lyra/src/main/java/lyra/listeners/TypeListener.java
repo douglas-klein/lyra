@@ -167,6 +167,11 @@ public class TypeListener extends ScopedBaseListener {
         if (ctor == null)
             throw overloadNotFoundException(ctx.SUPER(), types);
         table.setNodeSymbol(ctx, ctor);
+
+        ParserRuleContext parent = ctx.getParent();
+        while (parent != null && !(parent instanceof LyraParser.MethodDeclContext))
+            parent = parent.getParent();
+        table.setMethodHasExplicitSuper((LyraParser.MethodDeclContext)parent);
     }
 
     @Override

@@ -32,6 +32,7 @@ public class SymbolTable {
     private ParseTreeProperty<Symbol> nodeSymbol = new ParseTreeProperty<>();
     private HashMap<Symbol, ParseTree> symbolNode = new HashMap<>();
     private ParseTreeProperty<Boolean> exprIsClassInstance = new ParseTreeProperty<>();
+    private ParseTreeProperty<Boolean> methodHasExplicitSuper = new ParseTreeProperty<>();
     private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
 
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
@@ -108,5 +109,13 @@ public class SymbolTable {
     public List<CodeGenerator> getGeneratedClassesGenerators() {
         return arrayClassFactory.getAllGeneratedArrays().stream()
                 .map(a -> new ArrayGenerator(a)).collect(Collectors.toList());
+    }
+
+    public boolean getMethodHasExplicitSuper(ParseTree node) {
+        Boolean has = methodHasExplicitSuper.get(node);
+        return has != null && has.booleanValue();
+    }
+    public void setMethodHasExplicitSuper(ParseTree node) {
+        methodHasExplicitSuper.put(node, Boolean.TRUE);
     }
 }
