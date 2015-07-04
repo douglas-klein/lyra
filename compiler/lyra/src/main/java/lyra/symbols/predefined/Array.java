@@ -18,6 +18,7 @@ public class Array extends AbstractPredefinedSymbol {
                     new ArgumentStrings("Object", "value"));
             forwardMethod(c, "set", "Object", false, new ArgumentStrings("Int", "idx"),
                     new ArgumentStrings("Object", "value"));
+            forwardMethod(c, "toString", "String", false);
 
             defineClass(scope, c);
         } catch (SemanticErrorException e) {

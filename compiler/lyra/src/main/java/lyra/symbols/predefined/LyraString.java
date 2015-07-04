@@ -31,6 +31,8 @@ public class LyraString extends AbstractPredefinedSymbol {
             forwardMethod(c, "parseNumber", "Int", false);
             forwardMethod(c, "parseBool",   "Int", false);
 
+            forwardMethod(c, "toString",    "String", false);
+
             defineClass(scope, c);
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);

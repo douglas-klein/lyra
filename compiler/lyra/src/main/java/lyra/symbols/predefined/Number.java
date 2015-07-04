@@ -28,6 +28,7 @@ public class Number extends AbstractPredefinedSymbol {
             forwardMethod(c, "__notequals",      "Bool", true, new ArgumentStrings("Number", "rhs"));
             forwardMethod(c, "__greaterorequal", "Bool", true, new ArgumentStrings("Number", "rhs"));
             forwardMethod(c, "__greater",        "Bool", true, new ArgumentStrings("Number", "rhs"));
+            forwardMethod(c, "toString",         "String", false);
             defineClass(scope, c);
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);

@@ -22,6 +22,7 @@ public class Int extends AbstractPredefinedSymbol {
             forwardMethod(c, "__remainder",  "Int", true, new ArgumentStrings("Int", "rhs"));
             forwardMethod(c, "__added",      "Int", true, new ArgumentStrings("Int", "rhs"));
             forwardMethod(c, "__subtracted", "Int", true, new ArgumentStrings("Int", "rhs"));
+            forwardMethod(c, "toString",     "String", false);
             defineClass(scope, c);
         } catch (SemanticErrorException e) {
             throw new RuntimeException("Compiler not obeying it's own rules.", e);
