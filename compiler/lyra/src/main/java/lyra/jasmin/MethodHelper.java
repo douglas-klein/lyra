@@ -22,6 +22,8 @@ public class MethodHelper {
      *  methodLocalsUsage, methodLocalsUsage is updated. */
     private int currentStackUsage = 0;
 
+    private VariableSymbol currentVar = null;
+
     private HashMap<VariableSymbol, Integer> vars = new HashMap<>();
     private HashMap<ParserRuleContext, Integer> Labels = new HashMap<>();
     private HashMap<ParserRuleContext, Integer> labelsAfter = new HashMap<>();
@@ -53,6 +55,7 @@ public class MethodHelper {
     }
     public void decStackUsage(int count) {
         currentStackUsage -= count;
+        currentVar = null;
     }
 
     public void declareVar(VariableSymbol var) {
@@ -72,6 +75,7 @@ public class MethodHelper {
     public void loadVar(VariableSymbol var) {
         Integer idx = vars.get(var);
         incStackUsage(1);
+        currentVar = var;
         writer.printf("aload %1$d\n", idx.intValue());
     }
     public void storeVar(VariableSymbol var) {
@@ -169,5 +173,9 @@ public class MethodHelper {
     public void dup() {
         incStackUsage(1);
         writer.printf("dup\n");
+    }
+
+    public VariableSymbol getCurrentVar() {
+        return currentVar;
     }
 }

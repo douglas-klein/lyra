@@ -234,14 +234,30 @@ public class JasminListener extends ScopedBaseListener {
             }
         } else if (memberSymbol instanceof MethodSymbol) {
             MethodSymbol method = (MethodSymbol)memberSymbol;
-            /* Object and method arguments are already stacked left-to-right (the rightmost
-             * argument is at the top of the stack). The exitExpr method check to see if it is a
-             * child of a memberFactor, and in that case, already emits the code to perform any
-             * necessary implicit conversion, so we have the stack with the right types as well.
-             */
-            writer.printf("invokevirtual %1$s\n", methodSpec(method));
-            /* pop object and arguments, leave a result */
-            methodHelper.decStackUsage(1 + method.getArgumentTypes().size() - 1);
+            if (Utils.isPostfixIncDec(method)) {
+                /* x.__inc() and x.__dec() return the old x value (not the method return) and
+                 * the x variable is assigned to the method return. */
+                methodHelper.incStackUsage(1 /*dup*/);
+                writer.printf("dup\ninvokevirtual %1$s\n", methodSpec(method));
+                if (methodHelper.getCurrentVar() != null) {
+                    /* store the method return into the lhs variable */
+                    methodHelper.storeVar(methodHelper.getCurrentVar());
+                } else {
+                    /* has nowhere to store the side effect */
+                    writer.printf("pop\n");
+                    methodHelper.decStackUsage(1);
+                }
+                /* leaves old object as result */
+            } else {
+                /* Object and method arguments are already stacked left-to-right (the rightmost
+                 * argument is at the top of the stack). The exitExpr method check to see if it is a
+                 * child of a memberFactor, and in that case, already emits the code to perform any
+                 * necessary implicit conversion, so we have the stack with the right types as well.
+                 */
+                    writer.printf("invokevirtual %1$s\n", methodSpec(method));
+                /* pop object and arguments, leave a result */
+                methodHelper.decStackUsage(1 + method.getArgumentTypes().size() - 1);
+            }
         }
     }
 
@@ -439,6 +455,32 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void enterForstat(LyraParser.ForstatContext ctx) {
+        String forStart = methodHelper.generateLabel(ctx.expr(0));
+        String forEnd = methodHelper.generateLabelAfter(ctx);
+        String forBody = methodHelper.generateLabel(ctx.statlist());
+        String forPostLoop = (ctx.expr(1) == null) ? null : methodHelper.generateLabel(ctx.expr(1));
+
+        doOnceAfter(ctx.expr(0), () -> {
+            checkAndDoConversion(table.getNodeType(ctx.expr(0)), table.getPredefinedClass("Bool"));
+            writer.printf("invokevirtual lyra/runtime/Bool/valueOf()Z\n");
+            writer.printf("ifeq %1$s\n", forEnd); //condition failed (== 0)
+            writer.printf("goto %1$s\n", forBody);
+        });
+        if (ctx.expr(1) != null) {
+            doOnceAfter(ctx.expr(1), () -> {
+                /* ignore result of post-loop expression */
+                writer.printf("pop\n");
+                methodHelper.decStackUsage(1);
+                writer.printf("goto %1$s\n", forStart); // back to condition
+            });
+        }
+        doOnceAfter(ctx.statlist(), () -> {
+            writer.printf("goto %1$s\n", forPostLoop == null ? forStart : forPostLoop);
+        });
+    }
+
+    @Override
     public void enterSuperstat(LyraParser.SuperstatContext ctx) {
         methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
     }
@@ -465,7 +507,9 @@ public class JasminListener extends ScopedBaseListener {
     @Override
     public void exitVarDeclUnit(LyraParser.VarDeclUnitContext ctx) {
         VariableSymbol varSymbol = (VariableSymbol) table.getNodeSymbol(ctx);
-        if ((ctx.getParent().getParent() instanceof LyraParser.VarDeclStatContext)) {
+        ParserRuleContext parentParent = ctx.getParent().getParent();
+        if ((parentParent instanceof LyraParser.VarDeclStatContext)
+                || (parentParent instanceof LyraParser.ForstatContext)) {
             /* method-local variable */
             methodHelper.declareVar(varSymbol);
             ClassSymbol classSymbol = (ClassSymbol) varSymbol.getType();
@@ -475,7 +519,7 @@ public class JasminListener extends ScopedBaseListener {
                 checkAndDoConversion(table.getNodeType(ctx.expr()), classSymbol);
                 methodHelper.storeVar(varSymbol);
             }
-        } else if (ctx.getParent().getParent() instanceof LyraParser.AttributeDeclContext) {
+        } else if (parentParent instanceof LyraParser.AttributeDeclContext) {
             /* field declaration */
             writer.printf(".field %1$s %2$s %3$s\n", mapVisibility(varSymbol.getVisibility()),
                     varSymbol.getOwnBinaryName(), typeSpec(varSymbol.getType()));

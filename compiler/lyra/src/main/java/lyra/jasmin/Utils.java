@@ -47,4 +47,8 @@ public class Utils {
     }
 
 
+    public static boolean isPostfixIncDec(MethodSymbol method) {
+        return method.isInfix() && method.getArguments().size() == 0
+                && (method.getName().equals("__inc") || method.getName().equals("__dec"));
+    }
 }
