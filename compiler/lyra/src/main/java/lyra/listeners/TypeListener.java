@@ -54,6 +54,7 @@ public class TypeListener extends ScopedBaseListener {
     @Override
     public void exitWrappedFactor(LyraParser.WrappedFactorContext ctx) {
         table.setNodeType(ctx, table.getNodeType(ctx.expr()));
+        table.setNodeSymbol(ctx, table.getNodeSymbol(ctx));
         table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.expr()));
     }
 
@@ -182,10 +183,7 @@ public class TypeListener extends ScopedBaseListener {
 
     @Override
     public void exitUnaryexpr(LyraParser.UnaryexprContext ctx) {
-        Symbol symbol = table.getNodeSymbol(ctx.factor());
-        if (symbol != null)
-            table.setNodeSymbol(ctx, symbol);
-
+        table.setNodeSymbol(ctx, table.getNodeSymbol(ctx.factor()));
         table.setNodeType(ctx, table.getNodeType(ctx.factor()));
         table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.factor()));
     }
@@ -193,9 +191,7 @@ public class TypeListener extends ScopedBaseListener {
     @Override
     public void exitExpr(LyraParser.ExprContext ctx) {
         if (ctx.unaryexpr() != null) {
-            Symbol symbol = table.getNodeSymbol(ctx.unaryexpr());
-            if (symbol != null)
-                table.setNodeSymbol(ctx, symbol);
+            table.setNodeSymbol(ctx, table.getNodeSymbol(ctx.unaryexpr()));
             table.setNodeType(ctx, table.getNodeType(ctx.unaryexpr()));
             table.setExprIsClassInstance(ctx, table.getExprIsClassInstance(ctx.unaryexpr()));
         } else if (ctx.binOp.getType() == LyraLexer.EQUALOP) {

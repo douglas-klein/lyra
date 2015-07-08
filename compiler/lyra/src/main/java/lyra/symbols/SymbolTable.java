@@ -84,7 +84,8 @@ public class SymbolTable {
 
     public void setNodeSymbol(ParseTree node, Symbol symbol) {
         nodeSymbol.put(node, symbol);
-        symbolNode.put(symbol, node);
+        if (symbol != null)
+            symbolNode.put(symbol, node);
     }
     public Symbol getNodeSymbol(ParseTree node) { return nodeSymbol.get(node);}
 
@@ -102,7 +103,7 @@ public class SymbolTable {
 
     public void setSymbolNode(Symbol symbol, ParseTree node) {
         nodeSymbol.put(node, symbol);
-        symbolNode.put(symbol, node);
+        if (node != null) symbolNode.put(symbol, node);
     }
     public ParseTree getSymbolNode(Symbol symbol) { return symbolNode.get(symbol); }
 
