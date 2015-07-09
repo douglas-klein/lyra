@@ -44,7 +44,20 @@ public class Array extends Object {
 ```
 Métodos Java não são acessíveis para uso em programas Lyra. Entretanto, alguns métodos das classes built-in, como o `valueOf`, são usados pelo código gerado. Todos os os objetos built-in Lyra encapsulam primitivos Java.
 
-### Como criar um programa Lyra
+### Como compilar um programa Lyra
+```bash
+cat > program.ly <<EOF
+class Application {
+  def main {
+     out.writeln("Hello World!");
+  }
+}
+EOF
+java -jar "path/to/lyra-1.0.jar" program.ly
+java -jar program-lyra.jar
+```
+
+### Como um programa Lyra é criado
 
 1. Compile o código
 2. Gere um arquivo `.j` para cada classe no programa
