@@ -497,6 +497,57 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void enterSwitchstat(LyraParser.SwitchstatContext ctx) {
+        super.enterSwitchstat(ctx);
+
+        methodHelper.generateLabelAfter(ctx);
+
+        VariableSymbol temp = methodHelper.createTempVar(table.getNodeType(ctx.expr()));
+        switchValueStack.add(temp);
+        doOnceAfter(ctx.expr(), () -> {
+            methodHelper.storeVar(temp);
+        });
+    }
+
+    @Override
+    public void exitSwitchstat(LyraParser.SwitchstatContext ctx) {
+        super.exitSwitchstat(ctx);
+        switchValueStack.remove(switchValueStack.size()-1);
+    }
+
+    List<VariableSymbol> switchValueStack = new ArrayList<>();
+
+    @Override
+    public void enterCasedecl(LyraParser.CasedeclContext ctx) {
+        super.enterCasedecl(ctx);
+
+        String after = methodHelper.generateLabelAfter(ctx);
+        LyraParser.SwitchstatContext switchCtx = (LyraParser.SwitchstatContext)
+                ctx.getParent().getParent();
+        String switchEnd = methodHelper.getLabelAfter(switchCtx);
+
+        VariableSymbol temp = switchValueStack.get(switchValueStack.size() - 1);
+
+        TypeSymbol switchType = table.getNodeType(switchCtx.expr());
+        checkAndDoConversion(table.getNodeType(ctx.expr()), switchType);
+        MethodSymbol equals = switchType.resolveOverload("__equals", switchType);
+
+        doOnceAfter(ctx.expr(), () -> {
+            methodHelper.loadVar(temp);
+            writer.printf("swap\n"); //[..., switchobject, caseexprobject]
+            writer.printf("invokevirtual %1$s\n", Utils.methodSpec(equals));
+            methodHelper.decStackUsage(1 /*argument*/);
+            checkAndDoConversion(equals.getReturnType(), table.getPredefinedClass("Bool"));
+            writer.printf("invokevirtual lyra/runtime/Bool/valueOf()Z\n");
+            writer.printf("ifeq %1$s\n", after);
+            methodHelper.decStackUsage(1);
+        });
+        doOnceAfter(ctx.statlist(), () -> {
+            writer.printf("goto %1$s\n", switchEnd);
+        });
+    }
+
+    @Override
     public void enterSuperstat(LyraParser.SuperstatContext ctx) {
         methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
     }
