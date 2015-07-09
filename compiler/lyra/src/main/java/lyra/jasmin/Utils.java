@@ -1,6 +1,8 @@
 package lyra.jasmin;
 
+import lyra.LyraParser;
 import lyra.symbols.*;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.io.PrintWriter;
 
@@ -50,5 +52,22 @@ public class Utils {
     public static boolean isPostfixIncDec(MethodSymbol method) {
         return method.isInfix() && method.getArguments().size() == 0
                 && (method.getName().equals("__inc") || method.getName().equals("__dec"));
+    }
+
+    public static ParserRuleContext getBreakTarget(ParserRuleContext ctx) {
+        ParserRuleContext parent = ctx.getParent();
+        while (parent != null
+                && !(parent instanceof LyraParser.SwitchstatContext)
+                && !(parent instanceof LyraParser.ForstatContext)) {
+            parent = parent.getParent();
+        }
+        return parent;
+    }
+
+    public static LyraParser.ForstatContext getContinueTargetFor(ParserRuleContext ctx) {
+        ParserRuleContext parent = ctx.getParent();
+        while (parent != null && !(parent instanceof LyraParser.ForstatContext))
+            parent = parent.getParent();
+        return parent == null ? null : (LyraParser.ForstatContext)parent;
     }
 }

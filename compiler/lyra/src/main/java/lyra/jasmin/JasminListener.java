@@ -118,6 +118,8 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void enterClassBody(LyraParser.ClassBodyContext ctx) {
+        super.enterClassBody(ctx);
+
         LyraParser.ClassdeclContext parent = (LyraParser.ClassdeclContext) ctx.getParent();
         classSymbol = (ClassSymbol) table.getNodeSymbol(parent);
         createJasminFile(classSymbol.getName());
@@ -449,6 +451,17 @@ public class JasminListener extends ScopedBaseListener {
              * stack. */
             writer.println("pop");
             methodHelper.decStackUsage(1);
+        } else if (ctx.BREAK() != null) {
+            writer.printf("goto %1$s\n", methodHelper.getLabelAfter(Utils.getBreakTarget(ctx)));
+        } else if (ctx.CONTINUE() != null) {
+            LyraParser.ForstatContext forCtx = Utils.getContinueTargetFor(ctx);
+            String label;
+            if (forCtx.expr().size() > 1) {
+                label = methodHelper.getLabel(forCtx.expr(1));
+            } else {
+                label = methodHelper.getLabel(forCtx.statlist());
+            }
+            writer.printf("goto %1$s\n", label);
         }
 
         //TODO !!! handle other cases?
@@ -456,10 +469,13 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void enterForstat(LyraParser.ForstatContext ctx) {
+        super.enterForstat(ctx);
+
         String forStart = methodHelper.generateLabel(ctx.expr(0));
         String forEnd = methodHelper.generateLabelAfter(ctx);
         String forBody = methodHelper.generateLabel(ctx.statlist());
-        String forPostLoop = (ctx.expr(1) == null) ? null : methodHelper.generateLabel(ctx.expr(1));
+        String forPostLoop = (ctx.expr().size() < 2)
+                ? null : methodHelper.generateLabel(ctx.expr(1));
 
         doOnceAfter(ctx.expr(0), () -> {
             checkAndDoConversion(table.getNodeType(ctx.expr(0)), table.getPredefinedClass("Bool"));
@@ -560,6 +576,8 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void enterIfstat(LyraParser.IfstatContext ctx) {
+        super.enterIfstat(ctx);
+
         String endIfLabel = methodHelper.generateLabelAfter(ctx);
         String elseLabel = (ctx.elsestat() != null) ? methodHelper.generateLabel(ctx.elsestat())
                                                     : endIfLabel;
@@ -601,6 +619,7 @@ public class JasminListener extends ScopedBaseListener {
                 });
         classSymbol = null;
         endJasminFile();
+        super.exitClassBody(ctx);
     }
 
     @Override
