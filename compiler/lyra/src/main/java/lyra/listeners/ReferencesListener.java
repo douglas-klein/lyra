@@ -84,6 +84,23 @@ public class ReferencesListener extends ScopedBaseListener {
             return;
         }
         methodSymbol.upgradeType((TypeSymbol)returnTypeSymbol);
+
+        super.exitMethodDecl(ctx);
+    }
+
+    @Override
+    public void exitMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
+        MethodSymbol methodSymbol = (MethodSymbol) table.getNodeSymbol(ctx);
+        Symbol returnTypeSymbol = currentScope.resolve(ctx.type().IDENT().getText());
+
+        if (returnTypeSymbol == null || !(returnTypeSymbol instanceof TypeSymbol)) {
+            reportSemanticException(
+                    unresolvedTypeException(ctx.type().IDENT(), ctx.type().IDENT().getText()));
+            return;
+        }
+        methodSymbol.upgradeType((TypeSymbol)returnTypeSymbol);
+
+        super.exitMethodDeclAbstract(ctx);
     }
 
     @Override

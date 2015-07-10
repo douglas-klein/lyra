@@ -4,6 +4,7 @@ import lyra.CodeGenerator;
 import lyra.LyraParser;
 import lyra.SemanticErrorException;
 import lyra.jasmin.ArrayGenerator;
+import lyra.jasmin.StaticInitializerGenerator;
 import lyra.scopes.BaseScope;
 import lyra.scopes.Scope;
 import lyra.symbols.predefined.*;
@@ -15,10 +16,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.text.AttributedString;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +32,7 @@ public class SymbolTable {
     private ParseTreeProperty<Boolean> exprIsClassInstance = new ParseTreeProperty<>();
     private ParseTreeProperty<Boolean> methodHasExplicitSuper = new ParseTreeProperty<>();
     private ArrayClassFactory arrayClassFactory = new ArrayClassFactory(this);
+    private HashSet<ClassSymbol> classesWithStaticInit = new HashSet<>();
 
     private ArrayList<PredefinedSymbol> predefinedSymbols = new ArrayList<>();
 
@@ -108,8 +107,15 @@ public class SymbolTable {
     public ParseTree getSymbolNode(Symbol symbol) { return symbolNode.get(symbol); }
 
     public List<CodeGenerator> getGeneratedClassesGenerators() {
-        return arrayClassFactory.getAllGeneratedArrays().stream()
+        List<CodeGenerator> list = arrayClassFactory.getAllGeneratedArrays().stream()
                 .map(a -> new ArrayGenerator(a)).collect(Collectors.toList());
+        if (!classesWithStaticInit.isEmpty())
+            list.add(new StaticInitializerGenerator(this, classesWithStaticInit));
+        return list;
+    }
+
+    public void addClassHasStaticInit(ClassSymbol classSymbol) {
+        classesWithStaticInit.add(classSymbol);
     }
 
     public boolean getMethodHasExplicitSuper(ParseTree node) {

@@ -189,7 +189,7 @@ public class SyntacticSugarListenerTests {
                 LyraParser.BoolFactorContext bool = (LyraParser.BoolFactorContext) factor;
                 assertEquals("true", bool.getText());
 
-                assertEquals(2, ctx.statlist().statement().size());
+                assertEquals(3, ctx.statlist().statement().size());
             }
         }, compiler.getParseTree());
 

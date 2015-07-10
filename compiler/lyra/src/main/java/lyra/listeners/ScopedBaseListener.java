@@ -1,9 +1,7 @@
 package lyra.listeners;
 
 import java.lang.Object;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import lyra.Compiler;
@@ -30,7 +28,8 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     protected Compiler compiler;
     protected Scope currentScope; // define symbols in this scope
     protected SymbolTable table;
-    private ParserRuleContext mutedSubtree;
+    private HashSet<ParserRuleContext> mutedSubtrees = new HashSet<>();
+    private ParserRuleContext mutedSubtree = null;
     private boolean onMutedSubtree = false;
     private HashMap<ParserRuleContext, Runnable> doOnceAfterTargets = new HashMap<>();
 
@@ -64,9 +63,7 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
     }
 
     protected void muteSubtree(ParserRuleContext subtreeRoot) {
-        if (mutedSubtree != null)
-            throw new RuntimeException("Recursively muting a subtree.");
-        mutedSubtree = subtreeRoot;
+        mutedSubtrees.add(subtreeRoot);
         onMutedSubtree = false;
     }
 
@@ -78,8 +75,11 @@ public abstract class ScopedBaseListener extends lyra.LyraParserBaseListener {
 
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
-        if (ctx == mutedSubtree)
+        if (mutedSubtrees.contains(ctx)) {
+            mutedSubtree = ctx;
             onMutedSubtree = true;
+            mutedSubtrees.remove(ctx);
+        }
         if (!onMutedSubtree)
             super.enterEveryRule(ctx);
     }

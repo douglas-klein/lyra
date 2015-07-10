@@ -48,6 +48,27 @@ public class JasminTests {
         }
     }
 
+    @Test
+    public void testGenerateCodeWithoutOutput() throws Exception {
+        ClassLoader loader = getClass().getClassLoader();
+        File samples = new File(loader.getResource("samples").toURI());
+        for (File file : FileUtils.listFiles(samples, new SuffixFileFilter("ly"), null)) {
+            File dir = Files.createTempDirectory("lyraJasminTests").toFile();
+            dir.deleteOnExit();
+            Compiler compiler = new Compiler();
+            compiler.setIntermediateDir(dir);
+            compiler.setOutputDir(dir);
+            compiler.init(file);
+            assertTrue(compiler.compile());
+
+            File program = new File(compiler.getOutputDir(), "lyra-program.jar");
+            assertTrue(program.exists());
+            List<String> actual = runProgram(program);
+            assertNotNull(actual);
+        }
+
+    }
+
     private List<String> runProgram(File program) throws IOException, InterruptedException {
         String separator = System.getProperty("file.separator");
         String java = System.getProperty("java.home")
