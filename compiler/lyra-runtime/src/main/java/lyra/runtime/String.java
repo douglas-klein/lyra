@@ -41,6 +41,8 @@ public class String extends Object {
         return lyra___set(idx, singleChar);
     }
 
+    public String lyra___added(String rhs) { return new String(valueOf() + rhs.valueOf()); }
+
     public Bool lyra___less(String rhs) {
         return Bool.getInstance(value.compareTo(rhs.value) < 0);
     }

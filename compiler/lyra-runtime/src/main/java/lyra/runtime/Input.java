@@ -84,7 +84,7 @@ public class Input extends Object {
         return null;
     }
 
-    public String lyra_readLine() {
+    public String lyra_readln() {
         try {
             return new String(reader.readLine());
         } catch (IOException e) {
