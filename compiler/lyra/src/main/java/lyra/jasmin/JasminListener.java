@@ -9,6 +9,7 @@ import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import javax.rmi.CORBA.Util;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -440,7 +441,7 @@ public class JasminListener extends ScopedBaseListener {
         VariableSymbol var = (VariableSymbol)table.getGlobal().resolve(tail);
         methodHelper.incStackUsage(1);
         writer.printf("getstatic %1$s %2$s\n",
-                var.getBinaryName(), var.getType().getBinaryName());
+                var.getBinaryName(), Utils.typeSpec(var.getType()));
     }
 
     @Override
