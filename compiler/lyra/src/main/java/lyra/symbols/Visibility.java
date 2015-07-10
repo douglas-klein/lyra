@@ -15,9 +15,9 @@ public enum Visibility {
     }
 
     static public Visibility fromName(String name) {
-        if (name == PRIVATE.toString())   return PRIVATE;
-        if (name == PROTECTED.toString()) return PROTECTED;
-        if (name == PUBLIC.toString())    return PUBLIC;
+        if (name.equals(PRIVATE.toString()) )  return PRIVATE;
+        if (name.equals(PROTECTED.toString())) return PROTECTED;
+        if (name.equals(PUBLIC.toString()))    return PUBLIC;
         return null;
     }
 
