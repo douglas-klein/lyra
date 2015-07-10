@@ -10,6 +10,7 @@ import lyra.scopes.Scope;
 import lyra.symbols.predefined.*;
 import lyra.symbols.predefined.Number;
 import lyra.symbols.predefined.Object;
+import lyra.symbols.predefined.Random;
 import lyra.symbols.predefined.Void;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
