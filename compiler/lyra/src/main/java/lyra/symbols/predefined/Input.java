@@ -17,7 +17,7 @@ public class Input extends AbstractPredefinedSymbol {
             forwardMethod(c, "hasError", "Bool", false);
             forwardMethod(c, "atEnd", "Bool", false);
             forwardMethod(c, "read", "String", false, new ArgumentStrings("Int", "count"));
-            forwardMethod(c, "readLine", "String", false);
+            forwardMethod(c, "readln", "String", false);
             defineClass(scope, c);
 
             defineGlobal(scope, new VariableSymbol("in", c) {

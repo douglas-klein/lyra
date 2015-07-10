@@ -20,6 +20,8 @@ public class LyraString extends AbstractPredefinedSymbol {
             forwardMethod(c, "set",    "void",   true, new ArgumentStrings("Int", "idx"),
                                                        new ArgumentStrings("String", "char"));
 
+            forwardMethod(c, "__added",          "String", true, new ArgumentStrings("String", "rhs"));
+            forwardMethod(c, "__less",           "Bool", true, new ArgumentStrings("String", "rhs"));
             forwardMethod(c, "__less",           "Bool", true, new ArgumentStrings("String", "rhs"));
             forwardMethod(c, "__lessorequal",    "Bool", true, new ArgumentStrings("String", "rhs"));
             forwardMethod(c, "__equals",         "Bool", true, new ArgumentStrings("String", "rhs"));
