@@ -36,44 +36,31 @@ public class CommandlineUI {
      */
     private boolean applicationEntryPoint = false;
 
-    @Option(name = "--gui", aliases = {"-g"}, required = false,
-            usage = "Displays ANTLR parse tree dialog.")
+    @Option(name = "--gui", aliases = {"-g"}, required = false, usage = "Displays ANTLR parse tree dialog.")
     private boolean showTreeDialog = false;
 
-    @Option(name = "--lisp", aliases = {"-l"}, required = false,
-            usage = "Show LISP-style parse tree.")
+    @Option(name = "--lisp", aliases = {"-l"}, required = false, usage = "Show LISP-style parse tree.")
     private boolean showLispTree = false;
 
-    @Option(name = "--verbose-errors", aliases = {"-E"}, required = false,
-            usage = "Print more information with error messages")
+    @Option(name = "--verbose-errors", aliases = {"-E"}, required = false, usage = "Print more information with error messages")
     private boolean verboseErrors = false;
 
-    @Option(name = "--quiet", aliases = {"-q"}, required = false,
-            usage = "Do not output error information, just exit with non-zero status. " +
-                    "This overrides --verbose-errors")
+    @Option(name = "--quiet", aliases = {"-q"}, required = false, usage = "Do not output error information, just exit with non-zero status. This overrides --verbose-errors")
     private boolean quiet = false;
 
-    @Option(name = "--gui-error-context", aliases = {"-G"}, required = false,
-            usage = "Show a dialog with a tree representation of the parser context for each error.")
+    @Option(name = "--gui-error-context", aliases = {"-G"}, required = false, usage = "Show a dialog with a tree representation of the parser context for each error.")
     private boolean guiErrorContext = false;
 
-    @Option(name = "--lemonade-recovery", aliases = {"-L"}, required = false,
-            usage = "Recover syntatic errors by ignoring the predicted symbol and resuming " +
-                    "parsing from the offeding token")
+    @Option(name = "--lemonade-recovery", aliases = {"-L"}, required = false, usage = "Recover syntatic errors by ignoring the predicted symbol and resuming parsing from the offeding token")
     private  boolean lemonadeRecovery = false;
 
-    @Option(name = "--int-dir", aliases = {"-i"}, required = false,
-            usage = "Puts all intermediate files (.j and .class) into the given directory. The " +
-                    "directory is created if needed.")
+    @Option(name = "--int-dir", aliases = {"-i"}, required = false, usage = "Puts all intermediate files (.j and .class) into the given directory. The directory is created if needed.")
     private String intermediaryDirPath = null;
 
-    @Option(name = "--out-dir", aliases = {"-o"}, required = false,
-            usage = "Puts the generated jar file on the given directory. The directory is " +
-                    "created if needed.")
+    @Option(name = "--out-dir", aliases = {"-o"}, required = false, usage = "Puts the generated jar file on the given directory. The directory is created if needed.")
     private String outputDirPath = null;
 
-    @Option(name = "--only-check", aliases = {"-C"}, required = false,
-            usage = "Do not generate code, only checks the semantic validity of the input")
+    @Option(name = "--only-check", aliases = {"-C"}, required = false, usage = "Do not generate code, only checks the semantic validity of the input")
     private boolean onlyCheck = false;
 
     @Argument
@@ -140,7 +127,6 @@ public class CommandlineUI {
             if (outputDirPath != null)
                 compiler.setOutputDir(createDir(intermediaryDirPath));
         }
-
 
         compiler.setLemonadeRecovery(lemonadeRecovery);
         compiler.init(input, fileOrParentDir);

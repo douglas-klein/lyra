@@ -45,12 +45,14 @@ public class Compiler {
     }
 
     public void init(Reader input, File fileOrFileDir) throws IOException {
+        File programName = fileOrFileDir;
         if (fileOrFileDir != null) {
             if (!fileOrFileDir.isDirectory())
                 fileOrFileDir = fileOrFileDir.getParentFile();
             if (fileOrFileDir == null)
                 fileOrFileDir = new File(".");
             includeDirs.add(0, fileOrFileDir);
+            includeDirs.add(1, programName);
         }
 
         ANTLRInputStream antlrIn = new ANTLRInputStream(input);
@@ -154,7 +156,8 @@ public class Compiler {
         ClassLoader cl = getClass().getClassLoader();
         InputStream resourceStream = cl.getResourceAsStream("lyra-runtime-1.0.jar");
         ZipInputStream runtime = new ZipInputStream(resourceStream);
-        File outputFile = new File(outputDir, "lyra-program.jar");
+        String programName = includeDirs.get(1).getName().split("\\.")[0];
+        File outputFile = new File(outputDir,  programName + ".jar");
         ZipOutputStream output = new ZipOutputStream(new FileOutputStream(outputFile));
 
         /* copy everything on the lyra-runtime jar. Special case for the lyra directory */

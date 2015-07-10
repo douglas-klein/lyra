@@ -7,10 +7,10 @@ package lyra.runtime;
 public class String extends Object {
     private java.lang.String value;
     static java.lang.String trueValues[] = {
-            "true", "1", "True", "TRUE", "on"
+            "t", "T", "true", "1", "True", "TRUE", "on", "y", "Y", "yes", "Yes", "YES"
     };
     static java.lang.String falseValues[] = {
-            "false", "0", "False", "FALSE", "off"
+            "f", "F", "false", "0", "False", "FALSE", "off", "n", "N", "no", "No", "NO"
     };
 
     public String(java.lang.String string) {
