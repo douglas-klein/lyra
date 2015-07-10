@@ -4,6 +4,9 @@ class Application {
         forever {
             x++;
             y--;
+            if (x == 4) {
+                break;
+            }
         }
     }
 }
