@@ -47,6 +47,7 @@ public class SymbolTable {
         predefinedSymbols.add(new Array());
         predefinedSymbols.add(new Output());
         predefinedSymbols.add(new Input());
+        predefinedSymbols.add(new Random());
 
         for (PredefinedSymbol s : predefinedSymbols)
             s.forward(global);

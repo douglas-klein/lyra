@@ -23,8 +23,7 @@ public abstract class AbstractPredefinedSymbol implements PredefinedSymbol {
     }
 
 
-    protected void forwardMethod(ClassSymbol classSymbol, String name,
-                                 String returnType, boolean infix,
+    protected void forwardMethod(ClassSymbol classSymbol, String name, String returnType, boolean infix,
                                  ArgumentStrings... args) throws SemanticErrorException {
         MethodSymbol symbol = new MethodSymbol(name, getType(returnType), classSymbol);
         symbol.setInfix(infix);
