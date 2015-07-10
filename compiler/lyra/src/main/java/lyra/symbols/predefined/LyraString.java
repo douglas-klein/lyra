@@ -31,7 +31,7 @@ public class LyraString extends AbstractPredefinedSymbol {
 
             forwardMethod(c, "parseInt",    "Int", false);
             forwardMethod(c, "parseNumber", "Int", false);
-            forwardMethod(c, "parseBool",   "Int", false);
+            forwardMethod(c, "parseBool",   "Bool", false);
 
             forwardMethod(c, "toString",    "String", false);
 
