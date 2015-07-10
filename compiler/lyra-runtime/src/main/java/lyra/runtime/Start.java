@@ -41,10 +41,30 @@ public class Start {
                     return;
                 }
             }
+            initStatic(loader);
             callMain(loader);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void initStatic(ClassLoader loader) throws ReflectiveOperationException {
+        Class<?> init;
+        try {
+            init = loader.loadClass("lyra.user.StaticInitializer");
+        } catch (ClassNotFoundException e) {
+            /* no static initialization required */
+            return;
+        }
+
+        Method staticInit;
+        try {
+            staticInit = init.getMethod("staticInit");
+        } catch (NoSuchMethodException e) {
+            System.err.println("No staticInit on StaticInitializer, compiler bug?");
+            throw e;
+        }
+        staticInit.invoke(null);
     }
 
     private static void callMain(ClassLoader loader) throws ReflectiveOperationException {
