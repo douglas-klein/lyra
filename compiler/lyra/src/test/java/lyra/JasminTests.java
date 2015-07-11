@@ -54,7 +54,6 @@ public class JasminTests {
         File samples = new File(loader.getResource("samples").toURI());
         for (File file : FileUtils.listFiles(samples, new SuffixFileFilter("ly"), null)) {
             if (file.getName().startsWith("Imported")) continue;
-            System.err.println(file.getName());
             File dir = Files.createTempDirectory("lyraJasminTests").toFile();
             dir.deleteOnExit();
             Compiler compiler = new Compiler();
