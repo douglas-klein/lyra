@@ -472,14 +472,21 @@ public class JasminListener extends ScopedBaseListener {
         if (getOnMutedSubtree()) return;
         NumberToken tok = (NumberToken) ctx.NUMBER().getSymbol();
         ClassSymbol type = table.getPredefinedClass(tok.getLyraTypeName());
-        String primitive = type.getName().equals("Int") ? "I" : "D";
-        methodHelper.incStackUsage(1 /*new*/ + 1 /*dup*/ + 1 /*ldc*/);
+        String primitive = "I";
+        String ldc = "ldc";
+        int ldcBytes = 1;
+        if (!type.getName().equals("Int")) {
+            primitive = "D";
+            ldc = "ldc2_w";
+            ldcBytes = 2;
+        }
+        methodHelper.incStackUsage(1 /*new*/ + 1 /*dup*/ + ldcBytes);
         writer.printf("new %1$s\n" +
                       "dup\n" +
-                      "ldc %2$s\n" +
-                      "invokespecial %1$s/<init>(%3$s)V\n"
-                , type.getBinaryName(), tok.getText(), primitive);
-        methodHelper.decStackUsage(2 /*dup, ldc*/);
+                      "%2$s %3$s\n" +
+                      "invokespecial %1$s/<init>(%4$s)V\n"
+                , type.getBinaryName(), ldc, tok.getText(), primitive);
+        methodHelper.decStackUsage(1 /*dup*/ + ldcBytes);
     }
 
     @Override
