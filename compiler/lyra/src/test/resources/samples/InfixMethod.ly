@@ -1,7 +1,7 @@
 class A {
-    def op(rhs : A) : A {}
-    def __added(rhs: A ) : A {}
-    def __multiplied(rhs : A ) : A {}
+    def op(rhs : A) : A { return new A(); }
+    def __added(rhs: A ) : A { return new A(); }
+    def __multiplied(rhs : A ) : A { return new A(); }
 }
 
 class Application {
