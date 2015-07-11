@@ -40,8 +40,18 @@ public class Utils {
         writer.println(".source " + classSymbol.getName() + ".j");
         writer.println(".class public " + classSymbol.getBinaryName());
         writer.println(".super " + classSymbol.getSuperClass().getBinaryName());
-        writer.println();
-        writer.println();
+        classSymbol.getInterfaces()
+                .forEach(i -> writer.println(".implements " + i.getBinaryName()));
+        writer.printf("\n\n");
+    }
+
+    public static void writeInterfacePrelude(PrintWriter writer, InterfaceSymbol interfaceSymbol) {
+        writer.println(".source " + interfaceSymbol.getName() + ".j");
+        writer.println(".interface public abstract " + interfaceSymbol.getBinaryName());
+        writer.println(".super java/lang/Object");
+        interfaceSymbol.getSuperInterfaces()
+                .forEach(s -> writer.println(".implements " + s.getBinaryName()));
+        writer.printf("\n\n");
     }
 
 

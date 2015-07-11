@@ -3,6 +3,7 @@ package lyra.jasmin;
 import lyra.symbols.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import javax.rmi.CORBA.Util;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -178,6 +179,13 @@ public class MethodHelper {
     public void dup() {
         incStackUsage(1);
         writer.printf("dup\n");
+    }
+
+    public void invoke(MethodSymbol method) {
+        boolean isInterface = method.getEnclosingScope() instanceof InterfaceSymbol;
+        String invoke = isInterface ? "invokeinterface" : "invokevirtual";
+        String nArgsSuffix = isInterface ? " " + (method.getArguments().size()+1) : "";
+        writer.printf("%1$s %2$s%3$s\n", invoke, Utils.methodSpec(method), nArgsSuffix);
     }
 
     public VariableSymbol getCurrentVar() {

@@ -25,6 +25,7 @@ public class JasminListener extends ScopedBaseListener {
     private List<File> classFiles = new LinkedList<>();
 
     private ClassSymbol classSymbol;
+    private InterfaceSymbol interfaceSymbol;
     private File file;
 
     private PrintWriter writer;
@@ -33,6 +34,7 @@ public class JasminListener extends ScopedBaseListener {
     private MethodHelper methodHelper;
 
     IntraMethodCodeGenerator attributeInitializers;
+    CodeGenerator staticInit = null;
 
     public JasminListener(Compiler compiler, File outputDir) {
         super(compiler);
@@ -141,7 +143,16 @@ public class JasminListener extends ScopedBaseListener {
         setupStaticAttributeInitializers(ctx);
     }
 
-    CodeGenerator staticInit = null;
+    @Override
+    public void enterInterfacedecl(LyraParser.InterfacedeclContext ctx) {
+        super.enterInterfacedecl(ctx);
+
+        staticInit = null;
+        interfaceSymbol = (InterfaceSymbol)table.getNodeSymbol(ctx);
+        createJasminFile(interfaceSymbol.getName());
+
+        Utils.writeInterfacePrelude(writer, interfaceSymbol);
+    }
 
     private void setupStaticAttributeInitializers(LyraParser.ClassBodyContext ctx) {
         List<LyraParser.AttributeDeclContext> attributeNodes = getClassAttributeDeclContexts(ctx);
@@ -272,6 +283,20 @@ public class JasminListener extends ScopedBaseListener {
     }
 
     @Override
+    public void enterMethodDeclAbstract(LyraParser.MethodDeclAbstractContext ctx) {
+        super.enterMethodDeclAbstract(ctx);
+
+        MethodSymbol method = (MethodSymbol) table.getNodeSymbol(ctx);
+        writer.printf(".method %1$s abstract %2$s(%3$s)%4$s\n.end method\n\n",
+                mapVisibility(method.getVisibility()),
+                method.getBinaryName(),
+                method.getArgumentTypes().stream().map(t -> Utils.typeSpec(t))
+                    .reduce((a, b) -> a + b).orElse(""),
+                Utils.typeSpec(method.getReturnType())
+        );
+    }
+
+    @Override
     public void exitMemberFactor(LyraParser.MemberFactorContext ctx) {
         if (getOnMutedSubtree()) return;
         /* code for ctx.factor() and all expr() child of ctx.args() have already been visited
@@ -306,8 +331,8 @@ public class JasminListener extends ScopedBaseListener {
             if (Utils.isPostfixIncDec(method)) {
                 /* x.__inc() and x.__dec() return the old x value (not the method return) and
                  * the x variable is assigned to the method return. */
-                methodHelper.incStackUsage(1 /*dup*/);
-                writer.printf("dup\ninvokevirtual %1$s\n", methodSpec(method));
+                methodHelper.dup();
+                methodHelper.invoke(method);
                 if (methodHelper.getCurrentVar() != null) {
                     /* store the method return into the lhs variable */
                     methodHelper.storeVar(methodHelper.getCurrentVar());
@@ -323,7 +348,7 @@ public class JasminListener extends ScopedBaseListener {
                  * child of a memberFactor, and in that case, already emits the code to perform any
                  * necessary implicit conversion, so we have the stack with the right types as well.
                  */
-                    writer.printf("invokevirtual %1$s\n", methodSpec(method));
+                methodHelper.invoke(method);
                 /* pop object and arguments, leave a result */
                 methodHelper.decStackUsage(1 + method.getArgumentTypes().size() - 1);
             }
@@ -364,7 +389,7 @@ public class JasminListener extends ScopedBaseListener {
             /* a method call to this without arguments */
             MethodSymbol method = (MethodSymbol) symbol;
             methodHelper.loadVar((VariableSymbol) methodSymbol.resolve("this"));
-            writer.printf("invokevirtual %1$s\n", methodSpec(method));
+            methodHelper.invoke(method);
             //this is replaced with the method return
         } else if (symbol instanceof VariableSymbol) {
             /* (class) var access, get the var value and stack it */
@@ -613,7 +638,7 @@ public class JasminListener extends ScopedBaseListener {
         doOnceAfter(ctx.expr(), () -> {
             methodHelper.loadVar(temp);
             writer.printf("swap\n"); //[..., switchobject, caseexprobject]
-            writer.printf("invokevirtual %1$s\n", Utils.methodSpec(equals));
+            methodHelper.invoke(equals);
             methodHelper.decStackUsage(1 /*argument*/);
             checkAndDoConversion(equals.getReturnType(), table.getPredefinedClass("Bool"));
             writer.printf("invokevirtual lyra/runtime/Bool/valueOf()Z\n");
@@ -743,6 +768,13 @@ public class JasminListener extends ScopedBaseListener {
         classSymbol = null;
         endJasminFile();
         super.exitClassBody(ctx);
+    }
+
+    @Override
+    public void exitInterfacedecl(LyraParser.InterfacedeclContext ctx) {
+        interfaceSymbol = null;
+        endJasminFile();
+        super.exitInterfacedecl(ctx);
     }
 
     @Override
