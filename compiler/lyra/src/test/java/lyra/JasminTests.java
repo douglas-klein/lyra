@@ -37,7 +37,7 @@ public class JasminTests {
             List<String> expected = getExpectedOutput(samples, file);
             File program = new File(compiler.getOutputDir(), "lyra-program.jar");
             assertTrue(program.exists());
-            List<String> actual = runProgram(program);
+            List<String> actual = runProgram(program, false);
             assertNotNull(actual);
 
             System.out.println("----");
@@ -53,6 +53,8 @@ public class JasminTests {
         ClassLoader loader = getClass().getClassLoader();
         File samples = new File(loader.getResource("samples").toURI());
         for (File file : FileUtils.listFiles(samples, new SuffixFileFilter("ly"), null)) {
+            if (file.getName().startsWith("Imported")) continue;
+            System.err.println(file.getName());
             File dir = Files.createTempDirectory("lyraJasminTests").toFile();
             dir.deleteOnExit();
             Compiler compiler = new Compiler();
@@ -63,13 +65,13 @@ public class JasminTests {
 
             File program = new File(compiler.getOutputDir(), "lyra-program.jar");
             assertTrue(program.exists());
-            List<String> actual = runProgram(program);
+            List<String> actual = runProgram(program, true);
             assertNotNull(actual);
         }
 
     }
 
-    private List<String> runProgram(File program) throws IOException, InterruptedException {
+    private List<String> runProgram(File program, boolean requireZeroExit) throws IOException, InterruptedException {
         String separator = System.getProperty("file.separator");
         String java = System.getProperty("java.home")
                 + separator + "bin" + separator + "java";
@@ -78,6 +80,8 @@ public class JasminTests {
         Process process = builder.start();
         List<String> lines = IOUtils.readLines(process.getInputStream());
         process.waitFor();
+        if (requireZeroExit && process.exitValue() != 0)
+            return null;
         return lines;
     }
 
