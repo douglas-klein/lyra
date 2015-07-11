@@ -9,13 +9,11 @@ import lyra.tokens.StringToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import javax.rmi.CORBA.Util;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  *
@@ -193,7 +191,7 @@ public class JasminListener extends ScopedBaseListener {
                 me.writer = oldWriter;
                 me.methodHelper = oldHelper;
 
-                out = methodHelper.writePreludeAndBody();
+                out = methodHelper.writeMethodBody(true);
                 out.printf("return\n.end method\n\n");
             }
         };
@@ -713,8 +711,7 @@ public class JasminListener extends ScopedBaseListener {
 
     @Override
     public void exitMethodDecl(LyraParser.MethodDeclContext ctx) {
-        writer = methodHelper.writePreludeAndBody();
-        methodHelper.writePrologue();
+        writer = methodHelper.writeMethodBody();
         methodSymbol = null;
         methodHelper = null;
         super.exitMethodDecl(ctx);

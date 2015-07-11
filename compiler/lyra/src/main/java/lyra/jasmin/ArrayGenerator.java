@@ -4,9 +4,6 @@ import lyra.CodeGenerator;
 import lyra.symbols.*;
 
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,8 +73,7 @@ public class ArrayGenerator implements CodeGenerator {
     }
 
     private void methodEnd() {
-        out = methodHelper.writePreludeAndBody();
-        methodHelper.writePrologue();
+        out = methodHelper.writeMethodBody();
         methodHelper = null;
     }
 

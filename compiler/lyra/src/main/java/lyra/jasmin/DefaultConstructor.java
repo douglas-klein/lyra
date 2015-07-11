@@ -45,7 +45,6 @@ public class DefaultConstructor extends IntraMethodCodeGenerator {
             initializersGenerator.generate(writer, table);
         }
 
-        writer = methodHelper.writePreludeAndBody();
-        methodHelper.writePrologue();
+        writer = methodHelper.writeMethodBody();
     }
 }

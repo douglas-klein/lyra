@@ -121,7 +121,10 @@ public class MethodHelper {
                 : Utils.typeSpec(methodSymbol.getReturnType()));
     }
 
-    public PrintWriter writePreludeAndBody() {
+    public PrintWriter writeMethodBody() { return writeMethodBody(false); }
+    public PrintWriter writeMethodBody(boolean omitAutoPrologue) {
+        if (!omitAutoPrologue)
+            writePrologue();
         writer.flush();
         String body = "";
         try {
