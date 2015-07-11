@@ -142,10 +142,12 @@ public class MethodHelper {
         ClassSymbol voidClass = table.getPredefinedClass("void");
         if (methodSymbol.getReturnType() == voidClass && !methodSymbol.isConstructor()) {
             MethodSymbol constructor = voidClass.resolveOverload("constructor");
+            incStackUsage(2);
             writer.printf("new %1$s\n" +
                     "dup\n" +
                     "invokespecial %2$s\n" +
                     "areturn\n", voidClass.getBinaryName(), Utils.methodSpec(constructor));
+            decStackUsage(2);
         } else if (methodSymbol.isConstructor()) {
             writer.printf("return\n");
         }
