@@ -60,6 +60,9 @@ public class CommandlineUI {
     @Option(name = "--out-dir", aliases = {"-o"}, required = false, usage = "Puts the generated jar file on the given directory. The directory is created if needed.")
     private String outputDirPath = null;
 
+    @Option(name = "--out-filename", aliases = {"-O"}, required = false, usage = "Uses the given filename instead of <sourcename>.jar as the output file name. This affects only the file name, --out-dir is still considered.")
+    private String outputFilename = null;
+
     @Option(name = "--only-check", aliases = {"-C"}, required = false, usage = "Do not generate code, only checks the semantic validity of the input")
     private boolean onlyCheck = false;
 
@@ -126,6 +129,12 @@ public class CommandlineUI {
                 compiler.setIntermediateDir(createDir(intermediaryDirPath));
             if (outputDirPath != null)
                 compiler.setOutputDir(createDir(intermediaryDirPath));
+            if (outputFilename != null) {
+                compiler.setOutputFilename(outputFilename);
+            } else {
+                if (!fileOrParentDir.isDirectory())
+                    compiler.setOutputFilename(fileOrParentDir.getName().split("\\.")[0] + ".jar");
+            }
         }
 
         compiler.setLemonadeRecovery(lemonadeRecovery);
