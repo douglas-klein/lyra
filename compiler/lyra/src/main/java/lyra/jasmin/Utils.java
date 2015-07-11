@@ -22,11 +22,7 @@ public class Utils {
     }
 
     public static String typeSpec(TypeSymbol type) {
-        String spec = "L";
-        if (type instanceof InterfaceSymbol)
-            spec = "I";
-        spec += type.getBinaryName() + ";";
-        return spec;
+        return  "L" + type.getBinaryName() + ";";
     }
 
     public static String methodSpec(MethodSymbol method) {
