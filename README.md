@@ -1,4 +1,6 @@
-# Linguagem de Programação Lyra
+# Lyra programming language
+
+This was a final assignment for the course of Compilation Construction at the Computer Science bsc. at UFSC. The original content was all in portuguese. I'll translate it eventually.
 
 ### Características da linguagem:
 - Imperativa
